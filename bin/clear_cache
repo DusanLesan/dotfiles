@@ -1,0 +1,30 @@
+#!/bin/bash
+
+foldersToDelete=(
+	"$HOME/.dotfiles/code/.config/Code - OSS/Backups"
+	"$HOME/.dotfiles/code/.config/Code - OSS/blob_storage"
+	"$HOME/.dotfiles/code/.config/Code - OSS/Cache"
+	"$HOME/.dotfiles/code/.config/Code - OSS/CachedData"
+	"$HOME/.dotfiles/code/.config/Code - OSS/CachedExtensions"
+	"$HOME/.dotfiles/code/.config/Code - OSS/CachedExtensionVSIXs"
+	"$HOME/.dotfiles/code/.config/Code - OSS/Code Cache"
+	"$HOME/.dotfiles/code/.config/Code - OSS/GPUCache"
+	"$HOME/.dotfiles/code/.config/Code - OSS/logs"
+	"$HOME/.dotfiles/code/.config/Code - OSS/Session Storage"
+	"$HOME/.dotfiles/skype/.config/skypeforlinux/Cache"
+	"$HOME/.dotfiles/slack/.config/Slack/Cache"
+	"$HOME/.dotfiles/slack/.config/Slack/Service Worker"
+	"$HOME/.cache/mozilla/firefox/fq8nxeih.default-release/cache2"
+	"$HOME/.cache/chromium/Default/Cache"
+	"$HOME/.cache/plasma_theme_"*
+)
+
+for i in "${foldersToDelete[@]}"
+do
+	rm -rf "$i"
+done
+
+sudo journalctl --vacuum-time=5d
+sudo paccache -rk 1
+sudo paccache -ruk0
+rm -rf "/var/tmp/pamac-build-"*

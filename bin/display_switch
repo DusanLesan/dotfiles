@@ -1,0 +1,14 @@
+#!/bin/sh
+
+WIDTH=$(xrandr | awk 'NR==1 {print $8}')
+MODE=$(xrandr | awk 'NR==2 {print $1}')
+SUFFIX=${MODE#"eDP"}
+
+d1="eDP$SUFFIX"
+d2="HDMI$SUFFIX"
+
+if [ $WIDTH -gt 1920 ]; then
+	xrandr --output ${d1} --off --output ${d2} --primary --mode 1920x1080 --pos 0x0 --rotate normal
+else
+	xrandr --output ${d1} --primary --mode 1920x1080 --pos 0x0 --rotate normal --output ${d2} --mode 1920x1080 --pos 1920x0 --rotate normal
+fi

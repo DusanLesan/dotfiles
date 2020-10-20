@@ -1,0 +1,52 @@
+#!/bin/bash
+
+extensionBlacklist=(".zip", ".jar", ".png", ".ico", ".otf", ".ttf")
+
+processFile() {
+	if [[ ${extensionBlacklist[@]} =~ "${1##*.}" ]]; then
+		return
+	fi
+
+	# Display white-space characters at the ends of the lines
+	result=`grep -n '[[:blank:]]$' "$1"`
+
+	# Display double spaces
+	result=$result$'\n'`grep -nP '\S[ ]{2,}\S' "$1"`
+
+	# Display spaces next to tabs
+	result=$result$'\n'`grep -nP '\t | \t' "$1"`
+
+	# Display multiple empty lines
+	result=$result$'\n'`pcregrep -Mn '^$.*(\n|.)^$' "$1"`
+
+	# Display empty lines before end statements
+	result=$result$'\n'`pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1"`
+
+	# If result not all whitechars then print matches
+	if [[ $result = *[![:space:]]* ]]; then
+		echo ">>>>>>>>>> File: $1 <<<<<<<<<<"
+		echo "$result" | sed '/^[[:space:]]*$/d' | sort -n
+	fi
+}
+
+processDir() {
+	for filename in $1 ; do
+		if [ -f "$filename" ]; then
+			processFile "$filename"
+		elif [ -d "$filename" ]; then
+			processDir "$filename/*"
+		fi
+	done
+}
+
+if [ $# -eq 0 ]; then
+	processDir "*/"
+else
+	if [ -f "$1" ]; then
+		processFile "$1"
+	elif [ -d "$1" ]; then
+		processDir "$1*"
+	else
+		echo "Invalid input"
+	fi
+fi

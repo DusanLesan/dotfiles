@@ -1,0 +1,47 @@
+#!/usr/bin/zsh
+
+while getopts 'q' OPTION; do
+	case "$OPTION" in
+		q)
+			skypeforlinux --shutdown
+			pkill slack
+			kill -TERM `pgrep -fo mattermost`
+			pkill thunderbird
+		;;
+
+		?)
+			echo "$(basename $0) -q for quiting all" >&2
+			exit 1
+		;;
+	esac
+done
+
+if [ $OPTIND = 1 ]; then
+
+	while ! ping -c 1 -W 1 8.8.8.8; do
+		sleep 1
+	done
+
+	if ! pgrep -x "slack" > /dev/null; then
+		slack </dev/null &>/dev/null &
+	fi
+
+	if [ -z "$(pgrep -fo mattermost)" ]; then
+		mattermost-desktop </dev/null &>/dev/null &
+	fi
+
+	if ! pgrep -x "skypeforlinux" > /dev/null; then
+		skypeforlinux </dev/null &>/dev/null &
+	fi
+
+	if ! pgrep -x "thunderbird" > /dev/null; then
+		thunderbird </dev/null &>/dev/null &
+	fi
+
+	if [ -z "$(pgrep -fo firefox)" ]; then
+		firefox \
+			-new-tab -url "mail.pcionline.net" \
+			-new-tab -url "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
+			</dev/null &>/dev/null &
+	fi
+fi

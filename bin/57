@@ -1,0 +1,81 @@
+#!/bin/bash
+
+source super_secret_file
+
+if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
+	ACTION=$(echo -e "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ")
+
+	retVal=$?
+	if [ $retVal -eq 1 ]; then
+		exit 1
+	fi
+fi
+
+while getopts 'os' OPTION; do
+	case "$OPTION" in
+		o)
+			ACTION="Power up"
+		;;
+
+		m)
+			ACTION="Mount FS"
+		;;
+
+		s)
+			ACTION="Send to sleep"
+		;;
+
+		x)
+			ACTION="x2x"
+		;;
+
+		?)
+			echo "$(basename $0) -o turn 57 on" >&2
+			echo "$(basename $0) -s send 57 to sleep" >&2
+			exit 1
+		;;
+	esac
+done
+
+case "$ACTION" in
+	"Power up")
+		mosquitto_pub \
+			-h m15.cloudmqtt.com \
+			-p 13578 \
+			-m WoL \
+			-t /to/esp32/ \
+			-u $cloudmqtt_user \
+			-P $cloudmqtt_password
+	;;
+
+	"Mount FS")
+		if [ ! -d "$HOME/hdd_3" ]; then
+			mkdir $HOME/hdd_3
+		fi
+		sshfs loc:$HOME/ $HOME/hdd_3
+	;;
+
+	"Send to sleep")
+		if [ -d "$HOME/hdd_3" ]; then
+			umount -l $HOME/hdd_3
+			rm -rf $HOME/hdd_3
+		fi
+
+		IP="$(ip addr show wlp3s0 | awk '/inet / {print substr($2,0,10)}')"
+
+		if [ "$IP" = "192.168.1.56" ]; then
+			HOST="loc"
+		else
+			HOST="rem"
+		fi
+
+		ssh \
+			-Y \
+			$HOST \
+			"$HOME/bin2/suspend.sh"
+	;;
+	
+	"x2x")
+		ssh -Y loc 'x2x -west -to :0'
+	;;
+esac

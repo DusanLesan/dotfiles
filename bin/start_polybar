@@ -1,0 +1,3 @@
+#!/bin/bash
+
+polybar -c /home/dusan/.config/polybar/config default

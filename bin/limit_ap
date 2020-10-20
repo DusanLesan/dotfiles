@@ -1,0 +1,105 @@
+#!/bin/bash
+
+export SUDO_ASKPASS="$HOME/bin/pass_prompt"
+
+interface=ap0
+bandwidth=300
+unit=kbit
+
+rate() {
+	local rateValue="${bandwidth}${unit}"
+	echo $rateValue
+}
+
+if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
+	ACTION=$(echo -e "Add rule\nChange rule\nDelete rule" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ");
+
+		retVal=$?
+		if [ $retVal -eq 1 ]; then
+			exit 1
+		fi
+
+	OPTION=$(echo -e "Default values($(rate) @ $interface)\nChange values" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ")
+
+		retVal=$?
+		if [ $retVal -eq 1 ]; then
+			exit 1
+		fi
+
+	if [[ $OPTION = "Change values" ]]; then
+		interface=$(echo "$interface" | dmenu -fn 'Droid Sans Mono-9' -i -p "Interface name: ")
+
+		retVal=$?
+		if [ $retVal -eq 1 ]; then
+			exit 1
+		fi
+
+		bandwidth=$(echo "$bandwidth" | dmenu -fn 'Droid Sans Mono-9' -i -p "Bandwidth value: ")
+
+		retVal=$?
+		if [ $retVal -eq 1 ]; then
+			exit 1
+		fi
+	fi
+fi
+
+help() {
+	echo "$(basename $0) -i interface (default: ap0)" >&2
+	echo "$(basename $0) -b bandwidth (default: 300)" >&2
+	echo "$(basename $0) -u unit (default: kbit)" >&2
+	echo "$(basename $0) -a add rule" >&2
+	echo "$(basename $0) -c change rule" >&2
+	echo "$(basename $0) -d delete rule" >&2
+	echo "One action flag must be included (a,c,d)" >&2
+	exit 1
+}
+
+while getopts 'acdi:b:u:' OPTION; do
+	case "$OPTION" in
+		i)
+			interface=$OPTARG
+		;;
+
+		b)
+			bandwidth=$OPTARG
+		;;
+
+		u)
+			unit=$OPTARG
+		;;
+
+		a)
+			ACTION="Add rule"
+		;;
+
+		c)
+			ACTION="Change rule"
+		;;
+
+		d)
+			ACTION="Delete rule"
+		;;
+
+		?)
+			help
+		;;
+	esac
+done
+
+case "$ACTION" in
+	"Add rule")
+		sudo -A tc qdisc add dev $interface root tbf rate $(rate) latency 50ms burst 1540
+	;;
+
+	"Change rule")
+		sudo -A tc qdisc change dev $interface root tbf rate $(rate) latency 50ms burst 1540
+	;;
+
+	"Delete rule")
+		sudo -A tc qdisc delete dev $interface root tbf rate $(rate) latency 50ms burst 1540
+	;;
+
+	*)
+		help
+	;;
+esac
