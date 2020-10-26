@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Show wifi 📶 and percent strength or 📡 if none.
+# Show 🌐 if connected to ethernet or ❎ if none.
+
+case $BLOCK_BUTTON in
+	1) st -c floatingSt -G 400x400-1+1 -e "nmtui-connect" ;;
+esac
+
+case "$(cat /sys/class/net/w*/operstate 2>/dev/null)" in
+	down) wifiicon="睊" ;;
+	up) wifiicon="直" ;;
+esac
+
+printf "%s%s\n" "$wifiicon" "$(sed "s/down//;s/up//" /sys/class/net/e*/operstate 2>/dev/null)"
