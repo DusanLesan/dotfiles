@@ -1,3 +1,7 @@
 #!/usr/bin/zsh
 
-xwalpaper --zoom ~/Pictures/bc.jpg
+xwallpaper --zoom ~/Pictures/bc.jpg &
+killall -q dwmblocks; dwmblocks &
+xautolock -time 15 -locker slock &
+unclutter -idle 3 &
+autostart &

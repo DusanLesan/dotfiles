@@ -1,0 +1,3 @@
+#!/bin/bash
+
+nmcli device wifi hotspot con-name B ssid B band bg password tesivo259483

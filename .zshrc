@@ -18,8 +18,8 @@ zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 HISTFILE=~/.config/zhistory
-HISTSIZE=1000
-SAVEHIST=500
+HISTSIZE=2000
+SAVEHIST=2000
 #export EDITOR=/usr/bin/nano
 #export VISUAL=/usr/bin/nano
 WORDCHARS=${WORDCHARS//\/[&.;]}									# Don't consider certain characters part of the word
@@ -63,7 +63,7 @@ colors
 setopt prompt_subst
 
 # Adds `~/bin` to $PATH
-export PATH="$PATH:$HOME/bin"
+export PATH="$PATH:$HOME/bin:$HOME/bin/status"
 
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 export ANDROID_HOME=$HOME/Android/Sdk
