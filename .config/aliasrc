@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# Verbosity and settings that you pretty much just always are going to want.
+alias \
+	cp="cp -iv" \
+	mv="mv -iv" \
+	rm="rm -vI"
+
+# Colorize commands when possible.
+alias \
+	ls="ls -hN --color=auto --group-directories-first" \
+	grep="grep --color=auto" \
+	diff="diff --color=auto" \
+	ccat="highlight --out-format=ansi"
+
+# These common commands are just too long! Abbreviate them.
+alias \
+	sdn="sudo shutdown -h now" \
+	p="sudo pacman"
+
+# Human-readable sizes
+alias \
+	df="df -h" \	
+	free="free -m" \
+	
+	
+alias c="communication"
+
+# Bitwarden
+bwp() { bw get password $1 | xclip -se c ;}
+bwu() { bw get username $1 | xclip -se c ;}
+bwul() { session=$(bw unlock | sed -n -e "s/$ export //p"); if [[ $session == "BW_SESSION"* ]]; then export $session; fi ;}
+
+# Fuzzy search change directory
+cdf() { cd "$(cat "$HOME/.config/directory.list" | fzf | sed "s|~|$HOME|")" ;}
+
+# Display clipboard content as QR code
+qr() { xclip -selection c -o | qrencode -m 2 -t utf8 ;}
+
+killcpu() { kill $(ps -Ao pid= --sort=-pcpu | head -n 1) ;}
+killmem() { kill $(ps -Ao pid= --sort=-pmem | head -n 1) ;}
