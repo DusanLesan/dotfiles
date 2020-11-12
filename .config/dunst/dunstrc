@@ -385,6 +385,7 @@
     summary = "date"
     format = "<span stretch="semiexpanded" size="15000">%b</span>"
     background = "#383a3b"
+    new_icon = ~/.config/dunst/1px.png
 
 #[espeak]
 #    summary = "*"
