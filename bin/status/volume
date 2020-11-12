@@ -1,18 +1,16 @@
 #!/bin/sh
 
 # Prints the current volume or 🔇 if muted.
-
 case $BLOCK_BUTTON in
 	1) st -c floatingSt -e alsamixer -V all ;;
 	3) amixer -D pulse set Master 1+ toggle ;;
-	4) amixer set Master 2%+ ;;
-	5) amixer set Master 2%- ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+	4) amixer set Master 5%+ ;;
+	5) amixer set Master 5%- ;;
 esac
 
 [ $(pacmd list-sinks | awk '/muted/ { print $2 }') = "yes" ] && echo 🔇 && exit
 
-vol="$(amixer sget Master | grep 'Left:' | awk '/%/ {gsub(/[\[\]]/,""); print $5}')"
+vol="$(amixer sget Master | grep 'Left:' | awk '{gsub(/[\[\]]/,""); print $5}')"
 icon="🔉"
 
 echo "$icon$vol"

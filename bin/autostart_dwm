@@ -5,3 +5,4 @@ killall -q dwmblocks; dwmblocks &
 xautolock -time 15 -locker slock &
 unclutter -idle 3 &
 autostart &
+/usr/lib/polkit-kde-authentication-agent-1 &

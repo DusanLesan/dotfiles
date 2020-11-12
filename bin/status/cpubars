@@ -8,13 +8,6 @@
 # Cache in tmpfs to improve speed and reduce SSD load
 cache=/tmp/cpubarscache
 
-case $BLOCK_BUTTON in
-	2) setsid -f "$TERMINAL" -e htop ;;
-	3) notify-send "🪨 CPU load module" "Each bar represents
-one CPU core";;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
-esac
-
 # id total idle
 stats=$(awk '/cpu[0-9]+/ {printf "%d %d %d\n", substr($1,4), ($2 + $3 + $4 + $5), $5 }' /proc/stat)
 [ ! -f $cache ] && echo "$stats" > "$cache"
