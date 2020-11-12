@@ -37,3 +37,4 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
 fi
 
 exec /home/dusan/bin/start_desktop
+#exec startplasma-x11

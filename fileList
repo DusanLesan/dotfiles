@@ -19,9 +19,13 @@ bin/status/cpubars
 bin/status/internet
 bin/status/memory
 bin/status/volume
-.config/dunst/dunstrc
+.config/dunst/
 .config/polybar/config
+.config/geany/colorschemes/
+.config/geany/geany.conf
+.config/pcmanfm/default/pcmanfm.conf
 .zshrc
 .bashrc
+.config/aliasrc
 .xinitrc
 Pictures/bc.jpg
