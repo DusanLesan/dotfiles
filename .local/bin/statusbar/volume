@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Prints the current volume or 🔇 if muted.
+case $BLOCK_BUTTON in
+	1) st -c floatingSt -G 400x400-1+1 -e "pulsemixer" ;;
+	2) pamixer -t ;;
+	4) pamixer --allow-boost -i 5 ;;
+	5) pamixer --allow-boost -d 5 ;;
+esac
+
+[ $(pacmd list-sinks | awk '/muted/ { print $2 }') = "yes" ] && echo 🔇 && exit
+
+vol="$(pamixer --get-volume)%"
+icon="墳"
+
+echo "$icon$vol"

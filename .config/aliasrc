@@ -1,10 +1,17 @@
 #!/bin/sh
 
+# Use neovim for vim if present.
+[ -x "$(command -v nvim)" ] && alias vim="nvim" vimdiff="nvim -d"
+
 # Verbosity and settings that you pretty much just always are going to want.
 alias \
 	cp="cp -iv" \
 	mv="mv -iv" \
-	rm="rm -vI"
+	rm="rm -vI" \
+	mkd="mkdir -pv" \
+	yt="youtube-dl --add-metadata -i" \
+	yta="yt -x -f bestaudio/best" \
+	ffmpeg="ffmpeg -hide_banner"
 
 # Colorize commands when possible.
 alias \
@@ -15,27 +22,22 @@ alias \
 
 # These common commands are just too long! Abbreviate them.
 alias \
+	ka="killall" \
+	g="git" \
+	trem="transmission-remote" \
+	YT="youtube-viewer" \
 	sdn="sudo shutdown -h now" \
-	p="sudo pacman"
+	f="$FILE" \
+	e="$EDITOR" \
+	v="$EDITOR" \
+	p="sudo pacman" \
+	xi="sudo xbps-install" \
+	xr="sudo xbps-remove -R" \
+	xq="xbps-query" \
+	z="zathura"
 
-# Human-readable sizes
 alias \
-	df="df -h" \	
-	free="free -m" \
-	
-	
-alias c="communication"
-
-# Bitwarden
-bwp() { bw get password $1 | xclip -se c ;}
-bwu() { bw get username $1 | xclip -se c ;}
-bwul() { session=$(bw unlock | sed -n -e "s/$ export //p"); if [[ $session == "BW_SESSION"* ]]; then export $session; fi ;}
-
-# Fuzzy search change directory
-cdf() { cd "$(cat "$HOME/.config/directory.list" | fzf | sed "s|~|$HOME|")" ;}
-
-# Display clipboard content as QR code
-qr() { xclip -selection c -o | qrencode -m 2 -t utf8 ;}
-
-killcpu() { kill $(ps -Ao pid= --sort=-pcpu | head -n 1) ;}
-killmem() { kill $(ps -Ao pid= --sort=-pmem | head -n 1) ;}
+	magit="nvim -c MagitOnly" \
+	ref="shortcuts >/dev/null; source ${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc ; source ${XDG_CONFIG_HOME:-$HOME/.config}/zshnameddirrc" \
+	weath="less -S ${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport" \
+	tmux="tmux -f ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf" \

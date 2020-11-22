@@ -10,10 +10,9 @@ cache=/tmp/cpubarscache
 
 # id total idle
 stats=$(awk '/cpu[0-9]+/ {printf "%d %d %d\n", substr($1,4), ($2 + $3 + $4 + $5), $5 }' /proc/stat)
-[ ! -f $cache ] && echo "$stats" > "$cache"
+[ ! -f $cache ] && echo "$stats" > "$cache" && exit 1
 old=$(cat "$cache")
 
-# printf "🪨"
 echo "$stats" | while read -r row; do
 	id=${row%% *}
 	rest=${row#* }

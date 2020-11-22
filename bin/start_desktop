@@ -1,4 +1,0 @@
-#!/bin/bash
-
-source ~/.zshrc
-while type dwm > /home/dusan/.dwm.log ; do dwm && continue || break ; done
