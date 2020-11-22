@@ -17,9 +17,16 @@ zstyle ':completion:*' rehash true								# automatically find new executables i
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
-HISTFILE=~/.config/zhistory
-HISTSIZE=2000
-SAVEHIST=2000
+
+# Enable colors and change prompt:
+autoload -U colors && colors	# Load colors
+stty stop undef		# Disable ctrl-s to freeze terminal.
+
+# History in cache directory:
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.config/zsh/zhistory
+
 #export EDITOR=/usr/bin/nano
 #export VISUAL=/usr/bin/nano
 WORDCHARS=${WORDCHARS//\/[&.;]}									# Don't consider certain characters part of the word
@@ -51,8 +58,10 @@ bindkey '^[[1;5C' forward-word									#
 bindkey '^H' backward-kill-word									# delete previous word with ctrl+backspace
 bindkey '^[[Z' undo												# Shift+tab undo last action
 
-## Load aliases and shortcuts if existent.
+# Load aliases and shortcuts if existent.
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc" ] && source "${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc"
 [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/aliasrc" ] && source "${XDG_CONFIG_HOME:-$HOME/.config}/aliasrc"
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/zshnameddirrc" ] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zshnameddirrc"
 
 # Theming section
 autoload -U compinit colors zcalc
@@ -62,9 +71,6 @@ colors
 # enable substitution for prompt
 setopt prompt_subst
 
-# Adds `~/bin` to $PATH
-export PATH="$PATH:$HOME/bin:$HOME/bin/status"
-
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
@@ -72,8 +78,6 @@ export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export ANDROID_SDK_HOME=$HOME/hdd_1/.android
-
-export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.
 
 # Prompt (on left side) similar to default bash prompt, or redhat zsh prompt with colors
  #PROMPT="%(!.%{$fg[red]%}[%n@%m %1~]%{$reset_color%}# .%{$fg[green]%}[%n@%m %1~]%{$reset_color%}$ "

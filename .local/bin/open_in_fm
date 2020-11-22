@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo in script
+echo $(dirname $1)
+pcmanfm "$(dirname "$1")"
