@@ -1,9 +1,9 @@
 #!/bin/bash
 
-export SUDO_ASKPASS="$HOME/bin/pass_prompt"
+export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 
-interface=ap0
-bandwidth=300
+interface=wlp3s0
+bandwidth=200
 unit=kbit
 
 rate() {
@@ -12,14 +12,14 @@ rate() {
 }
 
 if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
-	ACTION=$(echo -e "Add rule\nChange rule\nDelete rule" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ");
+	ACTION=$(echo -e "Add rule\nChange rule\nDelete rule" | dmenu -i -p "Action: ");
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then
 			exit 1
 		fi
 
-	OPTION=$(echo -e "Default values($(rate) @ $interface)\nChange values" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ")
+	OPTION=$(echo -e "Default values($(rate) @ $interface)\nChange values" | dmenu -i -p "Action: ")
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then
@@ -27,14 +27,14 @@ if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
 		fi
 
 	if [[ $OPTION = "Change values" ]]; then
-		interface=$(echo "$interface" | dmenu -fn 'Droid Sans Mono-9' -i -p "Interface name: ")
+		interface=$(echo "$interface" | dmenu -i -p "Interface name: ")
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then
 			exit 1
 		fi
 
-		bandwidth=$(echo "$bandwidth" | dmenu -fn 'Droid Sans Mono-9' -i -p "Bandwidth value: ")
+		bandwidth=$(echo "$bandwidth" | dmenu -i -p "Bandwidth value: ")
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then

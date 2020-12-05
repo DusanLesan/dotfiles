@@ -22,10 +22,13 @@ processFile() {
 	# Display empty lines before end statements
 	result=$result$'\n'`pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1"`
 
+	# Find all if statements without then
+	result=$result$'\n'`grep -nP '^\sif((?!then).)*$' "$1"`
+
 	# If result not all whitechars then print matches
 	if [[ $result = *[![:space:]]* ]]; then
 		echo ">>>>>>>>>> File: $1 <<<<<<<<<<"
-		echo "$result" | sed '/^[[:space:]]*$/d' | sort -n
+		echo "$result" | grep -e '^[0-9]' | sort -n
 	fi
 }
 
