@@ -8,7 +8,7 @@ case $BLOCK_BUTTON in
 	5) pamixer --allow-boost -d 5 ;;
 esac
 
-[ $(pacmd list-sinks | awk '/muted/ { print $2 }') = "yes" ] && echo 🔇 && exit
+[ "$(pacmd list-sinks | awk '/muted/ { print $2 }')" = "yes" ] && echo  && exit
 
 vol="$(pamixer --get-volume)%"
 icon="墳"

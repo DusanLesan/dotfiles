@@ -3,7 +3,6 @@
 .zprofile
 .config/zsh/.zshrc
 .config/aliasrc
-.config/Xresources
 .config/dunst/
 .config/geany/colorschemes/monokai.conf
 .config/geany/geany.conf
@@ -11,6 +10,7 @@
 .config/gtk-3.0/
 .config/pcmanfm/default/pcmanfm.conf
 .config/polybar/
+.config/x11/
 .local/bin/57
 .local/bin/autostart
 .local/bin/clear_cache
@@ -18,8 +18,10 @@
 .local/bin/displayselect
 .local/bin/display_switch
 .local/bin/dmenupass
+.local/bin/dunst_config
 .local/bin/ext
 .local/bin/limit_ap
+.local/bin/maimpick
 .local/bin/open_in_fm
 .local/bin/polkit_agent
 .local/bin/start_desktop
