@@ -2,7 +2,7 @@
 
 # This file runs when a DM logs you into a graphical session.
 
-xwallpaper --zoom ~/Pictures/bc.jpg &
+xwallpaper --zoom ~/.local/share/bc.jpg &
 xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &
 #xautolock -time 15 -locker slock &
