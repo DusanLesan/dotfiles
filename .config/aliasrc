@@ -42,4 +42,9 @@ alias \
 	weath="less -S ${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport" \
 	tmux="tmux -f ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf"
 
-wsg() { git status --porcelain | grep '^\w.'| awk '{print $2}' | while read -r line; do white "`git rev-parse --show-toplevel`/$line"; done }
+# Run white script for all staged files in current git repository
+wsg() {
+	git status --porcelain | grep '^\w.'| awk '{print $2}' | while read -r line; do 
+		white "`git rev-parse --show-toplevel`/$line"; 
+	done 
+}
