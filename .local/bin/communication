@@ -24,8 +24,8 @@ if [ $OPTIND = 1 ]; then
 	
 	if [ -z "$(pgrep -fo brave)" ]; then
 		brave \
-			--new-window mail.pcionline.net \
-			--new-window https://mail.google.com/mail/u/1/#inbox \
+			--new-window "mail.pcionline.net" \
+			--new-window "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
 			</dev/null &>/dev/null &
 	fi
 
