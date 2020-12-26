@@ -91,6 +91,16 @@ cmd zip ${{
     rm -rf $1
 }}
 
+cmd fzf_jump ${{
+   res="$(find . -maxdepth 1 | fzf --reverse)"
+   if [ -f "$res" ]; then
+     cmd="select"
+   elif [ -d "$res" ]; then
+     cmd="cd"
+   fi
+lf -remote "send $id $cmd \"$res\""
+}}
+
 # Remove some defaults
 map m
 map o
@@ -99,6 +109,7 @@ map c
 # Basic Functions
 map H top
 map L bottom
+map <a-f> :fzf_jump
 map . set hidden!
 map DD delete
 map p paste
