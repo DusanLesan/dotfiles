@@ -28,5 +28,5 @@ export HISTFILE="${XDG_DATA_HOME:-$HOME/.local/share}/history"
 
 # Other program settings:
 export DICS="/usr/share/stardict/dic/"
-export SUDO_ASKPASS="$HOME/.local/bin/dmenupass"
+export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.
