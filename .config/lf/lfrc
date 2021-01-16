@@ -1,5 +1,7 @@
 # interpreter for shell commands (needs to be POSIX compatible)
 
+set shell zsh
+set shellopts -eu
 set scrolloff 10
 set hidden true
 set ifs "\n"
@@ -31,6 +33,10 @@ cmd mkfile ${{
   printf "File Name: "
   read ans
   $EDITOR $ans
+}}
+
+cmd yank-path ${{
+    echo "$fx" | xclip -i -selection clipboard
 }}
 
 cmd chmod ${{
@@ -115,6 +121,7 @@ map DD delete
 map p paste
 map x cut
 map y copy
+map Y yank-path
 map mf mkfile
 map md mkdir
 map ch chmod
@@ -123,7 +130,12 @@ map r rename
 map R reload
 map C clear
 map U unselect
-
+map spd set nopreview
+map spe set preview
+map sr1 set ratios 1
+map sr2 set ratios 1:2
+map sr3 set ratios 1:2:3
+map sr4 set ratios 1:2:3:5
 
 # use enter for shell commands
 map <enter> shell
@@ -134,9 +146,10 @@ map O $mime_type_select $f
 # map O $mimeopen --ask $f
 
 # Movement
-map gd. cd ~/Documents
-map gdw cd ~/Downloads
+map gds cd ~/Documents
+map gdl cd ~/Downloads
 map gl cd ~/.local
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map gh1 cd ~/hdd_1/
+map gmtp cd /run/user/1000/gvfs

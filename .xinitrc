@@ -2,5 +2,4 @@
 
 # xinitrc runs automatically when you run startx.
 
-#. ~/.xprofile
-start_desktop
+dwm >/dev/null 2>&1

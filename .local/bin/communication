@@ -6,7 +6,7 @@ while getopts 'q' OPTION; do
 			skypeforlinux --shutdown
 			pkill slack
 			kill -TERM `pgrep -fo mattermost`
-			pkill thunderbird
+			pkill mailspring
 		;;
 
 		?)
@@ -37,8 +37,8 @@ if [ $OPTIND = 1 ]; then
 		mattermost-desktop </dev/null &>/dev/null &
 	fi
 
-	if ! pgrep -x "thunderbird" > /dev/null; then
-		thunderbird </dev/null &>/dev/null &
+	if ! pgrep -x "mailspring" > /dev/null; then
+		mailspring </dev/null &>/dev/null &
 	fi
 
 	sleep 1

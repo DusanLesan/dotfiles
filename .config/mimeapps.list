@@ -66,3 +66,4 @@ image/jpeg=sxiv.desktop
 image/png=sxiv.desktop
 application/x-shellscript=geany.desktop;
 text/x-python3=nvim.desktop;
+x-scheme-handler/mailspring=mailspring.desktop

@@ -2,7 +2,7 @@
 
 set -C -f -u
 #IFS=$'\n'
-IFS="$(printf '%b_' '\n')"; IFS="${IFS%_}"
+#IFS="$(printf '%b_' '\n')"; IFS="${IFS%_}"
 
 # ANSI color codes are supported.
 # STDIN is disabled, so interactive scripts won't work properly
@@ -19,6 +19,7 @@ IFS="$(printf '%b_' '\n')"; IFS="${IFS%_}"
 # Script arguments
 FILE_PATH="${1}"         # Full path of the highlighted file
 HEIGHT="${2}"
+let WIDTH=$(tput cols)/2
 
 #FILE_EXTENSION="${FILE_PATH##*.}"
 #FILE_EXTENSION_LOWER=$(echo ${FILE_EXTENSION} | tr '[:upper:]' '[:lower:]')
@@ -27,7 +28,6 @@ HEIGHT="${2}"
 HIGHLIGHT_SIZE_MAX=262143  # 256KiB
 HIGHLIGHT_TABWIDTH=8
 HIGHLIGHT_STYLE='pablo'
-
 
 handle_mime() {
     local mimetype="${1}"
@@ -45,7 +45,13 @@ handle_mime() {
                 --style="${HIGHLIGHT_STYLE}" --force -- "${FILE_PATH}" ;;
                 
         application/zip) atool --list -- "${FILE_PATH}" ;;
-        image/*) img2txt "${FILE_PATH}" ;;
+        image/*)
+            arr=($(file ${FILE_PATH} | awk 'split(substr($0, match($0, /[0-9]{2,6}x[0-9]+/),RLENGTH), arr, "x") {print arr[1], arr[2]}'))
+            if [ ${#arr[@]} -eq 0 ] || [ ${arr[0]} -gt ${arr[1]} ]; then
+                img2txt -W $WIDTH "${FILE_PATH}"
+            else
+                img2txt -H $HEIGHT "${FILE_PATH}"
+            fi ;;
     esac
 }
 

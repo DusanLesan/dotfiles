@@ -22,6 +22,5 @@ do
 done
 
 sudo journalctl --vacuum-time=5d
-sudo paccache -rk 1
-sudo paccache -ruk0
+sudo pacman -Scq
 rm -rf "/var/tmp/pamac-build-"*

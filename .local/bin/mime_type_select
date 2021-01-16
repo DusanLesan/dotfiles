@@ -1,10 +1,10 @@
 #!/bin/sh
 
-list=$(mime_type_list $(xdg-mime query filetype $1))
+list=$(mime_type_list $(xdg-mime query filetype "$1"))
 
 echo "Open file $1 with"
 select item in $list; do
-	eval "gtk-launch $item $1 &>/dev/null &"
+	eval "gtk-launch $item '$1' &>/dev/null &"
 	break
 done
 
