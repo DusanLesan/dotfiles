@@ -20,7 +20,7 @@ echo "$stats" | while read -r row; do
 	idle=${rest##* }
 
 	case "$(echo "$old" | awk '{if ($1 == id)
-		printf "%d\n", (1 - (idle - $3)  / (total - $2))*100 / 16.66}' \
+		printf "%d\n", (1 - (idle - $3)  / (total - $2))*100 / 16.67}' \
 		id="$id" total="$total" idle="$idle")" in
 
 		"0") printf "▁";;
