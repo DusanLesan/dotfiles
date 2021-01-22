@@ -301,7 +301,7 @@
 [urgency_normal]
     background = "#285577"
     foreground = "#ffffff"
-    timeout = 0
+    timeout = 10
     # Icon for notifications with normal urgency, uncomment to enable
     #icon = /path/to/icon
 
@@ -386,11 +386,6 @@
     format = "<span stretch="semiexpanded" size="15000">%b</span>"
     background = "#383a3b"
     new_icon = ~/.config/dunst/1px.png
-    
-[low_priority]
-    category = "low_priority"
-    new_icon = ~/.config/dunst/1px.png
-    timeout = 10
 
 #[espeak]
 #    summary = "*"

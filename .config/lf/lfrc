@@ -1,10 +1,7 @@
 # interpreter for shell commands (needs to be POSIX compatible)
 
-set shell zsh
-set shellopts -eu
 set scrolloff 10
 set hidden true
-set ifs "\n"
 set previewer ~/.config/lf/scope
 
 # define a custom 'open' command
@@ -111,6 +108,7 @@ lf -remote "send $id $cmd \"$res\""
 map m
 map o
 map c
+map d
 
 # Basic Functions
 map H top
