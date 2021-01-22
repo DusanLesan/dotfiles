@@ -3,7 +3,7 @@
 source super_secret_file
 
 if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
-	ACTION=$(echo -e "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -fn 'Droid Sans Mono-9' -i -p "Action: ")
+	ACTION=$(echo -e "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -i -p "Action: ")
 
 	retVal=$?
 	if [ $retVal -eq 1 ]; then
