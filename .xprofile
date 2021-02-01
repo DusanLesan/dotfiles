@@ -5,7 +5,6 @@
 xwallpaper --zoom ~/.local/share/bc.jpg & # Set walpaper
 xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &
-# xautolock -time 15 -locker slock &
 autostart &
 # xcompmgr &		# xcompmgr for transparency
 unclutter &		# Remove mouse when idle
