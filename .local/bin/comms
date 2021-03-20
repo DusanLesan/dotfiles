@@ -21,13 +21,6 @@ if [ $OPTIND = 1 ]; then
 	while ! ping -c 1 -W 1 8.8.8.8; do
 		sleep 1
 	done
-	
-	if [ -z "$(pgrep -fo brave)" ]; then
-		brave \
-			--new-window "mail.pcionline.net" \
-			--new-window "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
-			</dev/null &>/dev/null &
-	fi
 
 	if ! pgrep -x "skypeforlinux" > /dev/null; then
 		skypeforlinux </dev/null &>/dev/null &

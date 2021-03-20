@@ -7,6 +7,13 @@ if (( 6 > 10#$D && 10 < 10#$H && 10#$H < 20 )); then
 		sleep 1
 	done
 
-	communication
+	if [ -z "$(pgrep -fo $BROWSER)" ]; then
+		$BROWSER \
+			--new-window "mail.pcionline.net" \
+			--new-window "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
+			</dev/null &>/dev/null &
+	fi
+
+	comms
 fi
 

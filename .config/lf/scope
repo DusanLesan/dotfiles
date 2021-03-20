@@ -18,8 +18,8 @@ set -C -f -u
 
 # Script arguments
 FILE_PATH="${1}"         # Full path of the highlighted file
-HEIGHT="${2}"
-let WIDTH=$(tput cols)/2
+WIDTH="${2}"
+HEIGHT="${3}"
 
 #FILE_EXTENSION="${FILE_PATH##*.}"
 #FILE_EXTENSION_LOWER=$(echo ${FILE_EXTENSION} | tr '[:upper:]' '[:lower:]')
@@ -46,7 +46,7 @@ handle_mime() {
                 
         application/zip) atool --list -- "${FILE_PATH}" ;;
         image/*)
-            arr=($(file ${FILE_PATH} | awk 'split(substr($0, match($0, /[0-9]{2,6}x[0-9]+/),RLENGTH), arr, "x") {print arr[1], arr[2]}'))
+            arr=($(identify -format "%w %h" ${FILE_PATH}))
             if [ ${#arr[@]} -eq 0 ] || [ ${arr[0]} -gt ${arr[1]} ]; then
                 img2txt -W $WIDTH "${FILE_PATH}"
             else

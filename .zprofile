@@ -1,11 +1,8 @@
 #!/bin/zsh
 
-# zsh profile file. Runs on login. Environmental variables are set here.
+export ROKU_DEVICE_ID="3a25248a-6a9c-5ece-8c4f-3be26c3c1ab5,9db93e76-fcdb-5dea-b029-1ae94e850c71"
 
-# If you don't plan on reverting to bash, you can remove the link in ~/.profile
-# to clean up.
-
-# Adds `~/.local/bin` to $PATH
+# Adds `~/.local/bin` and its subdirectories to $PATH
 export PATH="$PATH:$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':')"
 
 # Default programs:
@@ -17,7 +14,6 @@ export BROWSER="brave"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
-#export XAUTHORITY="$XDG_RUNTIME_DIR/Xauthority" # This line will break some DMs.
 export NOTMUCH_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/notmuch-config"
 export GTK2_RC_FILES="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-2.0/gtkrc-2.0"
 export INPUTRC="${XDG_CONFIG_HOME:-$HOME/.config}/inputrc"
