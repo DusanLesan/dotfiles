@@ -6,3 +6,4 @@
 
 *.foreground: #bbbbbb
 *.background: #1E1E1E
+*.barBackground: #1E1E1E

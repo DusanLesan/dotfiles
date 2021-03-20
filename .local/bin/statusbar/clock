@@ -1,7 +1,5 @@
 #!/bin/sh
 
-clock=$(date '+%I')
-
 case $BLOCK_BUTTON in
 	1) notify-send "date" "$(cal -m --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..27m/<\/span><\/b>/")" ;;
 	3) notify-send "date" \

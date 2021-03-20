@@ -3,7 +3,6 @@
 set scrolloff 10
 set hidden true
 set previewer ~/.config/lf/scope
-set mouse true
 set ifs "\n"
 
 # define a custom 'open' command
@@ -12,7 +11,7 @@ set ifs "\n"
 # text files and a file opener for the rest.
 cmd open ${{
     case $(file --mime-type "$f" -b) in
-        image/*) echo "$fx" | sxiv -aio 2>/dev/null | \
+        image/*) echo "$fx" | devour sxiv -aiop 2>/dev/null | \
             (lf -remote "send $id unselect"; \
             while read -r file; do \
                 lf -remote "send $id select \"$file\""; \
@@ -96,7 +95,8 @@ cmd zip ${{
     temp=$f.tmp
     mkdir $temp
     cp -r $fx $temp
-    zip -r $f.zip $temp
+    cd $temp
+    zip -r $f.zip .
     rm -rf $temp
 }}
 
@@ -115,10 +115,6 @@ map m
 map o
 map c
 map d
-map <m-1>    open
-map <m-2>    updir
-map <m-up>   up
-map <m-down> down
 
 # Basic Functions
 map H top

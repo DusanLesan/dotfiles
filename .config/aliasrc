@@ -11,7 +11,8 @@ alias \
 	mkd="mkdir -pv" \
 	yt="youtube-dl --add-metadata -i" \
 	yta="yt -x -f bestaudio/best" \
-	ffmpeg="ffmpeg -hide_banner"
+	ffmpeg="ffmpeg -hide_banner" \
+	sxiv="sxiv -p"
 
 # Colorize commands when possible.
 alias \
@@ -34,7 +35,8 @@ alias \
 	xi="sudo xbps-install" \
 	xr="sudo xbps-remove -R" \
 	xq="xbps-query" \
-	z="zathura"
+	z="zathura" \
+	c="comms"
 
 alias \
 	magit="nvim -c MagitOnly" \

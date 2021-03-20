@@ -134,14 +134,14 @@ colors:
 
   # Normal colors
   normal:
-    black:   '0x000000'
-    red:     '0xdd0000'
-    green:   '0x00dd00'
-    yellow:  '0xdddd00'
-    blue:    '0x0000f0'
-    magenta: '0xFF00FF'
+    black:   '0x282a2e'
+    red:     '0xa54242'
+    green:   '0x569440'
+    yellow:  '0xde935f'
+    blue:    '0x5f819d'
+    magenta: '0x85678f'
     cyan:    '0x5e8d87'
-    white:   '0xe5e8e6'
+    white:   '0xC3C3C3'
 
  
 background_opacity: 1.0
