@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 foldersToDelete=(
 	"$HOME/.config/Code - OSS/Backups"
