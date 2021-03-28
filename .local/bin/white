@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 extensionBlacklist=(".zip", ".jar", ".png", ".ico", ".otf", ".ttf")
 

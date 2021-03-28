@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ACTION=$(echo -e "Primary only\nFollow\nToggle" | dmenu -i -p "Action: ")
 
