@@ -402,15 +402,45 @@
 #def_key "f"
 #	find_item_forward
 
-def_key "+"
-    show_clock
-def_key "="
-    volume_up
+def_key "mouse"
+    mouse_event
+
+def_key "right"
+    next_column
+def_key "l"
+    next_column
+def_key "right"
+    enter_directory
+def_key "l"
+    enter_directory
+def_key "right"
+    run_action
+def_key "l"
+    run_action
+def_key "right"
+    play_item
+def_key "l"
+    play_item
+
+def_key "h"
+    previous_column
 
 def_key "j"
     scroll_down
 def_key "k"
     scroll_up
+
+def_key "space"
+    select_item
+    scroll_down
+
+def_key "a"
+    add_selected_items
+
+def_key "+"
+    show_clock
+def_key "="
+    volume_up
 
 def_key "ctrl-u"
     page_up
@@ -424,10 +454,6 @@ def_key "u"
 def_key "d"
     page_down
 #push_characters "jjjjjjjjjjjjjjj"
-def_key "h"
-    previous_column
-def_key "l"
-    next_column
 
 def_key "."
     show_lyrics
@@ -444,12 +470,6 @@ def_key "K"
     move_sort_order_up
 def_key "h"
   jump_to_parent_directory
-def_key "l"
-  enter_directory
-def_key "l"
-  run_action
-def_key "l"
-  play_item
 def_key "m"
   show_media_library
 def_key "m"
