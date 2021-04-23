@@ -313,6 +313,21 @@
     # Icon for notifications with critical urgency, uncomment to enable
     #icon = /path/to/icon
 
+[date]
+    summary = "date"
+    format = "<span stretch="semiexpanded" size="15000">%b</span>"
+    background = "#383a3b"
+    new_icon = ~/.config/dunst/1px.png
+    timeout = 0
+
+[mail]
+    appname = "mutt-wizard"
+    background = "#285577"
+    foreground = "#ffffff"
+    new_icon = ~/.config/dunst/1px.png
+    timeout = 0
+    script = ~/.config/dunst/alert
+
 # Every section that isn't one of the above is interpreted as a rules to
 # override settings for certain messages.
 #
@@ -380,13 +395,6 @@
 #[fullscreen_show_critical]
 #    msg_urgency = critical
 #    fullscreen = show
-
-[date]
-    summary = "date"
-    format = "<span stretch="semiexpanded" size="15000">%b</span>"
-    background = "#383a3b"
-    new_icon = ~/.config/dunst/1px.png
-    timeout = 0
 
 #[espeak]
 #    summary = "*"

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+menu_cmd='dmenu -i -p Bookmark'
+bookmarks=~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
+$BROWSER $(cat $bookmarks | tr '"' '\n' | grep -Eo '(http|https)://.*' | grep -Eo '(http|https)://.*' | $menu_cmd) &

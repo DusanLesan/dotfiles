@@ -1,0 +1,4 @@
+#!/bin/sh
+
+paplay --volume 0 /usr/share/sounds/freedesktop/stereo/message.oga
+paplay --volume 65536 /usr/share/sounds/freedesktop/stereo/message.oga

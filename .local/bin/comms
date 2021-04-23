@@ -30,10 +30,6 @@ if [ $OPTIND = 1 ]; then
 		mattermost-desktop </dev/null &>/dev/null &
 	fi
 
-	if ! pgrep -x "mailspring" > /dev/null; then
-		mailspring </dev/null &>/dev/null &
-	fi
-
 	sleep 1
 	if ! pgrep -x "slack" > /dev/null; then
 		slack </dev/null &>/dev/null &
