@@ -3,4 +3,3 @@
 . super_secret_file
 
 nmcli device wifi hotspot con-name B ssid B band bg password "$hotspot_pass"
-

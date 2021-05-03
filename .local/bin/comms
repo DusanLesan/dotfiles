@@ -5,7 +5,7 @@ while getopts 'q' OPTION; do
 		q)
 			skypeforlinux --shutdown
 			pkill slack
-			kill -TERM `pgrep -fo mattermost`
+			kill -TERM "$(pgrep -fo mattermost)"
 			pkill mailspring
 		;;
 
@@ -23,15 +23,15 @@ if [ $OPTIND = 1 ]; then
 	done
 
 	if ! pgrep -x "skypeforlinux" > /dev/null; then
-		skypeforlinux </dev/null &>/dev/null &
+		skypeforlinux > /dev/null 2>&1 &
 	fi
 
 	if [ -z "$(pgrep -fo mattermost)" ]; then
-		mattermost-desktop </dev/null &>/dev/null &
+		mattermost-desktop >/dev/null 2>&1 &
 	fi
 
 	sleep 1
 	if ! pgrep -x "slack" > /dev/null; then
-		slack </dev/null &>/dev/null &
+		slack >/dev/null 2>&1 &
 	fi
 fi

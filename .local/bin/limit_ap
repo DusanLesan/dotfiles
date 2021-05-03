@@ -7,26 +7,25 @@ bandwidth=200
 unit=kbit
 
 rate() {
-	local rateValue="${bandwidth}${unit}"
-	echo $rateValue
+	echo "${bandwidth}${unit}"
 }
 
 if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
-	ACTION=$(echo -e "Add rule\nChange rule\nDelete rule" | dmenu -i -p "Action: ");
+	ACTION=$(printf "Add rule\nChange rule\nDelete rule" | dmenu -i -p "Action: ");
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then
 			exit 1
 		fi
 
-	OPTION=$(echo -e "Default values($(rate) @ $interface)\nChange values" | dmenu -i -p "Action: ")
+	OPTION=$(printf "Default values($(rate) @ %s)\nChange values" $interface | dmenu -i -p "Action: ")
 
 		retVal=$?
 		if [ $retVal -eq 1 ]; then
 			exit 1
 		fi
 
-	if [[ $OPTION = "Change values" ]]; then
+	if [ "$OPTION" = "Change values" ]; then
 		interface=$(echo "$interface" | dmenu -i -p "Interface name: ")
 
 		retVal=$?

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ACTION=$(echo -e "Primary only\nFollow\nToggle" | dmenu -i -p "Action: ")
+ACTION=$(printf "Primary only\nFollow\nToggle" | dmenu -i -p "Action: ")
 
 retVal=$?
 if [ $retVal -eq 1 ]; then

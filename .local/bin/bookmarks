@@ -2,4 +2,7 @@
 
 menu_cmd='dmenu -i -p Bookmark'
 bookmarks=~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
-$BROWSER $(cat $bookmarks | tr '"' '\n' | grep -Eo '(http|https)://.*' | grep -Eo '(http|https)://.*' | $menu_cmd) &
+
+opt=$(jq -r '.roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | objects | "\(.name)"' $bookmarks | $menu_cmd)
+url=$(jq -r ".roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | select(.name==\"$opt\") | .url" $bookmarks)
+$BROWSER "$url"

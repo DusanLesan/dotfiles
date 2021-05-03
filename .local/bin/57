@@ -1,9 +1,9 @@
 #!/bin/sh
 
-source super_secret_file
+. super_secret_file
 
-if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
-	ACTION=$(echo -e "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -i -p "Action: ")
+if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
+	ACTION=$(printf "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -i -p "Action: ")
 
 	retVal=$?
 	if [ $retVal -eq 1 ]; then
@@ -11,7 +11,7 @@ if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ]; then
 	fi
 fi
 
-while getopts 'os' OPTION; do
+while getopts 'osmx' OPTION; do
 	case "$OPTION" in
 		o)
 			ACTION="Power up"

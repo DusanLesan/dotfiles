@@ -2,7 +2,7 @@
 
 # Show wifi 📶 and percent strength or 📡 if none.
 # Show 🌐 if connected to ethernet or ❎ if none.
-eth=enp*
+eth="enp*"
 
 case $BLOCK_BUTTON in
 	1) st -c floatingSt -G 400x400-1+1 -e "nmtui-connect" ;;
