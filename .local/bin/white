@@ -1,32 +1,28 @@
 #!/bin/sh
 
-extensionBlacklist=(".zip", ".jar", ".png", ".ico", ".otf", ".ttf")
+# Display white-space characters at the ends of the lines
+# Display double spaces
+# Display spaces next to tabs
+# Display multiple empty lines
+# Display empty lines before end statements
+# Find all if statements without then
+
+extensionBlacklist=".zip .jar .png .ico .otf .ttf"
 
 processFile() {
-	if [[ ${extensionBlacklist[@]} =~ "${1##*.}" ]]; then
-		return
-	fi
+	for item in $(echo "$extensionBlacklist" | tr ' ' '\n'); do
+		[ "$item" = ".${1##*.}" ] && return
+	done
 
-	# Display white-space characters at the ends of the lines
-	result=`grep -n '[[:blank:]]$' "$1"`
+	result=$(printf "%s\n%s\n%s\n%s\n%s\n%s" \
+		"$(grep -n '[[:blank:]]$' "$1" )" \
+		"$(grep -nP '\S[ ]{2,}\S' "$1")" \
+		"$(grep -nP '\t | \t' "$1")" \
+		"$(pcregrep -Mn '^$.*(\n|.)^$' "$1")" \
+		"$(pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1")" \
+		"$(grep -nP '^\sif((?!then).)*$' "$1")" )
 
-	# Display double spaces
-	result=$result$'\n'`grep -nP '\S[ ]{2,}\S' "$1"`
-
-	# Display spaces next to tabs
-	result=$result$'\n'`grep -nP '\t | \t' "$1"`
-
-	# Display multiple empty lines
-	result=$result$'\n'`pcregrep -Mn '^$.*(\n|.)^$' "$1"`
-
-	# Display empty lines before end statements
-	result=$result$'\n'`pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1"`
-
-	# Find all if statements without then
-	result=$result$'\n'`grep -nP '^\sif((?!then).)*$' "$1"`
-
-	# If result not all whitechars then print matches
-	if [[ $result = *[![:space:]]* ]]; then
+	if [ -n "$result" ]; then
 		echo ">>>>>>>>>> File: $1 <<<<<<<<<<"
 		echo "$result" | grep -e '^[0-9]' | sort -n
 	fi

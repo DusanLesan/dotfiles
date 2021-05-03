@@ -3,10 +3,10 @@
 case $BLOCK_BUTTON in
 	1) notify-send "date" "$(cal -m --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..27m/<\/span><\/b>/")" ;;
 	3) notify-send "date" \
-		"$(cal -m $(date -d "$(date +%Y-%m-15) -1 month" +"%B %Y") \
+		"$(cal -m "$(date -d "$(date +%Y-%m-15) -1 month" +"%B %Y")" \
 		&& cal -m --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..27m/<\/span><\/b>/"\
-		&& cal -m $(date -d "$(date +%Y-%m-15) +1 month" +"%B %Y") \
-		&& printf "<b><span color=\"red\">$(TZ=America/Los_Angeles date "+%a, %b %d, %H:%M")<\/span><\/b>" )"
+		&& cal -m "$(date -d "$(date +%Y-%m-15) +1 month" +"%B %Y")" \
+		&& printf "<b><span color=\"red\">%s<\/span><\/b>" "$(TZ=America/Los_Angeles date "+%a, %b %d, %H:%M")" )"
 	;;
 esac
 

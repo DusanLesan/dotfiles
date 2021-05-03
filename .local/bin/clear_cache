@@ -1,25 +1,24 @@
 #!/bin/sh
 
-foldersToDelete=(
-	"$HOME/.config/Code - OSS/Backups"
-	"$HOME/.config/Code - OSS/blob_storage"
-	"$HOME/.config/Code - OSS/Cache"
-	"$HOME/.config/Code - OSS/CachedData"
-	"$HOME/.config/Code - OSS/CachedExtensions"
-	"$HOME/.config/Code - OSS/CachedExtensionVSIXs"
-	"$HOME/.config/Code - OSS/Code Cache"
-	"$HOME/.config/Code - OSS/GPUCache"
-	"$HOME/.config/Code - OSS/logs"
-	"$HOME/.config/Code - OSS/Session Storage"
-	"$HOME/.config/skypeforlinux/Cache"
-	"$HOME/.config/Slack/Cache"
-	"$HOME/.config/Slack/Service Worker"
-)
+echo "
+	$HOME/.config/Code - OSS/Backups
+	$HOME/.config/Code - OSS/blob_storage
+	$HOME/.config/Code - OSS/Cache
+	$HOME/.config/Code - OSS/CachedData
+	$HOME/.config/Code - OSS/CachedExtensions
+	$HOME/.config/Code - OSS/CachedExtensionVSIXs
+	$HOME/.config/Code - OSS/Code Cache
+	$HOME/.config/Code - OSS/GPUCache
+	$HOME/.config/Code - OSS/logs
+	$HOME/.config/Code - OSS/Session Storage
+	$HOME/.config/skypeforlinux/Cache
+	$HOME/.config/Mattermost/Cache
+	$HOME/.config/Slack/Cache
+	$HOME/.config/Slack/Service Worker" | \
 
-for i in "${foldersToDelete[@]}"
-do
-	rm -rf "$i"
-done
+	while read -r data; do
+		rm -rf "$data"
+	done
 
 sudo journalctl --vacuum-time=5d
 sudo pacman -Scq
