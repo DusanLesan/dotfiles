@@ -1,4 +1,3 @@
-set termguicolors
 let mapleader=" "
 
 " Use system clipboard
@@ -24,3 +23,4 @@ set splitbelow splitright
 
 " Dont fold by default
 set nofoldenable
+
