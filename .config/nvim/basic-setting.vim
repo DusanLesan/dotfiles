@@ -24,3 +24,6 @@ set splitbelow splitright
 " Dont fold by default
 set nofoldenable
 
+inoremap jk <esc>
+inoremap kj <esc>
+
