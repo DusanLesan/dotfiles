@@ -37,6 +37,12 @@ cmd yank-path ${{
     echo "$fx" | xclip -i -selection clipboard
 }}
 
+cmd yank-image ${{
+	[ $(mimetype -Mb "$f") = "image/png" ] && \
+	xclip -sel c -t "image/png" "$f" || \
+	convert "$f" png:- | xclip -select  clipboard -t "image/png"
+}}
+
 cmd chmod ${{
   printf "Mode Bits: "
   read ans
@@ -126,6 +132,7 @@ map p paste
 map x cut
 map y copy
 map Y yank-path
+map <a-y> yank-image
 map mf mkfile
 map md mkdir
 map ch chmod

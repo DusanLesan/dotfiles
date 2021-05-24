@@ -20,7 +20,7 @@ processFile() {
 		"$(grep -nP '\t | \t' "$1")" \
 		"$(pcregrep -Mn '^$.*(\n|.)^$' "$1")" \
 		"$(pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1")" \
-		"$(grep -nP '^\sif((?!then).)*$' "$1")" )
+		"$(grep -nP '(?!.*then)^\s*if.*$' "$1")" )
 
 	if [ -n "$result" ]; then
 		echo ">>>>>>>>>> File: $1 <<<<<<<<<<"

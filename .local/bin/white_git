@@ -1,0 +1,13 @@
+#!/bin/sh
+
+MSG="$([ -f .git/MERGE_MSG ] && cat .git/MERGE_MSG || echo "")"
+[[ $MSG == [M\|m]erge* ]] && exit 0
+changed="$(git diff --cached | grep -Po '^\+\K.*')"
+result=$(printf "%s\n%s\n%s\n%s" \
+	"$(echo "$changed" | grep '[[:blank:]]$')" \
+	"$(echo "$changed" | grep -P '\S[ ]{2,}\S')" \
+	"$(echo "$changed" | grep -P '\t | \t')" \
+	"$(echo "$changed" | grep -P '(?!.*then)^\s*if.*$')" )
+
+[ -n "$result" ] && echo "$result" && exit 1
+exit 0
