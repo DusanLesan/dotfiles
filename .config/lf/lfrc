@@ -4,6 +4,7 @@ set scrolloff 10
 set hidden true
 set previewer ~/.config/lf/scope
 set ifs "\n"
+set autoquit true
 
 # define a custom 'open' command
 # This command is called when current file is not a directory. You may want to
@@ -17,6 +18,7 @@ cmd open ${{
                 lf -remote "send $id select \"$file\""; \
                 lf -remote "send toggle"; \
             done) ;;
+				text/*) $EDITOR $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
 }}
