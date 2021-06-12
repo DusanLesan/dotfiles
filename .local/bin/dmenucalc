@@ -1,0 +1,8 @@
+#!/bin/sh
+
+n1=$(echo "$1" | dmenu -p "First number: ") || exit 1
+operation=$(printf "+\n-\n*\n/" | dmenu -i -p "Action: ") && n2=$(echo "" | dmenu -p "Second number: ")
+result="$(awk "BEGIN {print $n1$operation$n2}")"
+selection=$(echo $result | dmenu -p "$n1 $operation $n2 =") || exit 1
+[ $selection = "c" ] && echo $result | xclip -sel c && exit 0
+dmenucalc $result
