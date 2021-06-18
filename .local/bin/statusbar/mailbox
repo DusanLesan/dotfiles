@@ -8,7 +8,7 @@ hour=$(date +%H)
 day=$(date +%u)
 
 case $BLOCK_BUTTON in
-	1) setsid -f "$TERMINAL" -e neomutt ;;
+	1) setsid -f "$TERM" -e neomutt ;;
 	3) mailsync ;;
 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 	*) [ 6 -gt $day ] && [ 10 -lt $hour ] && [ $hour -lt 21 ] && echo " $unread" || echo "";

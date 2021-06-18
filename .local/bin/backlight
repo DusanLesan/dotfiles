@@ -1,0 +1,8 @@
+#!/bin/sh
+
+brightness_path=/sys/class/backlight/intel_backlight/brightness
+
+case $1 in
+	+) echo $(($(cat $brightness_path) + 200)) | sudo tee $brightness_path ;;
+	-) echo $(($(cat $brightness_path) - 200)) | sed 's/^0/100/' | sudo tee $brightness_path ;;
+esac

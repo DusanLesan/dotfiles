@@ -1,6 +1,12 @@
 #!/bin/sh
 
 cache_file_path=/tmp/batcache
+brightness_path=/sys/class/backlight/intel_backlight
+
+case $BLOCK_BUTTON in
+	4) sudo backlight + ;;
+	5) sudo backlight - ;;
+esac
 
 notify() { notify-send -u "critical" "Battery warning" "Battery level at $capacity%"; }
 
@@ -16,7 +22,7 @@ for battery in /sys/class/power_supply/BAT?; do
 	capacity=$(cat "$battery"/capacity 2>/dev/null) || break
 	status=$(sed "s/[Dd]ischarging//;s/[Nn]ot charging//;s/[Cc]harging//;s/[Uu]nknown/♻️/;s/[Ff]ull/⚡/" "$battery/status")
 
-	# If it is discharging and 25% or less, we will send a warning.
+	# If it is discharging and at 25% or less, we will send a warning.
 	[ "$status" = "" ] && [ "$capacity" -le 26 ] && warn
 	[ "$status" = "" ] && rm $cache_file_path
 
