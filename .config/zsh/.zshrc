@@ -1,18 +1,18 @@
 ## Options section
 setopt correct													# Auto correct mistakes
-setopt extendedglob												# Extended globbing. Allows using regular expressions with *
+setopt extendedglob											# Extended globbing. Allows using regular expressions with *
 setopt nocaseglob												# Case insensitive globbing
-setopt rcexpandparam											# Array expension with parameters
-setopt nocheckjobs												# Don't warn about running processes when exiting
-setopt numericglobsort											# Sort filenames numerically when it makes sense
-setopt nobeep													# No beep
-setopt appendhistory											# Immediately append history instead of overwriting
-setopt histignorealldups										# If a new command is a duplicate, remove the older one
-setopt autocd													# if only directory path is entered, cd there.
+setopt rcexpandparam										# Array expension with parameters
+setopt nocheckjobs											# Don't warn about running processes when exiting
+setopt numericglobsort									# Sort filenames numerically when it makes sense
+setopt nobeep														# No beep
+setopt appendhistory										# Immediately append history instead of overwriting
+setopt histignorealldups								# If a new command is a duplicate, remove the older one
+setopt autocd														# if only directory path is entered, cd there.
 
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'		# Case insensitive tab completion
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"			# Colored completion (different colors for dirs/files/etc)
-zstyle ':completion:*' rehash true								# automatically find new executables in path
+zstyle ':completion:*' rehash true													# automatically find new executables in path
 # Speed up completions
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
@@ -29,34 +29,68 @@ HISTFILE=~/.config/zsh/zhistory
 
 #export EDITOR=/usr/bin/nano
 #export VISUAL=/usr/bin/nano
-WORDCHARS=${WORDCHARS//\/[&.;]}									# Don't consider certain characters part of the word
+WORDCHARS=${WORDCHARS//\/[&.;]}											# Don't consider certain characters part of the word
+
+## vim mode config
+# Activate vim mode
+bindkey -v '^?' backward-delete-char
+
+# Remove mode switching delay.
+KEYTIMEOUT=1
+
+# Change cursor shape for different vi modes.
+function zle-keymap-select {
+	if [[ ${KEYMAP} == vicmd ]] ||
+		[[ $1 = 'block' ]];
+	then
+		echo -ne '\e[1 q'
+	elif [[ ${KEYMAP} == main ]] ||
+		[[ ${KEYMAP} == viins ]] ||
+		[[ ${KEYMAP} = '' ]] ||
+		[[ $1 = 'beam' ]];
+	then
+		echo -ne '\e[5 q'
+	fi
+}
+zle -N zle-keymap-select
+
+# Use beam shape cursor on startup.
+echo -ne '\e[5 q'
+
+# Use beam shape cursor for each new prompt.
+preexec() {
+	echo -ne '\e[5 q'
+}
+
+# Edit line in vim with ctrl-e:
+autoload edit-command-line; zle -N edit-command-line
+bindkey '^e' edit-command-line
 
 ## Keybindings section
-bindkey -e
-bindkey '^[[7~' beginning-of-line								# Home key
-bindkey '^[[H' beginning-of-line								# Home key
+bindkey '^[[7~' beginning-of-line										# Home key
+bindkey '^[[H' beginning-of-line										# Home key
 if [[ "${terminfo[khome]}" != "" ]]; then
-	bindkey "${terminfo[khome]}" beginning-of-line				# [Home] - Go to beginning of line
+	bindkey "${terminfo[khome]}" beginning-of-line		# [Home] - Go to beginning of line
 fi
-bindkey '^[[8~' end-of-line										# End key
-bindkey '^[[F' end-of-line										# End key
+bindkey '^[[8~' end-of-line													# End key
+bindkey '^[[F' end-of-line													# End key
 if [[ "${terminfo[kend]}" != "" ]]; then
 	bindkey "${terminfo[kend]}" end-of-line						# [End] - Go to end of line
 fi
-bindkey '^[[2~' overwrite-mode									# Insert key
-bindkey '^[[3~' delete-char										# Delete key
-bindkey '^[[C' forward-char										# Right key
-bindkey '^[[D' backward-char									# Left key
-bindkey '^[[5~' history-beginning-search-backward				# Page up key
-bindkey '^[[6~' history-beginning-search-forward				# Page down key
+bindkey '^[[2~' overwrite-mode											# Insert key
+bindkey '^[[3~' delete-char													# Delete key
+bindkey '^[[C' forward-char													# Right key
+bindkey '^[[D' backward-char												# Left key
+bindkey '^[[5~' history-beginning-search-backward		# Page up key
+bindkey '^[[6~' history-beginning-search-forward		# Page down key
 
 # Navigate words with ctrl+arrow keys
-bindkey '^[Oc' forward-word										#
-bindkey '^[Od' backward-word									#
-bindkey '^[[1;5D' backward-word									#
-bindkey '^[[1;5C' forward-word									#
-bindkey '^H' backward-kill-word									# delete previous word with ctrl+backspace
-bindkey '^[[Z' undo												# Shift+tab undo last action
+bindkey '^[Oc' forward-word													#
+bindkey '^[Od' backward-word												#
+bindkey '^[[1;5D' backward-word											#
+bindkey '^[[1;5C' forward-word											#
+bindkey '^H' backward-kill-word											# delete previous word with ctrl+backspace
+bindkey '^[[Z' undo																	# Shift+tab undo last action
 
 # Load aliases and shortcuts if existent.
 [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc" ] && source "${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc"
@@ -96,12 +130,12 @@ PS1="%{$fg[white]%}%c $ "
 GIT_PROMPT_SYMBOL="%{$fg[blue]%}±"								# plus/minus		- clean repo
 GIT_PROMPT_PREFIX="%{$fg[green]%}[%{$reset_color%}"
 GIT_PROMPT_SUFFIX="%{$fg[green]%}]%{$reset_color%}"
-GIT_PROMPT_AHEAD="%{$fg[red]%}ANUM%{$reset_color%}"				# A"NUM"			- ahead by "NUM" commits
-GIT_PROMPT_BEHIND="%{$fg[cyan]%}BNUM%{$reset_color%}"			# B"NUM"			- behind by "NUM" commits
-GIT_PROMPT_MERGING="%{$fg_bold[magenta]%}⚡︎%{$reset_color%}"		# lightning bolt	- merge conflict
-GIT_PROMPT_UNTRACKED="%{$fg_bold[red]%}●%{$reset_color%}"		# red circle		- untracked files
-GIT_PROMPT_MODIFIED="%{$fg_bold[yellow]%}●%{$reset_color%}"		# yellow circle		- tracked files modified
-GIT_PROMPT_STAGED="%{$fg_bold[green]%}●%{$reset_color%}"		# green circle		- staged changes present = ready for "git push"
+GIT_PROMPT_AHEAD="%{$fg[red]%}ANUM%{$reset_color%}"						# A"NUM" - ahead by "NUM" commits
+GIT_PROMPT_BEHIND="%{$fg[cyan]%}BNUM%{$reset_color%}"					# B"NUM" - behind by "NUM" commits
+GIT_PROMPT_MERGING="%{$fg_bold[magenta]%}⚡︎%{$reset_color%}"	# lightning bolt - merge conflict
+GIT_PROMPT_UNTRACKED="%{$fg_bold[red]%}●%{$reset_color%}"			# red circle - untracked files
+GIT_PROMPT_MODIFIED="%{$fg_bold[yellow]%}●%{$reset_color%}"		# yellow circle - tracked files modified
+GIT_PROMPT_STAGED="%{$fg_bold[green]%}●%{$reset_color%}"			# green circle - staged changes present = ready for "git push"
 
 parse_git_branch() {
 	# Show Git branch/tag, or name-rev if on detached head
