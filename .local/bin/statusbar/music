@@ -4,7 +4,7 @@ filter() { mpc 2> /dev/null | sed -n '/\[playing\]/{x;p;d;}; x';}
 pidof -x mpdup >/dev/null 2>&1 || mpdup >/dev/null 2>&1 &
 
 case $BLOCK_BUTTON in
-	1) mpc status | filter ; setsid -f "$TERMINAL" -e ncmpcpp ;;
+	1) mpc status | filter ; setsid -f "$TERM" -e ncmpcpp ;;
 	3) mpc toggle | filter ;;  # right click, pause/unpause
 	4) mpc prev | filter ;;  # scroll up, previous
 	5) mpc next | filter ;;  # scroll down, next
