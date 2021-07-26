@@ -1,0 +1,9 @@
+gui:
+  theme:
+    selectedLineBgColor:
+      - reverse
+
+customCommands:
+  - key: 'O'
+    command: 'cpr {{.SelectedLocalBranch.Name}}'
+    context: 'localBranches'

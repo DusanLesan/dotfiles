@@ -1,0 +1,27 @@
+#!/bin/sh
+
+[[ -n $1 ]] && branch=$1 || branch=$(git branch --show-current)
+
+git log --format=%B -n 1 $branch | xclip -sel c
+
+params="?expand=1\&assignees=DusanLesan"
+ticket=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
+
+if [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
+	target=$(git branch --sort=-committerdate | sed 's/*//' | sed 's/ //g' | dmenu -i -p "Target branch: "|| echo "developer" | sed 's/\//\\\//g')
+else
+	read -p "Name of target branch? " target
+fi
+
+[[ -n $ticket ]] && body="\&body=[$ticket](https:\/\/plutotv.atlassian.net\/browse\/$ticket)"
+
+if [[ $branch == "fix/"* ]]; then
+	label='\&labels=bug'
+elif [[ $branch == "enhancement/"* ]]; then
+	label='\&labels=enhancement'
+elif [[ $branch == "feature/"* ]]; then
+	label='\&labels=feature'
+fi
+
+$BROWSER $(git config --get remote.origin.url | sed 's/.*:/https:\/\/github.com\//' | sed "s/.git$/\/compare\/$target...$(echo $branch | sed 's/\//\\\//g')/" | sed "s/$/$params$label$body/")
+
