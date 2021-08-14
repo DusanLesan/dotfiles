@@ -8,7 +8,7 @@ params="?expand=1\&assignees=DusanLesan"
 ticket=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
 
 if [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
-	target=$(git branch --sort=-committerdate | sed 's/*//' | sed 's/ //g' | dmenu -i -p "Target branch: "|| echo "developer" | sed 's/\//\\\//g')
+	target=$(git branch --sort=-committerdate | sed 's/*//' | sed 's/ //g' | dmenu -i -p "Target branch: " | sed 's/\//\\\//g')
 else
 	read -p "Name of target branch? " target
 fi

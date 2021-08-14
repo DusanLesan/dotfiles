@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#site=ifconfig.co/json
+site=ipecho.net/plain
+info=$(curl -s $site) && notify-send "IP info" "$info"
+

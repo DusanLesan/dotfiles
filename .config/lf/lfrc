@@ -159,8 +159,8 @@ map sr4 set ratios 1:2:3:5
 map <enter> shell
 
 # dedicated keys for file opener actions
-map o &mimeopen $f
-map O $mime_type_select $f
+map o &mimeopen $f 2> /dev/null
+map O $mimeopen --ask $f 2> /dev/null
 map <a-o> $sh $f &
 
 # Movement
