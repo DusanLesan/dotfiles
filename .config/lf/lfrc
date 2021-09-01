@@ -141,7 +141,7 @@ map ch chmod
 map r rename
 map dr draganddrop
 
-map ae extract
+map ae $ext $f
 map at tar
 map az zip
 

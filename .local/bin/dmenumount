@@ -14,13 +14,12 @@ getmount() { \
 
 mountssh() { \
 	host=`grep -P "^Host ([^*]+)$" $HOME/.ssh/config | sed 's/Host //' | dmenu -i -p "Mount which host?"` || exit 1
-	mnt=`echo $HOME/mnt/$host | dmenu -i -p "Mount point?"`
-	echo $host
-	echo $mnt
+	target=`echo "" | dmenu -i -p "Target mount point?"`
+	mnt=`echo $HOME/mnt/$host | dmenu -i -p "Local mount point?"`
 	if [ ! -d "$mnt" ]; then
 		mkdir "$mnt"
 	fi
-	sshfs $host:/ $mnt
+	sshfs $host:$target $mnt -o follow_symlinks
 }
 
 mountusb() { \
