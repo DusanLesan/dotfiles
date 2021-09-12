@@ -1,25 +1,24 @@
 #!/bin/sh
 
-echo "
-	$HOME/.config/Code - OSS/Backups
-	$HOME/.config/Code - OSS/blob_storage
-	$HOME/.config/Code - OSS/Cache
-	$HOME/.config/Code - OSS/CachedData
-	$HOME/.config/Code - OSS/CachedExtensions
-	$HOME/.config/Code - OSS/CachedExtensionVSIXs
-	$HOME/.config/Code - OSS/Code Cache
-	$HOME/.config/Code - OSS/GPUCache
-	$HOME/.config/Code - OSS/logs
-	$HOME/.config/Code - OSS/Session Storage
-	$HOME/.config/skypeforlinux/Cache
+list="
+	$HOME/.cache/BraveSoftware
 	$HOME/.config/Mattermost/Cache
-	$HOME/.config/Slack/Cache
-	$HOME/.config/Slack/Service Worker" | \
+	$HOME/.config/skypeforlinux/Code*
+	$HOME/.config/Skype
+	$HOME/.config/skypeforlinux/PredefinedImages
+	$HOME/.config/Slack/Code*
+	$HOME/.config/Slack/Crash*
+	$HOME/.config/Slack/GPUCache
+	$HOME/.config/Slack/Session*"
 
-	while read -r data; do
-		rm -rf "$data"
-	done
+echo $list | while read -r data; do
+	rm -rf $data
+done
 
-sudo journalctl --vacuum-time=5d
+sudo journalctl --vacuum-time=1s
 sudo pacman -Scq
 rm -rf "/var/tmp/pamac-build-"*
+
+find .config/BraveSoftware/Brave-Browser/* -not \( -path '*Default*' -or -name 'First Run' -or -name 'Local State' -or -name 'chrome_shutdown_ms.txt' \) -delete
+find .config/code-oss/user-data/* -not \( -name 'User' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete
+

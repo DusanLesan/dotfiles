@@ -16,7 +16,6 @@ class LfFileManager(object):
             item = re.sub("file://", "", item)
             os.system(term + " lf '{}' &".format(item))
 
-
 class ExposedFileManager(dbus.service.Object):
     BUS_NAME = 'org.freedesktop.FileManager1'
     INTERFACE = 'org.freedesktop.FileManager1'

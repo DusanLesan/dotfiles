@@ -1,12 +1,12 @@
 !! Transparency (0-1):
 *.alpha: 0.8
 
-!! Set a default font and font size as below:
+!! Default font and font size:
 *.font: monospace:size=10
 
 *.foreground: #bbbbbb
 *.background: #1E1E1E
-*.barBackground: #1E1E1E
+*.mark.foreground: #FF0000
 
 *color0:  #282a2e
 *color1:  #a54242

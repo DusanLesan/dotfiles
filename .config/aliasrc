@@ -12,7 +12,7 @@ alias \
 	yt="youtube-dl --add-metadata -i" \
 	yta="yt -x -f bestaudio/best" \
 	ffmpeg="ffmpeg -hide_banner" \
-	sxiv="sxiv -p"
+	sxiv="nsxiv -p"
 
 # Colorize commands when possible.
 alias \
@@ -36,17 +36,19 @@ alias \
 	xr="sudo xbps-remove -R" \
 	xq="xbps-query" \
 	z="zathura" \
-	c="comms"
+	c="comms" \
+	lf="lfrun"
 
 alias \
 	magit="nvim -c MagitOnly" \
 	ref="shortcuts >/dev/null; source ${XDG_CONFIG_HOME:-$HOME/.config}/shortcutrc ; source ${XDG_CONFIG_HOME:-$HOME/.config}/zshnameddirrc" \
 	weath="less -S ${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport" \
-	tmux="tmux -f ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf"
+	tmux="tmux -f ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf" \
+	lg="gh; lazygit"
 
 # Run white script for all staged files in current git repository
 wsg() {
-	git status --porcelain | grep '^\w.'| awk '{print $2}' | while read -r line; do 
+	git status --porcelain | grep '^\w.'| awk '{print $2}' | while read -r line; do
 		white "`git rev-parse --show-toplevel`/$line";
 	done
 }

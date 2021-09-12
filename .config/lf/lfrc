@@ -2,7 +2,8 @@
 
 set scrolloff 10
 set hidden true
-set previewer ~/.config/lf/scope
+set previewer ~/.config/lf/preview
+set cleaner ~/.config/lf/cleaner
 set ifs "\n"
 set autoquit true
 
@@ -12,13 +13,13 @@ set autoquit true
 # text files and a file opener for the rest.
 cmd open ${{
     case $(file --mime-type "$f" -b) in
-        image/*) echo "$fx" | devour sxiv -aiop 2>/dev/null | \
+        image/*) echo "$fx" | devour nsxiv -aiop 2>/dev/null | \
             (lf -remote "send $id unselect"; \
             while read -r file; do \
                 lf -remote "send $id select \"$file\""; \
                 lf -remote "send toggle"; \
             done) ;;
-				text/*) $EDITOR $fx;;
+        text/*) $EDITOR $fx;;
         *) for f in $fx; do setsid $OPENER $f > /dev/null 2> /dev/null & done;;
     esac
 }}
@@ -40,9 +41,9 @@ cmd yank-path ${{
 }}
 
 cmd yank-image ${{
-	[ $(mimetype -Mb "$f") = "image/png" ] && \
-	xclip -sel c -t "image/png" "$f" || \
-	convert "$f" png:- | xclip -select  clipboard -t "image/png"
+  [ $(mimetype -Mb "$f") = "image/png" ] && \
+  xclip -sel c -t "image/png" "$f" || \
+  convert "$f" png:- | xclip -select  clipboard -t "image/png"
 }}
 
 cmd chmod ${{
@@ -171,4 +172,4 @@ map gG cd  ~/git
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map gh1 cd ~/hdd_1/
-map gmtp cd /run/user/1000/gvfs
+

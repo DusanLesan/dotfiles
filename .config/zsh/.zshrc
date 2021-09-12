@@ -67,7 +67,8 @@ source "${XDG_CONFIG_HOME:-$HOME/.config}/aliasrc"
 # Enable substitution for prompt
 setopt prompt_subst
 
-PS1="%{$fg[white]%}%c $ "
+[ -z "$SSH_CLIENT" ] && promptColor="white" || promptColor="red"
+PS1="%{$fg[$promptColor]%}%c $ "
 RPROMPT=$'$vcs_info_msg_0_'
 
 # Color man pages

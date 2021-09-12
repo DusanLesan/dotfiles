@@ -1,7 +1,6 @@
 #!/bin/sh
 
-[[ -n $1 ]] && branch=$1 || branch=$(git branch --show-current)
-
+[ -z "$1" ] && branch="$(git branch --show-current)" || branch="$1"
 git log --format=%B -n 1 $branch | xclip -sel c
 
 params="?expand=1\&assignees=DusanLesan"
