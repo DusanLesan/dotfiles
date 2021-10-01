@@ -1,26 +1,36 @@
 #!/bin/sh
 
+assignee="DusanLesan"
 [ -z "$1" ] && branch="$(git branch --show-current)" || branch="$1"
-git log --format=%B -n 1 $branch | xclip -sel c
-
-params="?expand=1\&assignees=DusanLesan"
-ticket=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
+ticketNumber=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
+ticketName=$(echo $branch | sed 's/.*ROKU-[[:digit:]]*\///' | tr '_' ' ')
 
 if [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
-	target=$(git branch --sort=-committerdate | sed 's/*//' | sed 's/ //g' | dmenu -i -p "Target branch: " | sed 's/\//\\\//g')
+	base=$(git branch --sort=-committerdate | sed -e 's/^*//' -e 's/^ *//' | dmenu -i -p "Base branch: " | sed 's/ //g')
+	title=$(printf "[$ticketNumber] $ticketName\n$ticketName" | dmenu -p "PR title:")
+	retVal=$? && [ $retVal -eq 1 ] && exit 1
 else
-	read -p "Name of target branch? " target
+	read -p "Name of base branch? " base
+	read -p "Ticket name? " title
 fi
 
-[[ -n $ticket ]] && body="\&body=[$ticket](https:\/\/plutotv.atlassian.net\/browse\/$ticket)"
+case "$branch" in
+	"fix/"*) label="bug" ;;
+	"enhancement/"*) label="enhancement" ;;
+	"feature/"*) label="feature" ;;
+esac
 
-if [[ $branch == "fix/"* ]]; then
-	label='\&labels=bug'
-elif [[ $branch == "enhancement/"* ]]; then
-	label='\&labels=enhancement'
-elif [[ $branch == "feature/"* ]]; then
-	label='\&labels=feature'
+if [ -x "$(command -v gh)" ]; then
+	reviewers="$(cat ~/.local/share/team | tr '\n' ',')"
+	[ -n $ticketNumber ] && body="[$ticketNumber](https:\/\/plutotv.atlassian.net\/browse\/$ticketNumber)"
+	gh pr create -t "$title" -B "$base" -H "$branch" -a "$assignee" -r "$reviewers" -b "$body" -l "$label"
+else
+	title="&title=$title"
+	label="&labels=$label"
+	assignee="&assignees=$assignee"
+	base=$(echo $base | sed 's/\//\\\//g')
+	branch=$(echo $branch| sed 's/\//\\\//g')
+	[ -n $ticketNumber ] && body="&body=[$ticketNumber](https:\/\/plutotv.atlassian.net\/browse\/$ticketNumber)"
+	url=$(git config --get remote.origin.url | sed 's/.*:/https:\/\/github.com\//' | sed 's/.git$/\/compare\//')
+	$BROWSER "$url$base...$branch?expand=1$title$assignee$label$body"
 fi
-
-$BROWSER $(git config --get remote.origin.url | sed 's/.*:/https:\/\/github.com\//' | sed "s/.git$/\/compare\/$target...$(echo $branch | sed 's/\//\\\//g')/" | sed "s/$/$params$label$body/")
-

@@ -3,8 +3,8 @@
 WID=$(xdotool selectwindow)
 
 cat ~/.local/share/team | while read -r user; do
-	xdotool windowactivate $WID type --delay 20 "$user"
-	sleep 0.3
+	xdotool windowactivate $WID type "$user"
+	sleep 0.2
 	xdotool key KP_Enter
 	xdotool key ctrl+a BackSpace
 done
