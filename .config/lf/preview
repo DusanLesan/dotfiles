@@ -19,6 +19,7 @@ case $MIMETYPE in
 	*/zip|*java-archive) unzip -l "$1" ;;
 	*rar) unrar l "$1" ;;
 	*7z) 7z l "$1" ;;
+	audio/mpeg) mp3info "$1" ;;
 	*/pdf)
 		[ ! -f "${CACHE}.jpg" ] && \
 			pdftoppm -jpeg -f 1 -singlefile "$1" "$CACHE"

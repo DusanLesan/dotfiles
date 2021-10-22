@@ -1,9 +1,12 @@
 gui:
+  showRandomTip: false
+  showCommandLog: false
+  showFileTree: true
   theme:
     selectedLineBgColor:
       - reverse
 
 customCommands:
-  - key: 'O'
+  - key: 'C'
     command: 'cpr {{.SelectedLocalBranch.Name}}'
     context: 'localBranches'

@@ -1,0 +1,6 @@
+[alias]
+	c = checkout
+	f = fetch
+	res = reset --soft HEAD~1
+	reb = rebase -i HEAD~10
+	can = commit --amend --no-edit

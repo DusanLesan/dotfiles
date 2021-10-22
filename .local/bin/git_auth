@@ -1,10 +1,18 @@
 #!/bin/sh
 
+case $1 in
+	gl) key=~/.ssh/gitlab
+		email="dusan.lesan@acumenics.com"
+	;;
+	*) key=~/.ssh/github
+		email="oalfodr@gmail.com"
+	;;
+esac
+
 if [ ! -S /tmp/ssh_auth_sock ]; then
 	eval `ssh-agent` > /dev/null
 	ln -sf "$SSH_AUTH_SOCK" /tmp/ssh_auth_sock
 fi
 
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-ssh-add -l > /dev/null || ssh-add ~/.ssh/github
-
+ssh-add -L | grep "$email" || ssh-add $key

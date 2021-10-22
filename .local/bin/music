@@ -1,0 +1,9 @@
+#!/bin/sh
+
+[ ! -e /run/user/1000/cmus-socket ] && $TERMINAL cmus &
+while [ ! -e /run/user/1000/cmus-socket ] ; do
+	sleep 0.1 ;
+done
+
+[ -z "$1" ] && cmus-remote -u || cmus-remote -f "$1"
+

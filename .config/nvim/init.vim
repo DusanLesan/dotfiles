@@ -1,16 +1,20 @@
 call plug#begin(system('echo -n "${XDG_CONFIG_HOME:-$HOME/.config}/nvim/plugged"'))
-Plug 'neovim/nvim-lspconfig'
-Plug 'hrsh7th/nvim-compe'
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'tomasiser/vim-code-dark'
-Plug 'preservim/nerdtree'
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
 Plug 'dusanlesan/vimbrs'
+Plug 'neovim/nvim-lspconfig'
+Plug 'tomasiser/vim-code-dark'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'hrsh7th/nvim-cmp' |
+	\ Plug 'hrsh7th/cmp-buffer' |
+	\ Plug 'hrsh7th/cmp-path' |
+	\ Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'preservim/nerdtree' |
+	\ Plug 'Xuyuanp/nerdtree-git-plugin'
+Plug 'nvim-telescope/telescope.nvim' |
+	\ Plug 'nvim-lua/plenary.nvim'
 call plug#end()
 
-luafile ~/.config/nvim/lua/compe-config.lua
-luafile ~/.config/nvim/lua/treesitter.lua
+:lua require('cmp-config')
+:lua require('treesitter')
 
 " Use system clipboard
 set clipboard+=unnamedplus
@@ -65,8 +69,7 @@ nnoremap <A-Space> <C-U>
 " Nerdtree
 let NERDTreeShowHidden=1
 nnoremap <leader>n :NERDTreeFocus<CR>
-
-" Find files using Telescope command-line sugar.
+nnoremap <leader>fd <cmd>Telescope file_browser hidden=true<cr>
 nnoremap <leader>ff <cmd>Telescope find_files hidden=true<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>

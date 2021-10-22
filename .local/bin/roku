@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -z $1 ]; then
+	/home/dusan/.local/share/applications/appimages/roku-advanced-layout-editor-linux64.AppImage
+else
+	/home/dusan/.local/share/applications/appimages/bsprof-visualization-tool-linux64.AppImage
+fi
+
