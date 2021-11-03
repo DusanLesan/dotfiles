@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case "$(printf "lock\nlogout\nsleep\nreboot\nshutdown\nreset dwm" | dmenu -i -n -l 6 -p 'Action: ')" in
+	'lock') slock || kill -9 -1 ;;
+	'logout') kill -9 -1 ;;
+	'sleep') slock systemctl suspend ;;
+	'reboot') systemctl reboot ;;
+	'shutdown') systemctl poweroff ;;
+	'reset dwm') kill -HUP "$(pgrep -u "$USER" "\bdwm$")" ;;
+	*) exit 1 ;;
+esac
+

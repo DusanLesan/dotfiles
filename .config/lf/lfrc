@@ -46,20 +46,6 @@ cmd yank-image ${{
   convert "$f" png:- | xclip -select  clipboard -t "image/png"
 }}
 
-cmd chmod ${{
-  printf "Mode Bits: "
-  read ans
-
-  for file in "$fx"
-  do
-    echo "DELETE $file" 
-    echo "END"
-  done
-
-  lf -remote 'send reload'
-}}
-#chmod $ans $file
-
 # define a custom 'delete' command
 cmd delete ${{
     printf "$fx\n"
@@ -73,20 +59,6 @@ cmd delete ${{
 }}
 
 cmd draganddrop &dragon-drag-and-drop -a -x $fx
-
-# extract the current file with the right command
-# (xkcd link: https://xkcd.com/1168/)
-cmd extract ${{
-    set -f
-    case $f in
-        *.tar.bz|*.tar.bz2|*.tbz|*.tbz2) tar xjvf $f;;
-        *.tar.gz|*.tgz) tar xzvf $f;;
-        *.tar.xz|*.txz) tar xJvf $f;;
-        *.zip) unzip $f;;
-        *.rar) unrar x $f;;
-        *.7z) 7z x $f;;
-    esac
-}}
 
 # compress current file or selected files with tar and gunzip
 cmd tar ${{
@@ -138,9 +110,8 @@ map Y yank-path
 map <a-y> yank-image
 map mf mkfile
 map md mkdir
-map ch chmod
 map r rename
-map dr draganddrop
+map dr &dragon-drag-and-drop -a -x $fx
 
 map ae $ext $f
 map at tar
