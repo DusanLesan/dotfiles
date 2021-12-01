@@ -1,7 +1,4 @@
 #!/bin/sh
-
-export ROKU_DEVICE_ID="3a25248a-6a9c-5ece-8c4f-3be26c3c1ab5,9db93e76-fcdb-5dea-b029-1ae94e850c71"
-
 # Adds `~/.local/bin` and its subdirectories to $PATH
 export PATH="$PATH:$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':')"
 

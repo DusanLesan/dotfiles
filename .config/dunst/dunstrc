@@ -4,7 +4,6 @@
     follow = keyboard
     height = 1035
     indicate_hidden = yes
-    notification_height = 0
     separator_height = 2
     padding = 8
     horizontal_padding = 10
@@ -29,7 +28,6 @@
     icon_position = left
     min_icon_size = 0
     max_icon_size = 32
-    icon_path = /usr/share/icons/gnome/16x16/status/:/usr/share/icons/gnome/16x16/devices/
     sticky_history = yes
     history_length = 20
     dmenu = /usr/bin/dmenu -p dunst:
@@ -37,8 +35,6 @@
     always_run_script = true
     title = Dunst
     class = Dunst
-    startup_notification = false
-    verbosity = mesg
     corner_radius = 0
     ignore_dbusclose = false
     mouse_left_click = close_current
