@@ -15,4 +15,4 @@ if [ ! -S /tmp/ssh_auth_sock ]; then
 fi
 
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-ssh-add -L | grep "$email" || ssh-add $key
+ssh-add -L | grep -q "$email" || ssh-add $key

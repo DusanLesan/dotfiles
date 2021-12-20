@@ -21,17 +21,8 @@ if [ $OPTIND = 1 ]; then
 	while ! ping -c 1 -W 1 8.8.8.8; do
 		sleep 1
 	done
-
-	if ! pgrep -x "skypeforlinux" > /dev/null; then
-		skypeforlinux > /dev/null 2>&1 &
-	fi
-
-	if [ -z "$(pgrep -fo mattermost)" ]; then
-		mattermost-desktop >/dev/null 2>&1 &
-	fi
-
+	pgrep -x "skypeforlinux" > /dev/null || skypeforlinux &> /dev/null &
+	pgrep -fo "mattermost" > /dev/null || mattermost-desktop &> /dev/null &
 	sleep 1
-	if ! pgrep -x "slack" > /dev/null; then
-		slack >/dev/null 2>&1 &
-	fi
+	pgrep -x "slack" > /dev/null || slack &> /dev/null &
 fi

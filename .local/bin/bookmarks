@@ -3,6 +3,16 @@
 menu_cmd='dmenu -i -p Bookmark'
 bookmarks=~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
 
-opt=$(jq -r '.roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | objects | "\(.name)"' $bookmarks | $menu_cmd)
-url=$(jq -r ".roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | select(.name==\"$opt\") | .url" $bookmarks)
-$BROWSER "$url"
+opt=$(jq -r '.roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | objects | "\(.name)"' $bookmarks 2>/dev/null | $menu_cmd)
+[ $? -eq 1 ] && exit 1
+url=$(jq -r ".roots.bookmark_bar.children[].children[], .roots.bookmark_bar.children[] | select(.name==\"$opt\") | .url" $bookmarks 2>/dev/null )
+
+if [ -z "$url" ]; then
+	case $opt in
+		"g "*) url="https://www.google.com/search?q=${opt:2}" ;;
+		"r "*) url="https://plutotv.atlassian.net/browse/ROKU-${opt:2}" ;;
+		*) url="https://duckduckgo.com/?q=$opt" ;;
+	esac
+fi
+
+$BROWSER "$url" &>/dev/null &

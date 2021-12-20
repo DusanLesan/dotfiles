@@ -4,56 +4,26 @@
 
 if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
 	ACTION=$(printf "Power up\nMount FS\nSend to sleep\nx2x" | dmenu -i -p "Action: ")
-
-	retVal=$?
-	if [ $retVal -eq 1 ]; then
-		exit 1
-	fi
+	[ $? -eq 1 ] && exit 0
 fi
 
-while getopts 'osmx' OPTION; do
-	case "$OPTION" in
-		o)
-			ACTION="Power up"
-		;;
-
-		m)
-			ACTION="Mount FS"
-		;;
-
-		s)
-			ACTION="Send to sleep"
-		;;
-
-		x)
-			ACTION="x2x"
-		;;
-
-		?)
-			echo "$(basename $0) -o turn 57 on" >&2
-			echo "$(basename $0) -s send 57 to sleep" >&2
-			exit 1
-		;;
-	esac
-done
+case "$1" in
+	"-p") ACTION="Power up" ;;
+	"-m") ACTION="Mount FS" ;;
+	"-s") ACTION="Send to sleep" ;;
+	"-x") ACTION="x2x" ;;
+	?) echo "$(basename $0) -p turn 57 on" >&2
+		echo "$(basename $0) -s send 57 to sleep" >&2
+		exit 1 ;;
+esac
 
 case "$ACTION" in
 	"Power up")
-		mosquitto_pub \
-			-h m15.cloudmqtt.com \
-			-p 13578 \
-			-m WoL \
-			-t /to/esp32/ \
-			-u $cloudmqtt_user \
-			-P $cloudmqtt_password
-	;;
+		mosquitto_pub -h m15.cloudmqtt.com -p 13578 -m true -t /toggle-power -u $cloudmqtt_user -P $cloudmqtt_password ;;
 
 	"Mount FS")
-		if [ ! -d "$HOME/hdd_3" ]; then
-			mkdir $HOME/hdd_3
-		fi
-		sshfs loc:$HOME/ $HOME/hdd_3
-	;;
+		[ ! -d "$HOME/hdd_3" ]; && mkdir $HOME/hdd_3
+		sshfs loc:$HOME/ $HOME/hdd_3 ;;
 
 	"Send to sleep")
 		if [ -d "$HOME/hdd_3" ]; then
@@ -69,13 +39,8 @@ case "$ACTION" in
 			HOST="rem"
 		fi
 
-		ssh \
-			-Y \
-			$HOST \
-			"$HOME/bin2/suspend.sh"
-	;;
+		ssh -Y $HOST "$HOME/bin2/suspend.sh" ;;
 	
 	"x2x")
-		ssh -Y loc 'x2x -west -to :0'
-	;;
+		ssh -Y loc 'x2x -west -to :0' ;;
 esac

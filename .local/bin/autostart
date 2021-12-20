@@ -17,4 +17,3 @@ if [ 6 -gt "$D" ] && [ 10 -lt "$H" ] && [ "$H" -lt 20 ]; then
 
 	comms
 fi
-

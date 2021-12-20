@@ -4,7 +4,7 @@
 
 display -window root ~/.local/share/bc.png & # Set wallpaper
 xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
-dwmblocks > /dev/null 2>&1 &
+dwmblocks &>/dev/null &
 autostart &
 remaps &
 unclutter &

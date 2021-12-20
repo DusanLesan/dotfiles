@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ -z $1 ]; then
-	/home/dusan/.local/share/applications/appimages/roku-advanced-layout-editor-linux64.AppImage
-else
-	/home/dusan/.local/share/applications/appimages/bsprof-visualization-tool-linux64.AppImage
-fi
-
+case $1 in
+	"profiler") ~/.local/share/applications/appimages/bsprof-visualization-tool-linux64.AppImage ;;
+	"stream") ~/.local/share/applications/appimages/roku-stream-tester-linux64.AppImage ;;
+	"deeplink") ~/.local/share/applications/appimages/roku-deep-linking-tester-linux64.AppImage ;;
+	*) ~/.local/share/applications/appimages/roku-advanced-layout-editor-linux64.AppImage ;;
+esac
