@@ -1,10 +1,9 @@
 #!/bin/sh
 
-# This file runs when a DM logs you into a graphical session.
-
-display -window root ~/.local/share/bc.png & # Set wallpaper
+xwallpaper --zoom ~/.local/share/bc.png
 xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &>/dev/null &
 autostart &
 remaps &
 unclutter &
+picom &

@@ -73,6 +73,6 @@ return require("packer").startup(function(use)
 	use { "dusanlesan/vimbrs" }
 	use { "norcalli/nvim-colorizer.lua" }
 	use { "nvim-treesitter/nvim-treesitter" }
-	use { "Mofiqul/vscode.nvim" }
+	use { "tomasiser/vim-code-dark" }
 end)
 

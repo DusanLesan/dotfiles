@@ -19,7 +19,7 @@ vim.opt.wrap = true
 vim.opt.showmode = false
 vim.opt.backup = false
 vim.opt.swapfile = false
-vim.opt.termguicolors = false
+vim.opt.termguicolors = true
 vim.opt.smartindent = true
 vim.opt.smartcase = true
 vim.opt.ignorecase = true
@@ -38,4 +38,9 @@ vim.g.mapleader = ' '
 
 vim.g.transparent_background = true
 vim.g.vscode_style = 'dark'
-vim.cmd[[colorscheme vscode]]
+vim.cmd[[
+	colorscheme codedark
+	highlight Normal guibg=NONE ctermbg=NONE
+	highlight EndOfBuffer guibg=NONE ctermbg=NONE
+	highlight nonText guibg=NONE ctermbg=NONE
+]]
