@@ -5,7 +5,7 @@
 eth="enp*"
 
 case $BLOCK_BUTTON in
-	1) alacritty --class ",floating" -e "nmtui-connect" ;;
+	1) WINIT_X11_SCALE_FACTOR=1 alacritty --class ",floating" -e "nmtui-connect" ;;
 esac
 
 case "$(cat /sys/class/net/w*/operstate 2>/dev/null)" in

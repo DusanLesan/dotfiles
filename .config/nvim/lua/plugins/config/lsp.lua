@@ -31,47 +31,6 @@ vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.s
 	border = "rounded",
 })
 
--- LspKind
-require('lspkind').init({
-	with_text = true,
-	preset = 'codicons',
-	symbol_map = {
-		Text = "",
-		Method = "",
-		Function = "",
-		Constructor = "",
-		Field = "ﰠ",
-		Variable = "",
-		Class = "ﴯ",
-		Interface = "",
-		Module = "",
-		Property = "ﰠ",
-		Unit = "塞",
-		Value = "",
-		Enum = "",
-		Keyword = "",
-		Snippet = "",
-		Color = "",
-		File = "",
-		Reference = "",
-		Folder = "",
-		EnumMember = "",
-		Constant = "",
-		Struct = "פּ",
-		Event = "",
-		Operator = "",
-		TypeParameter = ""
-	}
-})
-
--- Lsp Colors
-require("lsp-colors").setup({
-	Error = "#db4b4b",
-	Warning = "#e0af68",
-	Information = "#0db9d7",
-	Hint = "#10B981"
-})
-
 local config = {
 	virtual_text = false,
 	update_in_insert = true,

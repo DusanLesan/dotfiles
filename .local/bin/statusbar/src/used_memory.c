@@ -17,6 +17,6 @@ int main() {
 	fclose(meminfo);
 	double used = total - free - buffers - cached - sReclaimable;
 	printf("%.2f\n", used / 1024 / 1024);
-	return 1;
+	return 0;
 }
 

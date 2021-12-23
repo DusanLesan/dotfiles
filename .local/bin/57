@@ -22,7 +22,7 @@ case "$ACTION" in
 		mosquitto_pub -h m15.cloudmqtt.com -p 13578 -m true -t /toggle-power -u $cloudmqtt_user -P $cloudmqtt_password ;;
 
 	"Mount FS")
-		[ ! -d "$HOME/hdd_3" ]; && mkdir $HOME/hdd_3
+		[ ! -d "$HOME/hdd_3" ] && mkdir $HOME/hdd_3
 		sshfs loc:$HOME/ $HOME/hdd_3 ;;
 
 	"Send to sleep")

@@ -22,9 +22,6 @@ return require("packer").startup(function(use)
 	use { "wbthomason/packer.nvim" }
 
 	-- LSP
-	use { "glepnir/lspsaga.nvim" }
-	use { "folke/lsp-colors.nvim" }
-	use { "onsails/lspkind-nvim" }
 	use { "neovim/nvim-lspconfig" }
 	use { "L3MON4D3/LuaSnip" }
 	use { "williamboman/nvim-lsp-installer" }
@@ -42,7 +39,7 @@ return require("packer").startup(function(use)
 
 	-- Tab, Statusline, Indintline
 	use { "akinsho/bufferline.nvim" }
-	use { "famiu/feline.nvim" }
+	use { "nvim-lualine/lualine.nvim" }
 	use { "lukas-reineke/indent-blankline.nvim" }
 	use { "Asheq/close-buffers.vim" }
 

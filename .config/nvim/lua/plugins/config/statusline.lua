@@ -1,201 +1,110 @@
-local lsp = require('feline.providers.lsp')
-local vi_mode_utils = require('feline.providers.vi_mode')
-
-local force_inactive = {
-		filetypes = {},
-		buftypes = {},
-		bufnames = {}
-}
-
-local components = {
-	active = {{}, {}, {}},
-	inactive = {{}, {}, {}}
-}
-
+local lualine = require("lualine")
 local colors = require("colors")
 
-local vi_mode_colors = {
-	NORMAL = 'green',
-	OP = 'green',
-	INSERT = 'red',
-	VISUAL = 'blue',
-	BLOCK = 'blue',
-	REPLACE = 'violet',
-	['V-REPLACE'] = 'violet',
-	ENTER = 'cyan',
-	MORE = 'cyan',
-	SELECT = 'orange',
-	COMMAND = 'green',
-	SHELL = 'green',
-	TERM = 'green',
-	NONE = 'yellow'
-}
-
-local vi_mode_text = {
-	n = "NORMAL",
-	i = "INSERT",
-	v = "VISUAL",
-	[''] = "V-BLOCK",
-	V = "V-LINE",
-	c = "COMMAND",
-	no = "UNKNOWN",
-	s = "UNKNOWN",
-	S = "UNKNOWN",
-	ic = "UNKNOWN",
-	R = "REPLACE",
-	Rv = "UNKNOWN",
-	cv = "UNKWON",
-	ce = "UNKNOWN",
-	r = "REPLACE",
-	rm = "UNKNOWN",
-	t = "INSERT"
-}
-
-force_inactive.filetypes = {
-	'NvimTree',
-	'dbui',
-	'packer',
-	'startify',
-	'dashboard',
-	'fugitive',
-	'fugitiveblame'
-}
-
--- LEFT
--- vi-mode
-components.active[1][1] = {
-	provider = function()
-		return ' '.. vi_mode_text[vim.fn.mode()]
+local conditions = {
+	buffer_not_empty = function()
+		return vim.fn.empty(vim.fn.expand '%:t') ~= 1
 	end,
-	hl = function()
-		local val = {}
-		val.fg = vi_mode_utils.get_mode_color()
-		val.bg = 'bg'
-		val.style = 'bold'
-		return val
+	hide_in_width = function()
+		return vim.fn.winwidth(0) > 80
 	end,
-	right_sep = ' '
+	check_git_workspace = function()
+		local filepath = vim.fn.expand '%:p:h'
+		local gitdir = vim.fn.finddir('.git', filepath .. ';')
+		return gitdir and #gitdir > 0 and #gitdir < #filepath
+	end
 }
--- filename
-components.active[1][2] = {
-	provider = function()
-		return vim.fn.expand("%:F")
+
+-- Config
+local config = {
+	options = {
+		-- Disable sections and separators
+		component_separators = '',
+		section_separators = '',
+		theme = {
+			normal = { c = { fg = colors.fg, bg = colors.bg } },
+			inactive = { c = { fg = colors.fg, bg = colors.bg } }
+		}
+	},
+	sections = {
+		-- Remove defaults
+		lualine_a = {}, lualine_b = {}, lualine_y = {}, lualine_z = {},
+		-- All modules will be placed in _c and _x
+		lualine_c = {}, lualine_x = {}
+	}
+}
+
+-- Inserts a component in lualine_c at left section
+local function ins_left(component)
+	table.insert(config.sections.lualine_c, component)
+end
+
+-- Inserts a component in lualine_x at right section
+local function ins_right(component)
+	table.insert(config.sections.lualine_x, component)
+end
+
+ins_left('mode')
+
+ins_left {
+	'branch',
+	color = { fg = colors.violet, gui = 'bold' }
+}
+
+ins_left {
+	'diff',
+	symbols = { added = '+', modified = '<>', removed = '-' },
+	diff_color = {
+		added = { fg = colors.green },
+		modified = { fg = colors.orange },
+		removed = { fg = colors.red }
+	},
+	cond = conditions.hide_in_width
+}
+
+ins_left {
+	'filesize',
+	cond = conditions.buffer_not_empty
+}
+
+ins_left {
+	'filename',
+	cond = conditions.buffer_not_empty,
+	color = { fg = colors.magenta, gui = 'bold' }
+}
+
+ins_right { 'location' }
+
+ins_right { 'progress', color = { fg = colors.fg, gui = 'bold' } }
+
+ins_right {
+	'diagnostics',
+	sources = { 'nvim_diagnostic' },
+	symbols = { error = 'X', warn = '!', info = '!' },
+	diagnostics_color = {
+		color_error = { fg = colors.red },
+		color_warn = { fg = colors.yellow },
+		color_info = { fg = colors.cyan }
+	}
+}
+
+ins_right {
+	function()
+		local msg = ''
+		local buf_ft = vim.api.nvim_buf_get_option(0, 'filetype')
+		local clients = vim.lsp.get_active_clients()
+		if next(clients) == nil then
+			return msg
+		end
+		for _, client in ipairs(clients) do
+			local filetypes = client.config.filetypes
+			if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+				return client.name
+			end
+		end
+		return msg
 	end,
-	hl = {
-		fg = 'white',
-		bg = 'bg',
-		style = 'bold'
-	},
-	right_sep = '  '
-}
--- gitBranch
-components.active[1][3] = {
-	provider = 'git_branch',
-	hl = {
-		fg = 'yellow',
-		bg = 'bg',
-		style = 'bold'
-	}
-}
--- diffAdd
-components.active[1][4] = {
-	provider = 'git_diff_added',
-	hl = {
-		fg = 'green',
-		bg = 'bg',
-		style = 'bold'
-	}
-}
--- diffModfified
-components.active[1][5] = {
-	provider = 'git_diff_changed',
-	hl = {
-		fg = 'orange',
-		bg = 'bg',
-		style = 'bold'
-	}
-}
--- diffRemove
-components.active[1][6] = {
-	provider = 'git_diff_removed',
-	hl = {
-		fg = 'red',
-		bg = 'bg',
-		style = 'bold'
-	}
+	color = { fg = colors.yellow, gui = 'bold' }
 }
 
--- MID
--- LspName
-components.active[3][1] = {
-	provider = 'lsp_client_names',
-	hl = {
-		fg = 'white',
-		bg = 'bg',
-		style = 'bold'
-	},
-	right_sep = ' '
-}
--- diagnosticErrors
-components.active[3][2] = {
-	provider = 'diagnostic_errors',
-	enabled = function() return lsp.diagnostics_exist('Error') end,
-	hl = {
-		fg = 'red',
-		style = 'bold'
-	}
-}
--- diagnosticWarn
-components.active[3][3] = {
-	provider = 'diagnostic_warnings',
-	enabled = function() return lsp.diagnostics_exist('Warning') end,
-	hl = {
-		fg = 'yellow',
-		style = 'bold'
-	}
-}
--- diagnosticHint
-components.active[3][4] = {
-	provider = 'diagnostic_hints',
-	enabled = function() return lsp.diagnostics_exist('Hint') end,
-	hl = {
-		fg = 'cyan',
-		style = 'bold'
-	}
-}
--- diagnosticInfo
-components.active[3][5] = {
-	provider = 'diagnostic_info',
-	enabled = function() return lsp.diagnostics_exist('Information') end,
-	hl = {
-		fg = 'skyblue',
-		style = 'bold'
-	}
-}
-
--- RIGHT
--- lineInfo
-components.active[3][6] = {
-	provider = 'position',
-	hl = {
-		fg = 'white',
-		bg = 'bg',
-		style = 'bold'
-	},
-	right_sep = ' '
-}
--- scrollBar
-components.active[3][7] = {
-	provider = 'scroll_bar',
-	hl = {
-		fg = 'yellow',
-		bg = 'bg',x
-	}
-}
-
-require('feline').setup({
-	colors = colors,
-	vi_mode_colors = vi_mode_colors,
-	components = components,
-	force_inactive = force_inactive
-})
+lualine.setup(config)

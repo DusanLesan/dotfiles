@@ -1,6 +1,5 @@
 #!/bin/sh
 
-#site=ifconfig.co/json
-site=ipecho.net/plain
-info=$(curl -s $site)
-[ $(ps -o stat= -p $$) = "S+" ] && echo "$info" || notify-send "IP info" "$info"
+site=ipinfo.io/json
+info=$(curl -s $site | jq '.country, .city, .ip')
+[ $(ps -o stat= -p $$) = "S+" ] && echo "$info" || notify-send "IP Info:" "$info"
