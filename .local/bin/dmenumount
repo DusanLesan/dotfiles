@@ -36,11 +36,21 @@ mountandroid() { \
 	notify-send "Android Mounting" "Android device mounted to $mnt."
 }
 
+mountftp() {
+	host=$(echo "192.168.1.55" | dmenu -i -p "Host:")
+	port=$(echo "9999" | dmenu -i -p "Port:")
+	user=$(echo | dmenu -i -p "Username:")
+	[ -n "$user" ] && pass=":$(echo | dmenu -i -P -p "Password:")@"
+	getmount "$HOME/mnt/ftp"
+	curlftpfs "ftp://$user$pass$host:$port" "$mnt"
+}
+
 asktype() { \
-	choice="$(printf "USB\\nAndroid\\nSSH" | dmenu -i -p "Mount a USB drive or Android device?")" || exit 1
+	choice="$(printf "USB\\nAndroid\\nFTP\\nSSH" | dmenu -i -p "Mount a USB drive or Android device?")" || exit 1
 	case $choice in
 		USB) mountusb ;;
 		Android) mountandroid ;;
+		FTP) mountftp ;;
 		SSH) mountssh ;;
 	esac
 }

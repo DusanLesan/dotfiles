@@ -20,18 +20,19 @@ unmountandroid() {
 }
 
 umountssh() {
-	shfs=$(mount | grep fuse.sshfs | awk '{print $3}')
-	chosen="$(echo "$shfs" | dmenu -i -p "Unmount ssh")"
+	shfs=$(mount | grep "$1" | awk '{print $3}')
+	chosen="$(echo "$shfs" | dmenu -i -p "Unmount:")"
 	[ -z "$chosen" ] && exit
 	sudo -A fusermount -u "$chosen"
 }
 
 asktype() {
-	choice="$(printf "Drive\\nSSH\\nAndroid" | dmenu -i -p "Unmount a USB drive or Android device?")" || exit 1
+	choice="$(printf "Drive\\nFTP\\nAndroid\\nSSH" | dmenu -i -p "Unmount a USB drive or Android device?")" || exit 1
 	case "$choice" in
 		Drive) unmountusb ;;
 		Android) unmountandroid ;;
-		SSH) umountssh
+		FTP) umountssh "curlftpfs" ;;
+		SSH) umountssh "fuse.sshfs" ;;
 	esac
 }
 
