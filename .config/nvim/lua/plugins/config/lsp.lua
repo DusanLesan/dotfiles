@@ -1,3 +1,8 @@
+local status_ok, lsp_installer = pcall(require, "nvim-lsp-installer")
+if not status_ok then
+	return
+end
+
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.documentationFormat = { 'markdown', 'plaintext' }
 capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -46,7 +51,6 @@ local config = {
 vim.diagnostic.config(config)
 
 -- Lsp Installer
-local lsp_installer = require("nvim-lsp-installer")
 local servers = {
 	"sumneko_lua",
 	"bashls",

@@ -1,20 +1,35 @@
-local present, packer = pcall(require, "plugins.packerInit")
-local execute = vim.api.nvim_command
 local fn = vim.fn
-local use = packer.use
 
-if not present then
-	return false
-end
-
-local install_path = fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim"
-
+-- Automatically install packer
+local install_path = fn.stdpath "data" .. "/site/pack/packer/start/packer.nvim"
 if fn.empty(fn.glob(install_path)) > 0 then
-	execute("!git clone https://github.com/wbthomason/packer.nvim " ..
-		install_path)
-	execute "packadd packer.nvim"
+	PACKER_BOOTSTRAP = fn.system {
+		"git",
+		"clone",
+		"--depth",
+		"1",
+		"https://github.com/wbthomason/packer.nvim",
+		install_path,
+	}
+	print "Installing packer close and reopen Neovim..."
+	vim.cmd [[packadd packer.nvim]]
 end
-vim.cmd "autocmd BufWritePost init.lua PackerCompile"
+
+-- Use a protected call so we don't error out on first use
+local status_ok, packer = pcall(require, "packer")
+if not status_ok then
+	return
+end
+
+-- Have packer use a popup window
+packer.init {
+	display = {
+		open_fn = function()
+			return require("packer.util").float { border = "rounded" }
+		end,
+	},
+}
+
 vim.opt.termguicolors = true
 
 return require("packer").startup(function(use)
@@ -70,6 +85,10 @@ return require("packer").startup(function(use)
 	use { "dusanlesan/vimbrs" }
 	use { "norcalli/nvim-colorizer.lua" }
 	use { "nvim-treesitter/nvim-treesitter" }
-	use { "tomasiser/vim-code-dark" }
+	use { "Mofiqul/vscode.nvim" }
+
+	if PACKER_BOOTSTRAP then
+		require("packer").sync()
+	end
 end)
 

@@ -20,6 +20,7 @@ mountssh() { \
 		mkdir "$mnt"
 	fi
 	sshfs $host:$target $mnt -o follow_symlinks
+	notify $?
 }
 
 mountusb() { \
@@ -27,13 +28,14 @@ mountusb() { \
 	chosen="$(echo "$usbdrives" | dmenu -i -p "Mount which drive?")" || exit 1
 	chosen="$(echo "$chosen" | awk '{print $1}')"
 	getmount "$HOME/mnt$chosen"
-	sudo -A mount "$chosen" $mnt && notify-send "USB Mounting" "USB device mounted on $mnt"
+	sudo -A mount "$chosen" $mnt
+	notify $?
 }
 
 mountandroid() { \
 	getmount "$HOME/mnt"
 	jmtpfs "$mnt"
-	notify-send "Android Mounting" "Android device mounted to $mnt."
+	notify $?
 }
 
 mountftp() {
@@ -43,6 +45,14 @@ mountftp() {
 	[ -n "$user" ] && pass=":$(echo | dmenu -i -P -p "Password:")@"
 	getmount "$HOME/mnt/ftp"
 	curlftpfs "ftp://$user$pass$host:$port" "$mnt"
+	notify $?
+}
+
+notify() {
+	case $1 in
+		0) notify-send "Mounting" "Mounted at $mnt" ;;
+		*) notify-send "Mounting" "Mounting failed!" ;;
+	esac
 }
 
 asktype() { \

@@ -38,9 +38,13 @@ vim.g.mapleader = ' '
 
 vim.g.transparent_background = true
 vim.g.vscode_style = 'dark'
-vim.cmd[[
-	colorscheme codedark
-	highlight Normal guibg=NONE ctermbg=NONE
-	highlight EndOfBuffer guibg=NONE ctermbg=NONE
-	highlight nonText guibg=NONE ctermbg=NONE
-]]
+
+local status_ok, _ = pcall(require, "vscode")
+if status_ok then
+	vim.cmd[[
+		colorscheme vscode
+		highlight Normal guibg=NONE ctermbg=NONE
+		highlight EndOfBuffer guibg=NONE ctermbg=NONE
+		highlight nonText guibg=NONE ctermbg=NONE
+	]]
+end

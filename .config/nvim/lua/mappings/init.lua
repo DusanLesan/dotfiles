@@ -83,7 +83,10 @@ map('n', '<leader>pc', ":PackerClean<CR>", default_opts)
 map('n', '<leader>ps', ":PackerSync<CR>", default_opts)
 
 -- Comment
-require("commented").setup({
+local status_ok, commented = pcall(require, "commented")
+if status_ok then
+commented.setup({
 	keybindings = { n = "<C-_>v", v = "<C-_>", nl = "<C-_>" },
 	comment_padding = " "
 })
+end
