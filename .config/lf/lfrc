@@ -139,6 +139,7 @@ map <a-o> $sh $f &
 map gds cd ~/Documents
 map gdl cd ~/Downloads
 map gl cd ~/.local
+map gc cd ~/.config
 map gG cd  ~/git
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/

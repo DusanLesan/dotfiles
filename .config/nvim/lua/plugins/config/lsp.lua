@@ -20,24 +20,8 @@ capabilities.textDocument.completion.completionItem.resolveSupport = {
 	}
 }
 
-vim.fn.sign_define("LspDiagnosticsSignError", {texthl = "LspDiagnosticsSignError", text = "", numhl = "LspDiagnosticsSignError"})
-vim.fn.sign_define("LspDiagnosticsSignWarning", {texthl = "LspDiagnosticsSignWarning", text = "", numhl = "LspDiagnosticsSignWarning"})
-vim.fn.sign_define("LspDiagnosticsSignInformation", {texthl = "LspDiagnosticsSignInformation", text = "", numhl = "LspDiagnosticsSignInformation"})
-vim.fn.sign_define("LspDiagnosticsSignHint", {texthl = "LspDiagnosticsSignHint", text = "", numhl = "LspDiagnosticsSignHint"})
-vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-	underline = true,
-	virtual_text = false,
-	update_in_insert = true
-})
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-	border = "rounded",
-})
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-	border = "rounded",
-})
-
 local config = {
-	virtual_text = false,
+	virtual_text = true,
 	update_in_insert = true,
 	underline = true,
 	severity_sort = true,
@@ -52,9 +36,10 @@ vim.diagnostic.config(config)
 
 -- Lsp Installer
 local servers = {
-	"sumneko_lua",
+	"clangd",
 	"bashls",
-	"vimls"
+	"jdtls",
+	"sumneko_lua"
 }
 
 for _, name in pairs(servers) do

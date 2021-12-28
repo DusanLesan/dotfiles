@@ -1,6 +1,9 @@
 local map = vim.api.nvim_set_keymap
 local default_opts = {noremap = true, silent = true}
 
+-- Escape by using jk
+map('i', 'jk', '<Esc>', {silent = true})
+
 -- Move lines up and down with alt-up/down
 map('n', '<A-up>', ':m .-2<CR>', {silent = true})
 map('n', '<A-down>', ':m .+1<CR>', {silent = true})
@@ -58,7 +61,7 @@ map('n', '<leader>li', ':LspInfo<CR>', default_opts)
 map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
 map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
 map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
-map('n', '<leader>lc', ':! rm -f config.h && sudo make clean install<CR><CR>', default_opts)
+map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
 
 -- Term
 map('n', '<leader>ts', ':ToggleTerm size=12 direction=horizontal<CR>', default_opts)
@@ -67,14 +70,17 @@ map("n", "<leader>tg", "<cmd>lua _lazygit_toggle()<CR>", default_opts)
 map("n", "<leader>th", "<cmd>lua _htop_toggle()<CR>", default_opts)
 map("n", "<leader>tp", "<cmd>lua _python_toggle()<CR>", default_opts)
 
--- GIT
-map('n', '<leader>gj', ":lua require 'gitsigns'.next_hunk()<CR>", default_opts)
+-- Git
+map('n', '<leader>gr', ":Gitsigns reset_hunk<CR>", default_opts)
+map('n', '<leader>gR', ":Gitsigns reset_buffer<CR>", default_opts)
+map('n', '<leader>gs', ":Gitsigns stage_hunk<CR>", default_opts)
+map('n', '<leader>gS', ":Gitsigns stage_buffer<CR>", default_opts)
+map('n', '<leader>gu', ":Gitsigns undo_stage_hunk<CR>", default_opts)
+map('n', '<leader>gl', ":Gitsigns toggle_current_line_blame<CR>", default_opts)
+map('n', '<leader>gj', ":Gitsigns next_hunk<CR>", default_opts)
+map('n', '<leader>gk', ":Gitsigns prev_hunk<CR>", default_opts)
 map('n', '<leader>gg', ":Gitsigns toggle_signs<CR>", default_opts)
-map('n', '<leader>gk', ":lua require 'gitsigns'.prev_hunk()<CR>", default_opts)
-map('n', '<leader>gS', ":lua require'gitsigns'.stage_hunk()<CR>", default_opts)
-map('n', '<leader>gS', ":lua require'gitsigns'.stage_hunk({vim.fn.line('.'), vim.fn.line('v')})<CR>", default_opts)
-map('n', '<leader>gU', ":lua require'gitsigns'.undo_stage_hunk():<CR>", default_opts)
-map('n', '<leader>gs', ":Telescope git_status<CR>", default_opts)
+map('n', '<leader>gt', ":Telescope git_status<CR>", default_opts)
 map('n', '<leader>gc', ":Telescope git_commits<CR>", default_opts)
 
 -- Packer

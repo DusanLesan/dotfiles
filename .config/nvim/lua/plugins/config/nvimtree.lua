@@ -29,7 +29,6 @@ nvimtree.setup {
 			error = "x"
 		}
 	},
-
 	view = {
 		width = 30,
 		side = 'left',
@@ -51,15 +50,6 @@ g.nvim_tree_show_icons = {
 g.nvim_tree_icons = {
 	default = "",
 	symlink = "",
-	git = {
-		unstaged = "",
-		staged = "S",
-		unmerged = "",
-		renamed = "➜",
-		deleted = "",
-		untracked = "U",
-		ignored = "◌"
-	},
 	folder = {
 		arrow_open = "",
 		arrow_closed = "",

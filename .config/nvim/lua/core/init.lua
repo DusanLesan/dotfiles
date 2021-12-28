@@ -2,6 +2,7 @@
 vim.cmd("let g:matchup_matchparen_offscreen = {'method': 'popup'}")
 vim.cmd("set shortmess+=c")
 vim.cmd("let g:loaded_matchit = 1")
+vim.cmd("set nofoldenable")
 
 vim.opt.history = 100
 vim.opt.synmaxcol = 240

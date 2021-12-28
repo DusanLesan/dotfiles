@@ -75,14 +75,17 @@ whichkey.register({
 	},
 	g = {
 		name = "Git",
+		r = "Reset hunk",
+		R = "Reset buffer",
+		s = "Stage hunk",
+		S = "Stage buffer",
+		U = "Undo hunk stage",
 		g = "Toggle Signs",
 		j = "Next Hunk",
 		k = "Previous Hunk",
 		l = "Blame",
-		s = "Status",
-		c = "Commits",
-		S = "Stage",
-		U = "Unstage"
+		t = "Status",
+		c = "Commits"
 	},
 	t = {
 		name = "Terminal",

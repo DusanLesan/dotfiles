@@ -4,12 +4,7 @@ local fn = vim.fn
 local install_path = fn.stdpath "data" .. "/site/pack/packer/start/packer.nvim"
 if fn.empty(fn.glob(install_path)) > 0 then
 	PACKER_BOOTSTRAP = fn.system {
-		"git",
-		"clone",
-		"--depth",
-		"1",
-		"https://github.com/wbthomason/packer.nvim",
-		install_path,
+		"git", "clone", "--depth", "1", "https://github.com/wbthomason/packer.nvim", install_path,
 	}
 	print "Installing packer close and reopen Neovim..."
 	vim.cmd [[packadd packer.nvim]]
@@ -37,17 +32,26 @@ return require("packer").startup(function(use)
 	use { "wbthomason/packer.nvim" }
 
 	-- LSP
-	use { "neovim/nvim-lspconfig" }
-	use { "L3MON4D3/LuaSnip" }
-	use { "williamboman/nvim-lsp-installer" }
+	use {
+		"williamboman/nvim-lsp-installer",
+		requires = {
+			{ "neovim/nvim-lspconfig" }
+		}
+	}
 
 	-- CMP
-	use { "hrsh7th/nvim-cmp" }
-	use { "hrsh7th/cmp-nvim-lua" }
-	use { "hrsh7th/cmp-nvim-lsp" }
-	use { "hrsh7th/cmp-buffer" }
-	use { "hrsh7th/cmp-path" }
-	use { "saadparwaiz1/cmp_luasnip" }
+	use {
+		"hrsh7th/nvim-cmp",
+		requires = {
+			{ "hrsh7th/cmp-nvim-lsp" },
+			{ "hrsh7th/cmp-nvim-lua" },
+			{ "hrsh7th/cmp-buffer" },
+			{ "hrsh7th/cmp-path" },
+			{ "hrsh7th/vim-vsnip" },
+			{ "hrsh7th/cmp-vsnip" },
+			{ "hrsh7th/vim-vsnip-integ" },
+		}
+	}
 
 	-- Whichkey
 	use { "folke/which-key.nvim" }
@@ -68,8 +72,12 @@ return require("packer").startup(function(use)
 	use { "kyazdani42/nvim-tree.lua" }
 
 	-- Telescope
-	use { "nvim-lua/plenary.nvim" }
-	use { "nvim-telescope/telescope.nvim" }
+	use {
+		"nvim-telescope/telescope.nvim",
+		requires = {
+			{ "nvim-lua/plenary.nvim" }
+		}
+	}
 
 	-- Dashboard
 	use { "glepnir/dashboard-nvim" }
@@ -82,7 +90,7 @@ return require("packer").startup(function(use)
 	use { "andymass/vim-matchup" }
 
 	-- Colors and treesitter
-	use { "dusanlesan/vimbrs" }
+	use { "entrez/roku.vim" }
 	use { "norcalli/nvim-colorizer.lua" }
 	use { "nvim-treesitter/nvim-treesitter" }
 	use { "Mofiqul/vscode.nvim" }
@@ -91,4 +99,3 @@ return require("packer").startup(function(use)
 		require("packer").sync()
 	end
 end)
-
