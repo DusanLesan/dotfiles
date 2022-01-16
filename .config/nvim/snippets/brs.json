@@ -67,5 +67,13 @@
 			"end sub"
 		],
 		"description": "Minimal sub"
+	},
+
+	"Ternary": {
+		"prefix": "ternary",
+		"body": [
+			"ternaryIf(${1:condition}, ${2:trueResult}, ${3:falseResult})"
+		],
+		"description": "Ternary if function"
 	}
 }

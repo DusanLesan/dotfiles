@@ -2,5 +2,12 @@
 
 . super_secret_file
 
-nmcli device wifi hotspot con-name B ssid B band bg password "$hotspot_pass"
-[ $(ps -o stat= -p $$) = "S+" ] || notify-send "Wifi hotspot" "Wifi hotspot activated"
+case "$1" in
+	"q")
+		nmcli connection down B
+	;;
+	*)
+		nmcli device wifi hotspot con-name B ssid B band bg password "$hotspot_pass"
+		[ $(ps -o stat= -p $$) = "S+" ] || notify-send "Wifi hotspot" "Wifi hotspot activated"
+	;;
+esac

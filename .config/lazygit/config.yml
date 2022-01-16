@@ -1,4 +1,5 @@
 gui:
+  scrollHeight: 10
   showRandomTip: false
   showCommandLog: false
   showFileTree: true
@@ -10,3 +11,7 @@ customCommands:
   - key: 'C'
     command: 'cpr {{.SelectedLocalBranch.Name}}'
     context: 'localBranches'
+
+os:
+  editCommand: 'nvim +{{line}} {{filename}}'
+  openCommand: 'code {{filename}}'

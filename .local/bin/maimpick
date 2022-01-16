@@ -1,14 +1,51 @@
 #!/bin/sh
 
-# This is bound to Shift+PrintScreen by default, requires maim. It lets you
-# choose the kind of screenshot to take, including copying the image or even
-# highlighting an area to copy. scrotcucks on suicidewatch right now.
+path="$HOME/Pictures/screenshot"
+args=""
+type=""
 
-case "$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | dmenu -l 6 -i -p "Screenshot which area?")" in
-	"a selected area") maim -s ~/Pictures/screenshot/pic-selected-"$(date '+%y%m%d-%H%M-%S')".png ;;
-	"current window") maim -i "$(xdotool getactivewindow)" ~/Pictures/screenshot/pic-window-"$(date '+%y%m%d-%H%M-%S')".png ;;
-	"full screen") maim ~/Pictures/screenshot/pic-full-"$(date '+%y%m%d-%H%M-%S')".png ;;
-	"a selected area (copy)") maim -s | xclip -selection clipboard -t image/png ;;
-	"current window (copy)") maim -i "$(xdotool getactivewindow)" | xclip -selection clipboard -t image/png ;;
-	"full screen (copy)") maim | xclip -selection clipboard -t image/png ;;
+modes=(
+	"Select"
+	"Fullscreen"
+)
+
+displays=$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
+IFS=$'\n'
+declare -A display_mode
+for i in $displays; do
+	modes[${#modes[@]}]="${i%% *}"
+	display_mode[${i%% *}]="${i##* }"
+done
+unset IFS
+
+target=$(printf '%s\n' "${modes[@]}" | dmenu -p 'Screenshot:') || exit 1
+case "$target" in
+	'Fullscreen')
+		type="full"
+	;;
+	'Select')
+		args="-suo"
+		type="select"
+	;;
+	*)
+		args="-g ${display_mode[$target]}"
+		type="$target"
+	;;
+esac
+
+destination=( "File" "Clipboard" "Both" )
+dest=$(printf '%s\n' "${destination[@]}" | dmenu -p 'Destination:') || exit 1
+case "$dest" in
+	'File')
+		maim $args "$path/$type-$(date '+%Y%m%d-%H%M%S').png"
+	;;
+	'Clipboard')
+		maim $args | xclip -sel c -t image/png
+	;;
+	'Both')
+		maim $args | tee "$path/$type-$(date '+%Y%m%d-%H%M%S').png" | xclip -sel c -t image/png
+	;;
+	*)
+		exit 1
+	;;
 esac

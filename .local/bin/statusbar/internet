@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# Show wifi 📶 and percent strength or 📡 if none.
-# Show 🌐 if connected to ethernet or ❎ if none.
 eth="enp*"
 
 case $BLOCK_BUTTON in

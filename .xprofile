@@ -1,9 +1,8 @@
 #!/bin/sh
 
-xwallpaper --zoom ~/.local/share/bc.png
+display -window root ~/.local/share/bc.png &
 xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &>/dev/null &
 autostart &
 remaps &
 unclutter &
-picom &

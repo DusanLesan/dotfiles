@@ -103,9 +103,7 @@ map L bottom
 map <a-f> :fzf_jump
 map . set hidden!
 map DD delete
-map p paste
 map x cut
-map y copy
 map Y yank-path
 map <a-y> yank-image
 map mf mkfile

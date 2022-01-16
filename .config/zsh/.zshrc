@@ -9,6 +9,7 @@ setopt nobeep                                                    # No beep
 setopt appendhistory                                             # Immediately append history instead of overwriting
 setopt histignorealldups                                         # If a new command is a duplicate, remove the older one
 setopt autocd                                                    # If only directory path is entered, cd there.
+setopt HIST_IGNORE_SPACE                                         # Remove command lines starting with spacce from the history
 autoload -U colors && colors                                     # Load colors
 autoload -U compinit && compinit -d
 stty stop undef                                                  # Disable ctrl-s to freeze terminal.

@@ -6,4 +6,3 @@ while [ ! -e /run/user/1000/cmus-socket ] ; do
 done
 
 [ -z "$1" ] && cmus-remote -u || cmus-remote -f "$1"
-

@@ -37,11 +37,10 @@ notify() {
 }
 
 asktype() {
-	choice="$(printf "Drive\\nFTP\\nAndroid\\nSSH" | dmenu -i -p "Unmount a USB drive or Android device?")" || exit 1
+	choice="$(printf "Drive\\nAndroid\\nSSH" | dmenu -i -p "Unmount:")" || exit 1
 	case "$choice" in
 		Drive) unmountusb ;;
 		Android) unmountandroid ;;
-		FTP) umountssh "curlftpfs" ;;
 		SSH) umountssh "fuse.sshfs" ;;
 	esac
 }

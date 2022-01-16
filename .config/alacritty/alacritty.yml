@@ -123,7 +123,7 @@ draw_bold_text_with_bright_colors: true
 colors:
   # Default colors
   primary:
-    background: '0x1E1E1E'
+    background: '0x181818'
     foreground: '0xe5e8e6'
 
   selection:
@@ -140,8 +140,6 @@ colors:
     magenta: '0x85678f'
     cyan:    '0x5e8d87'
     white:   '0xC3C3C3'
-
-background_opacity: 0.8
 
 #selection:
   #semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"

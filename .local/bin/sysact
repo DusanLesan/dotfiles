@@ -1,6 +1,15 @@
 #!/bin/sh
 
-case "$(printf "lock\nlogout\nsleep\nreboot\nshutdown\nreset dwm" | dmenu -i -n -l 6 -p 'Action: ')" in
+actions=(
+	"lock"
+	"logout"
+	"sleep"
+	"reboot"
+	"shutdown"
+	"reset dwm"
+)
+
+case "$(printf '%s\n' "${actions[@]}" | dmenu -i -n -l 6 -p 'Action: ')" in
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;
 	'sleep') slock systemctl suspend ;;
@@ -9,4 +18,3 @@ case "$(printf "lock\nlogout\nsleep\nreboot\nshutdown\nreset dwm" | dmenu -i -n 
 	'reset dwm') kill -HUP "$(pgrep -u "$USER" "\bdwm$")" ;;
 	*) exit 1 ;;
 esac
-

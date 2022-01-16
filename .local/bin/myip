@@ -2,4 +2,4 @@
 
 site=ipinfo.io/json
 info=$(curl -s $site | jq '.country, .city, .ip')
-[ $(ps -o stat= -p $$) = "S+" ] && echo "$info" || notify-send "IP Info:" "$info"
+tty -s && echo "$info" || notify-send "IP Info:" "$info"
