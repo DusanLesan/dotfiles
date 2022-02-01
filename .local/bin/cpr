@@ -4,37 +4,52 @@ assignee="DusanLesan"
 [ -z "$1" ] && branch="$(git branch --show-current)" || branch="$1"
 ticketNumber=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
 ticketName=$(echo $branch | sed 's/.*ROKU-[[:digit:]]*\///' | tr '_' ' ')
-milestoneList=$(gh listMilestones | jq '.[][][][][].title' | sed 's/"//g')
+mkdir -p /tmp/gh
+gh listLabels > /tmp/gh/labels &
+gh listMilestones > /tmp/gh/milestones &
 
-if [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
+getBase() {
 	base=$(git branch --sort=-committerdate | sed -e 's/^*//' -e 's/^ *//' | dmenu -i -p "Base branch: " | sed 's/ //g')
 	[ -z "$base" ] && exit 1
-	title=$(printf "[$ticketNumber] $ticketName\n$ticketName" | dmenu -p "PR title:")
-	retVal=$? && [ $retVal -eq 1 ] && exit 1
+}
+
+getTitlesAndDescription() {
+	titles=("$ticketName")
+	[ -z "$ticketNumber" ] && return 0
+	while IFS= read -r line; do
+		codes="$codes[$line]"
+		body="$body\n[$line](https:\/\/plutotv.atlassian.net\/browse\/$line)"
+	done <<< "$ticketNumber"
+	titles=("$codes $ticketName" "${titles[@]}")
+	body="$(printf "$body" | sed -r 's/^\n//')"
+}
+
+getLabels() {
+	[ -f /tmp/gh/labels ] && labelList=$(cat /tmp/gh/labels ) || labelList=$(gh listLabels)
+	[ -z "$labelList" ] && return 0
+	label=$(echo "$labelList" | dmenu -p "Label:")
+	[ $? -eq 0 ] && return 1
+	labelList=$(echo "$labelList" | sed "/$label/d")
+	[ -n "$labels" ] && [ -n "$label" ] && labels="$labels,$label" || labels="$label"
+	getLabels
+}
+
+getReviewers() {
+	reviewers="$(cat ~/.local/share/team_dev | tr '\n' ',' | sed 's/,$//')"
+	[[ "$labels" != *"dev-approval-only"* ]] && reviewers="$reviewers,$(cat ~/.local/share/team_ste | tr '\n' ',' )"
+	reviewers="$(printf "$reviewers" | sed 's/,$//')"
+}
+
+getMilestone() {
+	[ -f /tmp/gh/milestones ] && milestoneList=$(cat /tmp/gh/milestones ) || milestoneList=$(gh listMilestones)
 	[ -n "$milestoneList" ] && milestone=$(echo "$milestoneList" | dmenu -p "Milestone:")
-else
-	read -p "Name of base branch? " base
-	read -p "Ticket name? " title
-	read -p "Milestone? " milestone
-fi
+}
 
-case "$branch" in
-	"fix/"*) label="bug" ;;
-	"enhancement/"*) label="enhancement" ;;
-	"feature/"*) label="feature" ;;
-esac
-
-if [ -x "$(command -v gh)" ]; then
-	reviewers="$(cat ~/.local/share/team | tr '\n' ',' | sed 's/,$//')"
-	[ -n "$ticketNumber" ] && body="[$ticketNumber](https:\/\/plutotv.atlassian.net\/browse\/$ticketNumber)"
-	gh pr create -t "$title" -B "$base" -H "$branch" -a "$assignee" -r "$reviewers" -b "$body" -l "$label" -m "$milestone"
-else
-	title="&title=$title"
-	label="&labels=$label"
-	assignee="&assignees=$assignee"
-	base=$(echo $base | sed 's/\//\\\//g')
-	branch=$(echo $branch| sed 's/\//\\\//g')
-	[ -n $ticketNumber ] && body="&body=[$ticketNumber](https:\/\/plutotv.atlassian.net\/browse\/$ticketNumber)"
-	url=$(git config --get remote.origin.url | sed 's/.*:/https:\/\/github.com\//' | sed 's/.git$/\/compare\//')
-	$BROWSER "$url$base...$branch?expand=1$title$assignee$label$body"
-fi
+getBase
+getTitlesAndDescription
+getLabels
+getReviewers
+getMilestone
+title=$(printf '%s\n' "${titles[@]}" | dmenu -p "PR title:")
+retVal=$? && [ $retVal -eq 1 ] && exit 1
+gh pr create -t "$title" -B "$base" -H "$branch" -a "$assignee" -r "$reviewers" -b "$body" -l "$labels" -m "$milestone"
