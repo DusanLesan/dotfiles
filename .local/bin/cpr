@@ -1,6 +1,7 @@
 #!/bin/sh
 
 assignee="DusanLesan"
+[ -x "$(command -v dmenu)" ] && cmd="dmenu -p" || cmd="fzf --bind=ctrl-space:print-query --prompt"
 [ -z "$1" ] && branch="$(git branch --show-current)" || branch="$1"
 ticketNumber=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
 ticketName=$(echo $branch | sed 's/.*ROKU-[[:digit:]]*\///' | tr '_' ' ')
@@ -9,7 +10,7 @@ gh listLabels > /tmp/gh/labels &
 gh listMilestones > /tmp/gh/milestones &
 
 getBase() {
-	base=$(git branch --sort=-committerdate | sed -e 's/^*//' -e 's/^ *//' | dmenu -i -p "Base branch: " | sed 's/ //g')
+	base=$(git branch --sort=-committerdate | sed -e 's/^*//' -e 's/^ *//' | $cmd "Base branch: " | sed 's/ //g')
 	[ -z "$base" ] && exit 1
 }
 
@@ -21,14 +22,16 @@ getTitlesAndDescription() {
 		body="$body\n[$line](https:\/\/plutotv.atlassian.net\/browse\/$line)"
 	done <<< "$ticketNumber"
 	titles=("$codes $ticketName" "${titles[@]}")
-	body="$(printf "$body" | sed -r 's/^\n//')"
+	body="$(printf "$body" | sed -E 's/^\n//')"
 }
 
 getLabels() {
-	[ -f /tmp/gh/labels ] && labelList=$(cat /tmp/gh/labels ) || labelList=$(gh listLabels)
+	if [ -z "$labelList" ]; then
+		[ -f /tmp/gh/labels ] && labelList=$(cat /tmp/gh/labels ) || labelList=$(gh listLabels)
+	fi
 	[ -z "$labelList" ] && return 0
-	label=$(echo "$labelList" | dmenu -p "Label:")
-	[ $? -eq 0 ] && return 1
+	label=$(echo "$labelList" | $cmd "Label: ")
+	[ $? -ne 0 ] && return 1
 	labelList=$(echo "$labelList" | sed "/$label/d")
 	[ -n "$labels" ] && [ -n "$label" ] && labels="$labels,$label" || labels="$label"
 	getLabels
@@ -42,7 +45,7 @@ getReviewers() {
 
 getMilestone() {
 	[ -f /tmp/gh/milestones ] && milestoneList=$(cat /tmp/gh/milestones ) || milestoneList=$(gh listMilestones)
-	[ -n "$milestoneList" ] && milestone=$(echo "$milestoneList" | dmenu -p "Milestone:")
+	[ -n "$milestoneList" ] && milestone=$(echo "$milestoneList" | $cmd "Milestone:")
 }
 
 getBase
@@ -50,6 +53,6 @@ getTitlesAndDescription
 getLabels
 getReviewers
 getMilestone
-title=$(printf '%s\n' "${titles[@]}" | dmenu -p "PR title:")
+title=$(printf '%s\n' "${titles[@]}" | $cmd "PR title:")
 retVal=$? && [ $retVal -eq 1 ] && exit 1
 gh pr create -t "$title" -B "$base" -H "$branch" -a "$assignee" -r "$reviewers" -b "$body" -l "$labels" -m "$milestone"
