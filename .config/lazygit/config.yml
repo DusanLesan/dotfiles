@@ -10,7 +10,12 @@ gui:
 customCommands:
   - key: 'C'
     command: 'cpr {{.SelectedLocalBranch.Name}}'
+    description: 'Create PR'
     context: 'localBranches'
+  - key: 'F'
+    command: 'alacritty -e lf {{.SelectedFile.Name}}'
+    description: 'Open file location'
+    context: 'files'
 
 os:
   editCommand: 'nvim +{{line}} {{filename}}'

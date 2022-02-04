@@ -5,11 +5,12 @@ baseurl="https://1337x.wtf/"
 searchEnpoint="sort-search/"
 urlParams="/seeders/desc/1/"
 cachedir="/tmp/notflix"
+datadir="/tmp/btfs"
 
 die() {
 	notify-send "$@" -i "NONE"
-	rm -rf "/tmp/webtorrent"
 	rm -rf "$cachedir"
+	rm -rf "$datadir"
 
 	exit 1
 }
@@ -60,7 +61,8 @@ main() {
 	curl -s "$fullurl" -o "$cachedir/tmp.html"
 	magnet=$(grep -Po "magnet:\?xt=urn:btih:[a-zA-Z0-9]*" "$cachedir/tmp.html" | head -n 1)
 
-	webtorrent "$magnet" --mpv && die "Cleanup" || die "Error playing"
+	mkdir -p "$datadir" || die "Failed to create data directory"
+	XDG_DATA_HOME="$datadir" btplay "$magnet" && die "Cleanup" || die "Error playing"
 }
 
 main "$@"

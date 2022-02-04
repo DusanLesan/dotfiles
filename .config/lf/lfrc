@@ -110,6 +110,7 @@ map mf mkfile
 map md mkdir
 map r rename
 map dr &dragon-drag-and-drop -a -x $fx
+map u %du -sh $f
 
 map ae $ext $f
 map at tar

@@ -1,24 +1,29 @@
 #!/bin/sh
 
 list="
-	$HOME/.cache/BraveSoftware
-	$HOME/.config/Mattermost/Cache
-	$HOME/.config/skypeforlinux/Code*
-	$HOME/.config/Skype
+	$HOME/.cache/*
+	$HOME/.config/*/Cache/
+	$HOME/.config/*/Code*Cache/
+	$HOME/.config/*/GPUCache
+	$HOME/.config/*/Crashpad
+	$HOME/.config/*/Crash*Reports/
+	$HOME/.config/*/Session*Storage/
+	$HOME/.config/BraveSoftware/Brave-Browser/Default/GPUCache
+	$HOME/.config/BraveSoftware/Brave-Browser/Default/IndexedDB
+	$HOME/.config/BraveSoftware/Brave-Browser/Default/Service*Worker
+	$HOME/.config/BraveSoftware/Brave-Browser/Default/Session*Storage
+	$HOME/.config/BraveSoftware/Brave-Browser/Default/Sessions
+	$HOME/.config/Slack/Service*Worker
 	$HOME/.config/skypeforlinux/PredefinedImages
-	$HOME/.config/Slack/Code*
-	$HOME/.config/Slack/Crash*
-	$HOME/.config/Slack/GPUCache
-	$HOME/.config/Slack/Session*"
+	$HOME/.config/Skype
+	$HOME/.config/Electron
+	$HOME/.local/share/recently-used.xbel"
 
-echo $list | while read -r data; do
-	rm -rf $data
-done
+rm -rf $list
 
 sudo journalctl --vacuum-time=1s
 sudo pacman -Scq
 rm -rf "/var/tmp/pamac-build-"*
 
 find .config/BraveSoftware/Brave-Browser/* -not \( -path '*Default*' -or -name 'First Run' -or -name 'Local State' -or -name 'chrome_shutdown_ms.txt' \) -delete
-find .config/code-oss/user-data/* -not \( -name 'User' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete
-
+find .config/code-oss/user-data/* -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete

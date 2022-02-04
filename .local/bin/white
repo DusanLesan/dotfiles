@@ -7,7 +7,7 @@
 # Display empty lines before end statements
 # Find all if statements without then
 
-extensionBlacklist=".zip .jar .png .ico .otf .ttf"
+extensionBlacklist=".zip .jar .png .ico .otf .ttf .webp"
 
 processFile() {
 	for item in $(echo "$extensionBlacklist" | tr ' ' '\n'); do
