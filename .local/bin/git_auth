@@ -1,10 +1,14 @@
 #!/bin/sh
 
 case $1 in
-	gl) key=~/.ssh/gitlab
+	gl) 
+		host="gitlab"
+		key=~/.ssh/gitlab
 		email="dusan.lesan@acumenics.com"
 	;;
-	*) key=~/.ssh/github
+	*)
+		host="github"
+		key=~/.ssh/github
 		email="oalfodr@gmail.com"
 	;;
 esac
@@ -15,4 +19,7 @@ if [ ! -S /tmp/ssh_auth_sock ]; then
 fi
 
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
-ssh-add -L | grep -q "$email" || ssh-add $key
+if [ -z "$(ssh-add -L | grep "$email")" ]; then
+	passphrase=$(secret-tool lookup host $host)
+	SSH_ASKPASS=askpass ssh-add $key <<< $passphrase
+fi

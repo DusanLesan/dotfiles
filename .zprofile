@@ -30,3 +30,6 @@ export SSB_HOME="$XDG_DATA_HOME/zoom"
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
 export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.
+
+# Unlock keyring
+export $(gnome-keyring-daemon --start)

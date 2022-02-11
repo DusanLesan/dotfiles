@@ -4,8 +4,7 @@ int main() {
 	FILE *meminfo = fopen("/proc/meminfo", "r");
 	char line[256];
 	int total, free, available, buffers, cached, sReclaimable, shmem;
-	while(fgets(line, sizeof(line), meminfo))
-	{
+	while(fgets(line, sizeof(line), meminfo)) {
 		if(sscanf(line, "MemTotal: %d kB", &total) == 1);
 		else if(sscanf(line, "MemFree: %d kB", &free) == 1);
 		else if(sscanf(line, "MemAvailable: %d kB", &available) == 1);
@@ -19,4 +18,3 @@ int main() {
 	printf("%.2f\n", used / 1024 / 1024);
 	return 0;
 }
-

@@ -16,7 +16,7 @@
 	},
 	"if": {
 		"prefix": "if",
-		"body": "if [[ ${0:condition} ]]; then\n\t${1}\nfi",
+		"body": "if [ ${1:condition} ]; then\n\t$0\nfi",
 		"description": "An IF statement."
 	},
 	"elseif": {

@@ -29,10 +29,8 @@ alias \
 	i="nsxiv -p" \
 	p="sudo pacman" \
 	c="comms" \
-	lf="lfrun"
-
-alias \
-	lg="git_auth; lazygit"
+	lf="lfrun" \
+	lg="lazygit"
 
 # Run white script for all staged files in current git repository
 wsg() {

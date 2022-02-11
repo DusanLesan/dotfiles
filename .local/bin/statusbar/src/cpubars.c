@@ -21,12 +21,9 @@ int main(void)
 	statFile = fopen("/proc/stat", "r");
 	cacheFile = fopen("/tmp/cpubarscache", "r");
 	if (statFile == NULL)
-	{
 		perror("Error");
-	}
 
-	if (cacheFile != NULL)
-	{
+	if (cacheFile != NULL) {
 		while (fgets(buffer, sizeof(buffer), cacheFile) != NULL) {
 			read_fields(buffer, fields);
 			idle_old[cpus] = fields[1];
@@ -37,10 +34,8 @@ int main(void)
 
 	cpus = 0;
 	cacheFile = fopen("/tmp/cpubarscache", "w");
-	while (fgets(buffer, sizeof(buffer), statFile) != NULL && read_fields(buffer, fields) == 10)
-	{
-		for (i=0, total_tick[cpus] = 0; i<10; i++)
-		{
+	while (fgets(buffer, sizeof(buffer), statFile) != NULL && read_fields(buffer, fields) == 10) {
+		for (i=0, total_tick[cpus] = 0; i<10; i++) {
 			total_tick[cpus] += fields[i];
 		}
 		idle[cpus] = fields[3];
@@ -53,8 +48,7 @@ int main(void)
 		del_idle[cpus] = idle[cpus] - idle_old[cpus];
 		percent_usage = ((del_total_tick[cpus] - del_idle[cpus]) / (double) del_total_tick[cpus]) * 100;
 		i = percent_usage / 12.6;
-		if (cpus != 0 && i < 8 && i > -1)
-		{
+		if (cpus != 0 && i < 8 && i > -1) {
 			printf("%s", bars[i]);
 		}
 		cpus++;
