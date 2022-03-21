@@ -19,11 +19,11 @@ connect() {
 	else
 		nmcli c u $uuid
 	fi
-	[ $? -eq 0 ] && notify-send "VPN" "Successfully activated" || notify-send -u "critical" "VPN" "Connection failed"
+	[ $? -eq 0 ] && myip || notify-send -u "critical" "VPN" "Connection failed"
 }
 
 disconnect() {
-	nmcli c d $active && notify-send "VPN" "Successfully deactivated" || notify-send -u "critical" "VPN" "Disconnection failed"
+	nmcli c d $active && myip || notify-send -u "critical" "VPN" "Disconnection failed"
 }
 
 [ -z $1 ] && connect || disconnect

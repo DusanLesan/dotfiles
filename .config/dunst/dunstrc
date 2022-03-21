@@ -2,7 +2,9 @@
 
     monitor = 0
     follow = keyboard
-    height = 1035
+    height = 1050
+    origin = top-right 
+    offset = 5x25
     indicate_hidden = yes
     separator_height = 2
     padding = 8

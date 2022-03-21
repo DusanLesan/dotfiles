@@ -27,13 +27,16 @@ void openhtop() {
 
 int main() {
 	char* button = getenv("BLOCK_BUTTON");
-	if(!button || !*button)
-		button = "0";
-
-	if (atoi(button) == 1)
-		displayhogs();
-	else if (atoi(button) == 3)
-		openhtop();
+	if (button != NULL) {
+		switch (atoi(button)) {
+			case 1:
+				displayhogs();
+				break;
+			case 3:
+				openhtop();
+				break;
+		}
+	}
 
 	FILE *meminfo = fopen("/proc/meminfo", "r");
 	char line[256];

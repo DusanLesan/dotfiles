@@ -3,7 +3,7 @@
 . super_secret_file
 
 case "$1" in
-	"q")
+	"-q")
 		nmcli connection down B
 	;;
 	*)

@@ -1,9 +1,6 @@
 #!/bin/sh
 
 menu="dmenu -i -l 25"
-baseurl="https://1337x.wtf/"
-searchEnpoint="sort-search/"
-urlParams="/seeders/desc/1/"
 cachedir="/tmp/notflix"
 datadir="/tmp/btfs"
 
@@ -15,12 +12,13 @@ die() {
 	exit 1
 }
 
-main() {
-	[ $# -eq 0 ] && query=$(dmenu -p "Search Torrent: " <&-) || query=$1
-	[ -z "$query" ] && exit 0
+searchcontent() {
+	baseurl="https://1337x.to/"
+	searchEnpoint="sort-search/"
+	urlParams="/seeders/desc/1/"
 
-	# make it queryable
-	query="$(printf "%s" "$query" | sed 's/[[:blank:]]/%20/g')"
+	# make input queryable
+	query="$(sed 's/[[:blank:]]/%20/g' <<< "$1")"
 
 	# cache result
 	mkdir -p "$cachedir" || die "Failed to create cache directory"
@@ -60,6 +58,15 @@ main() {
 	# requesting page for magnet link
 	curl -s "$fullurl" -o "$cachedir/tmp.html"
 	magnet=$(grep -Po "magnet:\?xt=urn:btih:[a-zA-Z0-9]*" "$cachedir/tmp.html" | head -n 1)
+}
+
+main() {
+	case "$1" in
+		"") searchcontent "$(dmenu -p "Search Torrent: " <&-)";;
+		"-c") magnet="$(xclip -o)";;
+		"magnet"*) magnet="$1";;
+		*) searchcontent "$1";;
+	esac
 
 	mkdir -p "$datadir" || die "Failed to create data directory"
 	XDG_DATA_HOME="$datadir" btplay "$magnet" && die "Cleanup" || die "Error playing"
