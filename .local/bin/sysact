@@ -9,7 +9,7 @@ actions=(
 	"reset dwm"
 )
 
-case "$(printf '%s\n' "${actions[@]}" | dmenu -i -n -l 6 -p 'Action: ')" in
+case "$(printf '%s\n' "${actions[@]}" | dmenu -i -l 6 -p 'Action: ')" in
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;
 	'sleep') slock systemctl suspend ;;

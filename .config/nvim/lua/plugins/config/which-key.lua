@@ -61,8 +61,6 @@ whichkey.register({
 	["n"] = "New File",
 	b = {
 		name = "Buffers",
-		j = "Next",
-		k = "Previous",
 		n = "Move Next",
 		p = "Move Previous",
 		c = "close"
@@ -103,11 +101,12 @@ whichkey.register({
 	l = {
 		name = "lsp",
 		D = "Document Diagnostic",
-		d = "Diagnostics",
-		h = "Highlight",
-		i = "Info",
-		I = "Installer Info",
+		d = "Definition",
+		h = "Hover",
 		r = "Rename",
+		a = "Code Action",
+		I = "Installer Info",
+		i = "Info",
 		c = "Compile Suckless"
 	},
 	p = {

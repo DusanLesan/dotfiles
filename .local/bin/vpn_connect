@@ -7,19 +7,26 @@ connect() {
 	vpnlist=$(nmcli -g name,type c s | grep :vpn | cut -d ":" -f 1)
 	name=$(dmenu -p "Connect: " <<< $vpnlist)
 	[ $? -ne 0 ] && exit 0
-	uuid=$(nmcli -g connection.uuid c s $name)
-	key=$(secret-tool lookup connection-uuid $uuid)
 
-	if [ -n "$key" ]; then
+	pass=$(secret-tool lookup pass $name)
+	user=$(secret-tool lookup user $name)
+
+	if [ -n "$user" ]; then
+		nmcli c mod $name vpn.user-name "$user"
+	fi
+
+	if [ -n "$pass" ]; then
 		tmp=$(mktemp)
 		chmod 600 $tmp
-		printf "vpn.secrets.password:$key" > $tmp
-		nmcli c u $uuid passwd-file $tmp
+		printf "vpn.secrets.password:$pass" > $tmp
+		nmcli c u $name passwd-file $tmp
+		connected=$?
 		rm $tmp
 	else
 		nmcli c u $uuid
+		connected=$?
 	fi
-	[ $? -eq 0 ] && myip || notify-send -u "critical" "VPN" "Connection failed"
+	[ $connected -eq 0 ] && myip || notify-send -u "critical" "VPN" "Connection failed"
 }
 
 disconnect() {

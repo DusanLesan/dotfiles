@@ -21,6 +21,9 @@ list="
 
 rm -rf $list
 
+cat -n "$HOME/.config/zsh/zhistory" | sort -k2 -k1,1nr | sort -k2 -u | sort -n | cut -f2 > "$HOME/.config/zsh/zhistory.tmp"
+mv "$HOME/.config/zsh/zhistory.tmp" "$HOME/.config/zsh/zhistory"
+
 sudo journalctl --vacuum-time=1s
 sudo pacman -Scq
 rm -rf "/var/tmp/pamac-build-"*

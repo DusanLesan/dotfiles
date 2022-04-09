@@ -1,6 +1,3 @@
 #!/bin/sh
 
-case $(ps -o comm= $PPID) in
-	"ssh-add") exec cat ;;
-	*) dmenu -nb "#A54242" -P -p "$1" <&- ;;
-esac
+dmenu -nb "#A54242" -P -p "$1" <&-

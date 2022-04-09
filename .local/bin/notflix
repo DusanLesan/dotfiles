@@ -2,7 +2,7 @@
 
 menu="dmenu -i -l 25"
 cachedir="/tmp/notflix"
-datadir="/tmp/btfs"
+datadir="/tmp/webtorrent"
 
 die() {
 	notify-send "$@" -i "NONE"
@@ -68,8 +68,7 @@ main() {
 		*) searchcontent "$1";;
 	esac
 
-	mkdir -p "$datadir" || die "Failed to create data directory"
-	XDG_DATA_HOME="$datadir" btplay "$magnet" && die "Cleanup" || die "Error playing"
+	webtorrent --mpv --playlist "$magnet" && die "Cleanup" || die "Error playing"
 }
 
 main "$@"

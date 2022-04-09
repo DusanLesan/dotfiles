@@ -1,49 +1,58 @@
 #!/bin/sh
 
-# A dmenu prompt to unmount drives.
-# Provides you with mounted partitions, select one to unmount.
-# Drives mounted at /, /boot and /home will not be options to unmount.
-
-unmountusb() {
-	drives=$(lsblk -nrpo "name,type,size,mountpoint" | awk '$4!~/\/boot|\/home$|SWAP/&&length($4)>1{printf "%s (%s)\n",$4,$3}')
-	[ -z "$drives" ] && exit
-	chosen="$(echo "$drives" | dmenu -i -p "Unmount which drive?")" || exit 1
-	chosen="$(echo "$chosen" | awk '{print $1}')"
-	[ -z "$chosen" ] && exit
+unmountdrive() {
+	if [ -z "$chosen" ]; then
+		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/home$|SWAP/&&length($1)>1{printf "%s (%s)\n",$1,$2}')
+		[ -z "$drives" ] && exit
+		chosen="$(echo "$drives" | dmenu -i -p "Unmount which drive?")" || exit 1
+		chosen="$(echo "$chosen" | awk '{print $1}')"
+	fi
+	drive=($(lsblk -nrpo "mountpoint,name,type" | awk -v chosen="$chosen" '$1==chosen{print $2, $3}'))
 	sudo -A umount "$chosen"
-	notify $?
+	[ -z "$(ls -A $chosen)" ] && rm -rf "$chosen"
+	notify $? "Unmounting"
+	if [ "${drive[1]}" == "crypt" ]; then
+		sudo -A cryptsetup close "${drive[0]}"
+		notify $? "Locking"
+	fi
 }
 
 unmountandroid() {
 	chosen="$(awk '/simple-mtpfs/ {print $2}' /etc/mtab | dmenu -i -p "Unmount which device?")" || exit 1
 	[ -z "$chosen" ] && exit
-	sudo -A umount -l "$chosen" 
-	notify $?
+	sudo -A umount -l "$chosen"
+	notify $? "Unmounting"
 }
 
 umountssh() {
-	shfs=$(mount | grep "$1" | awk '{print $3}')
+	shfs="$(mount | grep "$1" | awk '{print $3}')"
 	chosen="$(echo "$shfs" | dmenu -i -p "Unmount:")"
 	[ -z "$chosen" ] && exit
 	fusermount -u "$chosen"
-	notify $?
+	notify $? "Unmounting"
 }
 
 notify() {
 	case $1 in
-		0) notify-send "Unmounting" "Unmounting successful" ;;
-		*) notify-send "Unmounting" "Unmounting failed" ;;
+		0) notify-send "$2" "$2 successful" ;;
+		*) notify-send "$2" "$2 failed" ;;
 	esac
 }
 
 asktype() {
 	choice="$(printf "Drive\\nAndroid\\nSSH" | dmenu -i -p "Unmount:")" || exit 1
 	case "$choice" in
-		Drive) unmountusb ;;
+		Drive) unmountdrive ;;
 		Android) unmountandroid ;;
 		SSH) umountssh "fuse.sshfs" ;;
 	esac
 }
 
-asktype
+if [ -z "$1" ]; then
+	asktype
+else
+	chosen="$1"
+	mount | grep -q "$1" || exit 1
+	unmountdrive
+fi
 
