@@ -15,6 +15,6 @@ case "$(printf '%s\n' "${actions[@]}" | dmenu -i -l 6 -p 'Action: ')" in
 	'sleep') slock systemctl suspend ;;
 	'reboot') systemctl reboot ;;
 	'shutdown') systemctl poweroff ;;
-	'reset dwm') kill -HUP "$(pgrep -u "$USER" "\bdwm$")" ;;
+	'reset dwm') kill -HUP "$(pgrep -u "$USER" "\bdwm$")"; dwm ;;
 	*) exit 1 ;;
 esac

@@ -3,12 +3,12 @@
 . super_secret_file
 
 if [ $# -eq 0 ] && [ -x "$(command -v dmenu)" ] && [ x"$DISPLAY" != x ]; then
-	ACTION=$(printf "power up\nmount FS\nsend to sleep\nbarrier" | dmenu -i -p "Action: ")
+	ACTION=$(printf "power\nmount FS\nsend to sleep\nbarrier" | dmenu -i -p "Action: ")
 	[ $? -eq 1 ] && exit 0
 fi
 
 case "$1" in
-	"-p") ACTION="power up" ;;
+	"-p") ACTION="power" ;;
 	"-m") ACTION="mount FS" ;;
 	"-s") ACTION="send to sleep" ;;
 	"-x") ACTION="barrier" ;;
@@ -18,7 +18,7 @@ case "$1" in
 esac
 
 case "$ACTION" in
-	"power up")
+	"power")
 		mosquitto_pub -h m15.cloudmqtt.com -p 13578 -m true -t /toggle-power -u $cloudmqtt_user -P $cloudmqtt_password ;;
 
 	"mount FS")

@@ -1,3 +1,8 @@
 #!/bin/sh
 
-dmenu -nb "#A54242" -P -p "$1" <&-
+if [ -z "$SSH_CLIENT" ]; then
+	dmenu -nb "#A54242" -P -p "$1" <&-
+else
+	read -s -p "$1"
+	echo $REPLY
+fi

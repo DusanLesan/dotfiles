@@ -29,7 +29,7 @@ alias \
 	i="nsxiv -p" \
 	p="sudo pacman" \
 	c="comms" \
-	lf="lfrun" \
+	lf="lfcd" \
 	lg="lazygit"
 
 # Run white script for all staged files in current git repository

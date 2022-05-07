@@ -1,58 +1,93 @@
-#!/bin/sh
+#!/bin/env python
 
-assignee="DusanLesan"
-[ -x "$(command -v dmenu)" ] && cmd="dmenu -p" || cmd="fzf --bind=ctrl-space:print-query --prompt"
-[ -z "$1" ] && branch="$(git branch --show-current)" || branch="$1"
-ticketNumber=$(echo $branch | grep -Eo "ROKU-[[:digit:]]*")
-ticketName=$(echo $branch | sed 's/.*ROKU-[[:digit:]]*\///' | tr '_' ' ')
-mkdir -p /tmp/gh
-gh listLabels > /tmp/gh/labels &
-gh listMilestones > /tmp/gh/milestones &
+from subprocess import Popen, PIPE
+import re
 
-getBase() {
-	base=$(git branch --sort=-committerdate | sed -e 's/^*//' -e 's/^ *//' | $cmd "Base branch: " | sed 's/ //g')
-	[ -z "$base" ] && exit 1
-}
+def getOutput(params, input = ""):
+	p = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
+	out = p.communicate(input=input.encode())[0].decode("utf-8").strip()
+	return out
 
-getTitlesAndDescription() {
-	titles=("$ticketName")
-	[ -z "$ticketNumber" ] && return 0
-	while IFS= read -r line; do
-		codes="$codes[$line]"
-		body="$body\n[$line](https:\/\/plutotv.atlassian.net\/browse\/$line)"
-	done <<< "$ticketNumber"
-	titles=("$codes $ticketName" "${titles[@]}")
-	body="$(printf "$body" | sed -E 's/^\n//')"
-}
+def setBase():
+	global base
+	recent = getOutput(['git', 'branch', '--sort=-committerdate'])
+	recent = re.sub("[* ]", "", recent, flags=re.M)
+	base = getOutput(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 
-getLabels() {
-	if [ -z "$labelList" ]; then
-		[ -f /tmp/gh/labels ] && labelList=$(cat /tmp/gh/labels ) || labelList=$(gh listLabels)
-	fi
-	[ -z "$labelList" ] && return 0
-	label=$(echo "$labelList" | $cmd "Label: ")
-	[ $? -ne 0 ] && return 1
-	labelList=$(echo "$labelList" | sed "/$label/d")
-	[ -n "$labels" ] && [ -n "$label" ] && labels="$labels,$label" || labels="$label"
-	getLabels
-}
+def setTitleAndDescription():
+	global title
+	global body
+	codes = ""
+	for i in ticketnumbers:
+		codes += "["+code+"-"+i+"]"
+		if body:
+			body += "\n"
+		body += "["+code+"-"+i+"](https:\\/\\/plutotv.atlassian.net\\/browse\\/"+code+"-"+i+")"
+	title = codes + " " + ticketName
 
-getReviewers() {
-	reviewers="$(cat ~/.local/share/team_dev | tr '\n' ',' | sed 's/,$//')"
-	[[ "$labels" != *"dev-approval-only"* ]] && reviewers="$reviewers,$(cat ~/.local/share/team_ste | tr '\n' ',' )"
-	reviewers="$(printf "$reviewers" | sed 's/,$//')"
-}
+def setLabels():
+	global labelList
+	global labels
+	label = getOutput(['fzf', '--prompt', 'Label: '], labelList)
+	if label:
+		labelList = re.sub("^"+label+"*\n", "", labelList, flags=re.M)
+		if labels:
+			labels += "," + label
+		else:
+			labels = label
+		setLabels()
 
-getMilestone() {
-	[ -f /tmp/gh/milestones ] && milestoneList=$(cat /tmp/gh/milestones ) || milestoneList=$(gh listMilestones)
-	[ -n "$milestoneList" ] && milestone=$(echo "$milestoneList" | $cmd "Milestone:")
-}
+def setMilestone():
+	global milestone
+	milestone = getOutput(['fzf', '--prompt', 'Milestone: '], milestoneList)
 
-getBase
-getTitlesAndDescription
-getLabels
-getReviewers
-getMilestone
-title=$(printf '%s\n' "${titles[@]}" | $cmd "PR title:")
-retVal=$? && [ $retVal -eq 1 ] && exit 1
-gh pr create -t "$title" -B "$base" -H "$branch" -a "$assignee" -r "$reviewers" -b "$body" -l "$labels" -m "$milestone"
+def setReviewers():
+	global reviewers
+	f = open(userListsPath + "team_dev", "r")
+	reviewers = f.read()
+	if not devonly in labels:
+		if dte in labels:
+			f = open(userListsPath + "team_dte", "r")
+		else:
+			f = open(userListsPath + "team_ste", "r")
+		reviewers += f.read()
+
+	reviewers = reviewers.strip()
+	reviewers = reviewers.replace("\n", ",")
+
+def setTitle():
+	global title
+	title = getOutput(['fzf', '--header', 'To confirm custom value press ctrl + space', '--bind=ctrl-space:print-query', '--prompt', 'PR title: '], title)
+
+
+def verify():
+	header = "Title:\n" + title + "\n\nBase:\n" + base + "\n\nBranch:\n" + branch + "\n\nReviewers:\n" + reviewers + "\n\nDescription:\n" + body + "\n\nLabels:\n" + labels + "\n\nMilestone:\n" + milestone
+	confirmed = getOutput(['fzf', '--header', header, "--prompt", "Create PR? "], "yes\nno")
+	if confirmed != "yes":
+		quit()
+
+assignee = "DusanLesan"
+userListsPath = "/home/dusan/.local/share/"
+code = "ROKU"
+devonly = "dev-approval-only"
+dte = "phoenix"
+
+branch = getOutput(['git', 'branch', '--show-current'])
+ticketnumbers = re.findall(r"(?<=" + code + "-)\\d+", branch)
+ticketName = re.findall(r"([^\/]+$)", branch)[0]
+ticketName = ticketName.replace("-", " ").replace("_", " ")
+ticketName = ticketName[0].upper() + ticketName[1:]
+labelList = getOutput(['gh', 'listLabels'])
+milestoneList = getOutput(['gh', 'listMilestones'])
+title = base = reviewers = labels = milestone = body = ""
+
+setBase()
+setTitleAndDescription()
+setLabels()
+setMilestone()
+setReviewers()
+setTitle()
+verify()
+
+status = getOutput(['gh', 'pr', 'create', '-t', title, '-B', base, '-H', branch, '-a', assignee, '-r', reviewers, '-b', body, '-l', labels, '-m', milestone])
+print(status)

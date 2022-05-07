@@ -1,3 +1,19 @@
+# Use lf to switch directories and bind it to ctrl-o
+lfcd () {
+	tmp="$(mktemp -uq)"
+	trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
+	lfrun -last-dir-path="$tmp" "$@"
+	if [ -f "$tmp" ]; then
+		dir="$(cat "$tmp")"
+		[ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
+	fi
+}
+
+if [ "$_START_LFCD" ]; then
+	unset _START_LFCD
+	lfcd
+fi
+
 ## Options section
 setopt correct                                                   # Auto correct mistakes
 setopt extendedglob                                              # Extended globbing. Allows using regular expressions with *
@@ -61,6 +77,7 @@ bindkey '^[[1;5D' backward-word                                  #
 bindkey '^[[1;5C' forward-word                                   #
 bindkey '^H' backward-kill-word                                  # Delete previous word with ctrl+backspace
 bindkey '^[[Z' undo                                              # Shift+tab undo last action
+bindkey -s '^o' '^ulfcd\n'
 
 # Load aliases
 source "${XDG_CONFIG_HOME:-$HOME/.config}/aliasrc"
@@ -107,17 +124,17 @@ KEYTIMEOUT=1
 
 # Change cursor shape for different vi modes.
 function zle-keymap-select {
-    if [[ ${KEYMAP} == vicmd ]] ||
-        [[ $1 = 'block' ]];
-    then
-        echo -ne '\e[1 q'
-    elif [[ ${KEYMAP} == main ]] ||
-        [[ ${KEYMAP} == viins ]] ||
-        [[ ${KEYMAP} = '' ]] ||
-        [[ $1 = 'beam' ]];
-    then
-        echo -ne '\e[5 q'
-    fi
+	if [[ ${KEYMAP} == vicmd ]] ||
+		[[ $1 = 'block' ]];
+	then
+		echo -ne '\e[1 q'
+	elif [[ ${KEYMAP} == main ]] ||
+		[[ ${KEYMAP} == viins ]] ||
+		[[ ${KEYMAP} = '' ]] ||
+		[[ $1 = 'beam' ]];
+	then
+		echo -ne '\e[5 q'
+	fi
 }
 zle -N zle-keymap-select
 
@@ -126,5 +143,5 @@ echo -ne '\e[5 q'
 
 # Use beam shape cursor for each new prompt.
 preexec() {
-    echo -ne '\e[5 q'
+	echo -ne '\e[5 q'
 }

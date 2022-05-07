@@ -1,7 +1,26 @@
+local servers = {
+	"clangd",
+	"bashls",
+	"jdtls",
+	"sumneko_lua"
+}
+
 local status_ok, lsp_installer = pcall(require, "nvim-lsp-installer")
 if not status_ok then
 	return
 end
+
+lsp_installer.setup({
+	ensure_installed = servers,
+	automatic_installation = true,
+	ui = {
+		icons = {
+			server_installed = "✓",
+			server_pending = "➜",
+			server_uninstalled = "✗"
+		}
+	}
+})
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.documentationFormat = { 'markdown', 'plaintext' }
@@ -34,24 +53,6 @@ local config = {
 }
 vim.diagnostic.config(config)
 
--- Lsp Installer
-local servers = {
-	"clangd",
-	"bashls",
-	"jdtls",
-	"sumneko_lua"
-}
-
-for _, name in pairs(servers) do
-	local ok, server = lsp_installer.get_server(name)
-	if ok then
-		if not server:is_installed() then
-			print("Installing " .. name)
-			server:install()
-		end
-	end
-end
-
 local function lsp_highlight_document(client)
 	-- Set autocommands conditional on server_capabilities
 	if client.resolved_capabilities.document_highlight then
@@ -75,10 +76,7 @@ local function lsp_keymaps(bufnr)
 	vim.api.nvim_buf_set_keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
 	vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
 	vim.api.nvim_buf_set_keymap(bufnr, "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-	-- vim.api.nvim_buf_set_keymap(bufnr, "n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
 	vim.api.nvim_buf_set_keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-	-- vim.api.nvim_buf_set_keymap(bufnr, "n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-	-- vim.api.nvim_buf_set_keymap(bufnr, "n", "<leader>f", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
 	vim.api.nvim_buf_set_keymap(bufnr, "n", "[d", '<cmd>lua vim.diagnostic.goto_prev({ border = "rounded" })<CR>', opts)
 	vim.api.nvim_buf_set_keymap(
 		bufnr,
@@ -93,38 +91,14 @@ local function lsp_keymaps(bufnr)
 end
 
 local function on_attach(client, bufnr)
-	if client.name == "tsserver" then
-		client.resolved_capabilities.document_formatting = false
-	end
 	lsp_keymaps(bufnr)
 	lsp_highlight_document(client)
 end
 
-lsp_installer.on_server_ready(function(server)
-	local default_opts = {
+local lspconfig = require'lspconfig'
+for _, server in ipairs(lsp_installer.get_installed_servers()) do
+	lspconfig[server.name].setup {
 		on_attach = on_attach,
 		capabilities = capabilities
 	}
-
-	local server_opts = {
-		["sumneko_lua"] = function()
-			default_opts.settings = {
-				Lua = {
-					runtime = {
-						version = 'LuaJIT',
-						path = vim.split(package.path, ';')
-					},
-					diagnostics = {
-						globals = {'vim'},
-						config = config
-					},
-					workspace = {
-						library = {[vim.fn.expand('$VIMRUNTIME/lua')] = true, [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true}
-					}
-				}
-			}
-		end
-	}
-	server:setup(server_opts[server.name] and server_opts[server.name]() or default_opts)
-	vim.cmd([[ do User LspAttachBuffers ]])
-end)
+end
