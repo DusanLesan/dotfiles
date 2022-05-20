@@ -1,8 +1,5 @@
 local servers = {
-	"clangd",
-	"bashls",
-	"jdtls",
-	"sumneko_lua"
+	"bashls"
 }
 
 local status_ok, lsp_installer = pcall(require, "nvim-lsp-installer")

@@ -7,25 +7,6 @@ set cleaner ~/.config/lf/cleaner
 set ifs "\n"
 set autoquit true
 
-cmd open ${{
-	case $(file --mime-type "$f" -b) in
-		image/*) lf -remote "send $id openimages" ;;
-		*/octet-stream) dmenumount "$f" ;;
-		*/zip) lf -remote "send $id mountarchive" ;;
-		text/*) $EDITOR $fx ;;
-		*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done ;;
-	esac
-}}
-
-cmd openimages ${{
-	devour nsxiv -aiop 2>/dev/null <<< "$fx" |
-	(lf -remote "send $id unselect"
-	while read -r file; do
-		lf -remote "send $id select \"$file\""
-		lf -remote "send toggle"
-	done)
-}}
-
 cmd mkdir ${{
 	printf "Directory Name: "
 	read ans
@@ -60,8 +41,6 @@ cmd delete ${{
 	fi
 }}
 
-cmd draganddrop &dragon-drag-and-drop -a -x $fx
-
 # compress current file or selected files with tar and gunzip
 cmd tar ${{
 	set -f
@@ -81,16 +60,6 @@ cmd zip ${{
 	cd $temp
 	zip -r $f.zip .
 	rm -rf $temp
-}}
-
-cmd mountarchive ${{
-	mntdir="$f-archivemount"
-	[ ! -d "$mntdir" ] && {
-		mkdir "$mntdir"
-		archivemount "$f" "$mntdir"
-	}
-	lf -remote "send $id cd \"$mntdir\""
-	lf -remote "send $id reload"
 }}
 
 cmd fzf_jump ${{
@@ -119,18 +88,15 @@ map x cut
 map Y yank-path
 map <a-y> yank-image
 map r rename
-map dr &dragon-drop -a -x $fx
 map u %du -sh $f
 map c :clear; unselect
 
 map mf mkfile
 map md mkdir
-map mu %dmenuumount "$fx"
 
 map ae $ext $f
 map at tar
 map az zip
-map am mountarchive
 
 map R reload
 map C clear

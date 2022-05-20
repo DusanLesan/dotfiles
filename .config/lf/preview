@@ -1,15 +1,5 @@
 #!/bin/sh
 
-image() {
-	if [ -n "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
-		printf '{"action": "add", "identifier": "PREVIEW", "x": "%s", "y": "%s", "width": "%s", "height": "%s", "scaler": "contain", "path": "%s"}\n' "$4" "$5" "$(($2-1))" "$(($3-1))" "$1" > "$FIFO_UEBERZUG"
-		exit 1
-	else
-		chafa "$1" -s "$4x"
-	fi
-}
-
-CACHE="/tmp/lf/thumbnail.$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f "$1")" | sha256sum | awk '{print $1}'))"
 MIMETYPE="$( file --dereference --brief --mime-type -- "$1" )"
 
 case $MIMETYPE in
@@ -19,16 +9,9 @@ case $MIMETYPE in
 	*/zip|*java-archive) unzip -l "$1" ;;
 	*rar) unrar l "$1" ;;
 	*7z) 7z l "$1" ;;
-	audio/mpeg) mp3info "$1" ;;
-	*/pdf)
-		[ ! -f "${CACHE}.jpg" ] && \
-			pdftoppm -jpeg -f 1 -singlefile "$1" "$CACHE"
-		image "${CACHE}.jpg" "$2" "$3" "$4" "$5" ;;
-	image/*)
-		image "$1" "$2" "$3" "$4" "$5" ;;
 	*)
 		[ "$( stat --printf='%s' -- "$1" )" -gt "262143" ] && exit 2
-		highlight --replace-tabs="8" --out-format="xterm256" --style="pablo" --force -- "$1" ;;
+		less "$1" ;;
 esac
 exit 0
 
