@@ -1,5 +1,0 @@
-#!/bin/sh
-
-site=ipinfo.io/json
-info=$(curl -s $site | jq '.country, .city, .ip')
-tty -s && echo "$info" || notify-send "IP Info:" "$info"
