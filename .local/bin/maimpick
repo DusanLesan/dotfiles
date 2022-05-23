@@ -1,6 +1,6 @@
 #!/bin/sh
 
-path="$HOME/Pictures/screenshot"
+path="$HOME/hdd_1/Pictures/screenshot"
 args=""
 type=""
 

@@ -1,93 +1,138 @@
 #!/bin/env python
 
 from subprocess import Popen, PIPE
+from threading import Thread
+from textwrap import fill
+from pathlib import Path
+from json import load
+from glob import glob
 import re
 
-def getOutput(params, input = ""):
-	p = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
-	out = p.communicate(input=input.encode())[0].decode("utf-8").strip()
+def parseConfig():
+	configFile = Path('userConfig.json')
+	if not configFile.is_file():
+		print('Cannot find userConfig.json file!')
+		quit()
+
+	configFile = open('userConfig.json')
+	config = load(configFile)
+	for field in config:
+		globals()[field] = config[field]
+
+	if not assignee:
+		print('Please enter missing values in userConfig.json file!')
+		quit()
+
+def executeCommand(params, input = ''):
+	process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
+	out = process.communicate(input=input.encode())[0].decode('utf-8').strip()
+	if process.returncode != 0:
+		quit()
 	return out
+
+def setList(list, action):
+	globals()[list] = executeCommand(['gh', action])
 
 def setBase():
 	global base
-	recent = getOutput(['git', 'branch', '--sort=-committerdate'])
-	recent = re.sub("[* ]", "", recent, flags=re.M)
-	base = getOutput(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
+	recent = executeCommand(['git', 'branch', '--sort=-committerdate'])
+	recent = re.sub('[* ]', '', recent, flags=re.M)
+	recent = re.sub('^' + branch + '*\n', '', recent, flags=re.M)
+	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 
 def setTitleAndDescription():
 	global title
 	global body
-	codes = ""
-	for i in ticketnumbers:
-		codes += "["+code+"-"+i+"]"
+	codes = ''
+	for i in ticketNumbers:
+		codes += '[' + projectCode + '-' + i + ']'
 		if body:
-			body += "\n"
-		body += "["+code+"-"+i+"](https:\\/\\/plutotv.atlassian.net\\/browse\\/"+code+"-"+i+")"
-	title = codes + " " + ticketName
+			body += '\n'
+		body += '[' + projectCode + '-' + i + '](' + ticketUrl + projectCode + '-' + i + ')'
+	title = codes + ' ' + ticketName
 
 def setLabels():
 	global labelList
 	global labels
-	label = getOutput(['fzf', '--prompt', 'Label: '], labelList)
+	label = executeCommand(['fzf', '--prompt', 'Label: '], labelList)
 	if label:
-		labelList = re.sub("^"+label+"*\n", "", labelList, flags=re.M)
+		labelList = re.sub('^' + label + '*\n', '', labelList, flags=re.M)
 		if labels:
-			labels += "," + label
+			labels += ',' + label
 		else:
 			labels = label
 		setLabels()
 
 def setMilestone():
 	global milestone
-	milestone = getOutput(['fzf', '--prompt', 'Milestone: '], milestoneList)
+	milestone = executeCommand(['fzf', '--prompt', 'Milestone: '], milestoneList)
 
 def setReviewers():
-	global reviewers
-	f = open(userListsPath + "team_dev", "r")
-	reviewers = f.read()
-	if not devonly in labels:
-		if dte in labels:
-			f = open(userListsPath + "team_dte", "r")
-		else:
-			f = open(userListsPath + "team_ste", "r")
-		reviewers += f.read()
+	path = Path(teamListsPath + 'team_dev')
+	if not path.is_file():
+		print('User lists are missing!')
+		return
 
+	global reviewers
+	file = open(teamListsPath + 'team_dev', 'r')
+	reviewers = file.read()
+	if not devOnlyLabel in labels:
+		if dteLabel in labels:
+			qa = '*dte'
+		else:
+			qa = '*ste'
+
+		for path in glob(teamListsPath + 'team*' + team + qa):
+			file = open(path, 'r')
+			reviewers += file.read()
+
+	reviewers = re.sub('^' + assignee + '*\n', '', reviewers, flags=re.M)
 	reviewers = reviewers.strip()
-	reviewers = reviewers.replace("\n", ",")
+	reviewers = reviewers.replace('\n', ',')
 
 def setTitle():
 	global title
-	title = getOutput(['fzf', '--header', 'To confirm custom value press ctrl + space', '--bind=ctrl-space:print-query', '--prompt', 'PR title: '], title)
-
+	title = executeCommand(['fzf', '--header', 'To confirm custom value press ctrl + space', '--bind=ctrl-space:print-query', '--prompt', 'PR title: '], title)
 
 def verify():
-	header = "Title:\n" + title + "\n\nBase:\n" + base + "\n\nBranch:\n" + branch + "\n\nReviewers:\n" + reviewers + "\n\nDescription:\n" + body + "\n\nLabels:\n" + labels + "\n\nMilestone:\n" + milestone
-	confirmed = getOutput(['fzf', '--header', header, "--prompt", "Create PR? "], "yes\nno")
-	if confirmed != "yes":
+	preview = 'Title:\n' + title + '\n\nBase:\n' + base + '\n\nBranch:\n' + branch \
+		+ '\n\nReviewers:\n' + fill(reviewers.replace(',', ', '), 70, break_on_hyphens=False) \
+		+ '\n\nDescription:\n' + body.replace('\\', '') + '\n\nLabels:\n' + labels + '\n\nMilestone:\n' + milestone
+	preview = preview.replace('\n', '\\n').replace("'", "\\'")
+	confirmed = executeCommand(['fzf', '--header', 'Create PR? ', '--preview', 'echo "' + preview + '"', '--preview-window', '80%'], 'yes\nno')
+	if confirmed != 'yes':
 		quit()
 
-assignee = "DusanLesan"
-userListsPath = "/home/dusan/.local/share/"
-code = "ROKU"
-devonly = "dev-approval-only"
-dte = "phoenix"
+t1 = Thread(target=setList, args=('labelList', 'listLabels'))
+t2 = Thread(target=setList, args=('milestoneList', 'listMilestones'))
+t1.start()
+t2.start()
 
-branch = getOutput(['git', 'branch', '--show-current'])
-ticketnumbers = re.findall(r"(?<=" + code + "-)\\d+", branch)
-ticketName = re.findall(r"([^\/]+$)", branch)[0]
-ticketName = ticketName.replace("-", " ").replace("_", " ")
+assignee = team = projectCode = dteLabel = devOnlyLabel = ticketUrl = teamListsPath = ''
+parseConfig()
+
+branch = executeCommand(['git', 'branch', '--show-current'])
+ticketNumbers = re.findall(r'(?<=' + projectCode + '-)\\d+', branch)
+ticketName = re.findall(r'([^\/]+$)', branch)[0]
+ticketName = ticketName.replace('-', ' ').replace('_' , ' ')
 ticketName = ticketName[0].upper() + ticketName[1:]
-labelList = getOutput(['gh', 'listLabels'])
-milestoneList = getOutput(['gh', 'listMilestones'])
-title = base = reviewers = labels = milestone = body = ""
+title = base = reviewers = labels = milestone = body = ''
+labelList = milestoneList = ''
 
 setBase()
 setTitleAndDescription()
-setLabels()
-setMilestone()
-setReviewers()
 setTitle()
+
+t1.join()
+labelList = '\n' + labelList
+setLabels()
+
+t2.join()
+milestoneList = '\n' + milestoneList
+setMilestone()
+
+setReviewers()
 verify()
 
-status = getOutput(['gh', 'pr', 'create', '-t', title, '-B', base, '-H', branch, '-a', assignee, '-r', reviewers, '-b', body, '-l', labels, '-m', milestone])
+status = executeCommand(['gh', 'pr', 'create', '-t', title, '-B', base, '-H', branch, '-a', assignee, '-r', reviewers, '-b', body, '-l', labels, '-m', milestone])
 print(status)

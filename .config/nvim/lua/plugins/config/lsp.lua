@@ -95,10 +95,34 @@ local function on_attach(client, bufnr)
 	lsp_highlight_document(client)
 end
 
+local server_opts = {
+	["sumneko_lua"] = {
+		settings = {
+			Lua = {
+				diagnostics = {
+					globals = { "vim" },
+				},
+				workspace = {
+					library = {
+						[vim.fn.expand("$VIMRUNTIME/lua")] = true,
+						[vim.fn.stdpath("config") .. "/lua"] = true,
+					},
+				},
+			},
+		},
+	}
+}
+
 local lspconfig = require'lspconfig'
 for _, server in ipairs(lsp_installer.get_installed_servers()) do
-	lspconfig[server.name].setup {
+	local opts = {
 		on_attach = on_attach,
-		capabilities = capabilities
+		capabilities = capabilities,
 	}
+
+	if server_opts[server.name] ~= nil then
+		opts = vim.tbl_deep_extend("force", server_opts[server.name], opts)
+	end
+
+	lspconfig[server.name].setup(opts)
 end

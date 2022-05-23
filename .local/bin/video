@@ -1,5 +1,18 @@
 #!/bin/sh
 
 pkill mpv
-mpv "$1"
+mdir="$(dirname $(readlink -f "$1"))"
+
+for file in "$mdir"/*; do
+	if [[ $file =~ @*.(ass|srt|sub) ]]; then
+		[ -n "$subs" ] && subs="$subs:$file" || subs="$file"
+	fi
+done
+
+if [[ -n $subs ]]; then
+	mpv --sub-files="$subs" "$1"
+else
+	mpv "$1"
+fi
+
 exit 0

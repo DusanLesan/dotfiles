@@ -8,7 +8,7 @@ prompt: enabled
 pager:
 # Aliases allow you to create nicknames for gh commands
 aliases:
-    listMilestones: api 'repos/{owner}/{repo}/milestones' -q '.[].title'
+    listMilestones: api 'repos/{owner}/{repo}/milestones?direction=desc' -q '.[].title'
     listLabels: api 'repos/{owner}/{repo}/labels' -q '.[].name'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
