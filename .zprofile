@@ -25,6 +25,7 @@ export ANDROID_SDK_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/android"
 export HISTFILE="${XDG_DATA_HOME:-$HOME/.local/share}/history"
 export VSCODE_PORTABLE="$XDG_CONFIG_HOME/code-oss"
 export SSB_HOME="$XDG_DATA_HOME/zoom"
+export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
 
 # Other program settings:
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock

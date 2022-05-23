@@ -25,6 +25,7 @@ mountssh() {
 }
 
 open() {
+	[ -b "/dev/mapper/$name" ] && return 0
 	key="$(getpass "Drive passphrase or key path: ")" || end 1
 	if [ -f "$key" ]; then
 		sudo -A cryptsetup open $chosen $name --key-file $key && return 0

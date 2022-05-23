@@ -1,12 +1,18 @@
 #!/bin/env python
 
 from subprocess import Popen, PIPE
+from threading import Thread
 import re
 
 def getOutput(params, input = ""):
 	p = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
 	out = p.communicate(input=input.encode())[0].decode("utf-8").strip()
+	if p.returncode != 0:
+		quit()
 	return out
+
+def setList(list, action):
+	globals()[list] = getOutput(['gh', action])
 
 def setBase():
 	global base
@@ -22,7 +28,7 @@ def setTitleAndDescription():
 		codes += "["+code+"-"+i+"]"
 		if body:
 			body += "\n"
-		body += "["+code+"-"+i+"](https:\\/\\/plutotv.atlassian.net\\/browse\\/"+code+"-"+i+")"
+		body += "["+code+"-"+i+"]("+url+code+"-"+i+")"
 	title = codes + " " + ticketName
 
 def setLabels():
@@ -68,25 +74,37 @@ def verify():
 
 assignee = "DusanLesan"
 userListsPath = "/home/dusan/.local/share/"
+url = "https:\\/\\/plutotv.atlassian.net\\/browse\\/"
 code = "ROKU"
 devonly = "dev-approval-only"
 dte = "phoenix"
+
+t1 = Thread(target=setList, args=("labelList", "listLabels"))
+t2 = Thread(target=setList, args=("milestoneList", "listMilestones"))
+t1.start()
+t2.start()
 
 branch = getOutput(['git', 'branch', '--show-current'])
 ticketnumbers = re.findall(r"(?<=" + code + "-)\\d+", branch)
 ticketName = re.findall(r"([^\/]+$)", branch)[0]
 ticketName = ticketName.replace("-", " ").replace("_", " ")
 ticketName = ticketName[0].upper() + ticketName[1:]
-labelList = getOutput(['gh', 'listLabels'])
-milestoneList = getOutput(['gh', 'listMilestones'])
 title = base = reviewers = labels = milestone = body = ""
+labelList = milestoneList = ""
 
 setBase()
 setTitleAndDescription()
-setLabels()
-setMilestone()
-setReviewers()
 setTitle()
+
+t1.join()
+labelList = "\n" + labelList
+setLabels()
+
+t2.join()
+milestoneList = "\n" + milestoneList
+setMilestone()
+
+setReviewers()
 verify()
 
 status = getOutput(['gh', 'pr', 'create', '-t', title, '-B', base, '-H', branch, '-a', assignee, '-r', reviewers, '-b', body, '-l', labels, '-m', milestone])
