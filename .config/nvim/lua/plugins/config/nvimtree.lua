@@ -3,10 +3,6 @@ if not status_ok then
 	return
 end
 
-local g = vim.g
-g.nvim_tree_highlight_opened_files = 1
-g.nvim_tree_root_folder_modifier = table.concat { ":t:gs?$?/..", string.rep(" ", 1000), "?:gs?^??" }
-
 nvimtree.setup {
 	disable_netrw = true,
 	hijack_netrw = true,
@@ -35,27 +31,55 @@ nvimtree.setup {
 			custom_only = false,
 			list = {}
 		}
-	}
-}
-
-g.nvim_tree_show_icons = {
-	git = 1,
-	folder_arrows = 1,
-	folders = 1,
-	files = 1
-}
-
-g.nvim_tree_icons = {
-	default = "",
-	symlink = "",
-	folder = {
-		arrow_open = "",
-		arrow_closed = "",
-		default = "",
-		open = "",
-		empty = "",
-		empty_open = "",
-		symlink = "",
-		symlink_open = ""
+	},
+	renderer = {
+		add_trailing = false,
+		group_empty = false,
+		highlight_git = false,
+		highlight_opened_files = "true",
+		root_folder_modifier = ":~",
+		indent_markers = {
+			enable = false,
+			icons = {
+				corner = "└ ",
+				edge = "│ ",
+				none = "  "
+			}
+		},
+		icons = {
+			webdev_colors = true,
+			git_placement = "before",
+			padding = " ",
+			symlink_arrow = " ➛ ",
+			show = {
+				file = true,
+				folder = true,
+				folder_arrow = true,
+				git = true,
+			},
+			glyphs = {
+				default = "",
+				symlink = "",
+				folder = {
+					arrow_closed = "",
+					arrow_open = "",
+					default = "",
+					open = "",
+					empty = "",
+					empty_open = "",
+					symlink = "",
+					symlink_open = ""
+				},
+				git = {
+					unstaged = "✗",
+					staged = "✓",
+					unmerged = "",
+					renamed = "➜",
+					untracked = "★",
+					deleted = "",
+					ignored = "◌"
+				}
+			}
+		}
 	}
 }

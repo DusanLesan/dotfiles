@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ "$1" != "$f" ]; then
+	case "$(file -Lb --mime-type -- "$f")" in
+		image/*) exit;;
+	esac
+fi
+
 if [ -n "$FIFO_UEBERZUG" ]; then
 	printf '{"action": "remove", "identifier": "PREVIEW"}\n' > "$FIFO_UEBERZUG"
 fi
