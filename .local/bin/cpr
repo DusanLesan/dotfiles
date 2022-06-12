@@ -37,7 +37,7 @@ def setBase():
 	global base
 	recent = executeCommand(['git', 'branch', '--sort=-committerdate'])
 	recent = re.sub('[* ]', '', recent, flags=re.M)
-	recent = re.sub('^' + branch + '*\n', '', recent, flags=re.M)
+	recent = re.sub('^'+branch+'*\n', '', recent, flags=re.M)
 	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 
 def setTitleAndDescription():
@@ -99,7 +99,7 @@ def verify():
 		+ '\n\nReviewers:\n' + fill(reviewers.replace(',', ', '), 70, break_on_hyphens=False) \
 		+ '\n\nDescription:\n' + body.replace('\\', '') + '\n\nLabels:\n' + labels + '\n\nMilestone:\n' + milestone
 	preview = preview.replace('\n', '\\n').replace("'", "\\'")
-	confirmed = executeCommand(['fzf', '--header', 'Create PR? ', '--preview', 'echo "' + preview + '"', '--preview-window', '80%'], 'yes\nno')
+	confirmed = executeCommand(['fzf', '--header', 'Create PR? ', '--preview', 'python -c "print(\'' + preview + '\')"', '--preview-window', '80%'], 'yes\nno')
 	if confirmed != 'yes':
 		quit()
 

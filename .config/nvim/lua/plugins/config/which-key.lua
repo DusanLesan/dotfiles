@@ -85,14 +85,6 @@ whichkey.register({
 		t = "Status",
 		c = "Commits"
 	},
-	t = {
-		name = "Terminal",
-		s = "Toggle Split",
-		g = "LazyGit",
-		h = "htop",
-		t = "Toggle",
-		p = "Python"
-	},
 	s = {
 		name = "Session",
 		s = "Save",

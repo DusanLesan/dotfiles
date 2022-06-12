@@ -28,7 +28,7 @@ packer.init {
 vim.opt.termguicolors = true
 
 return require("packer").startup(function(use)
-	-- PACKER
+	-- Packer
 	use { "wbthomason/packer.nvim" }
 
 	-- LSP
@@ -65,7 +65,7 @@ return require("packer").startup(function(use)
 	-- comment
 	use { "winston0410/commented.nvim" }
 
-	-- TERM
+	-- Term
 	use {"akinsho/toggleterm.nvim"}
 
 	-- Files
@@ -85,7 +85,7 @@ return require("packer").startup(function(use)
 	-- Git
 	use { "lewis6991/gitsigns.nvim" }
 
-	-- AUTOPAIRS
+	-- Autopairs
 	use { "windwp/nvim-autopairs" }
 	use { "andymass/vim-matchup" }
 
