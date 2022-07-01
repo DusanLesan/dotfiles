@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void displayhogs() {
+void displayhogs(void) {
 	size_t size = 0;
 	char *buffer = NULL;
 	FILE *fp = popen("ps axch -o cmd:15,%mem --sort=-%mem", "r");
@@ -20,12 +20,12 @@ void displayhogs() {
 	pclose(fp);
 }
 
-void openhtop() {
+void openhtop(void) {
 	char *args[] = {"/bin/alacritty", "-e", "htop", NULL};
 	execv(args[0], args);
 }
 
-int main() {
+int main(void) {
 	char* button = getenv("BLOCK_BUTTON");
 	if (button != NULL) {
 		switch (atoi(button)) {

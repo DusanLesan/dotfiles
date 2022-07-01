@@ -37,6 +37,12 @@ def setBase():
 	global base
 	recent = executeCommand(['git', 'branch', '--sort=-committerdate'])
 	recent = re.sub('[* ]', '', recent, flags=re.M)
+
+	worktree = re.search(r"(?<=\+).*", recent, flags=re.M)
+	if worktree:
+		recent = re.sub(r'^\+.*\n', '', recent, flags=re.M)
+		recent = worktree.group() + '\n' + recent
+
 	recent = re.sub('^'+branch+'*\n', '', recent, flags=re.M)
 	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 

@@ -12,7 +12,7 @@ void setbacklight(int val) {
 	fclose(fb);
 }
 
-int main() {
+int main(void) {
 	char* button = getenv("BLOCK_BUTTON");
 	if (button != NULL) {
 		switch (atoi(button)) {

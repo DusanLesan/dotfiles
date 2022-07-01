@@ -1,0 +1,38 @@
+[
+    {
+        "key": "alt+t s",
+        "command": "workbench.action.toggleAuxiliaryBar"
+    },
+    {
+        "key": "alt+t b",
+        "command": "workbench.action.toggleSidebarVisibility"
+    },
+    {
+        "key": "alt+t p",
+        "command": "workbench.action.togglePanel"
+    },
+    {
+        "key": "alt+f t",
+        "command": "workbench.action.terminal.focus"
+    },
+    {
+        "key": "alt+f n",
+        "command": "npm.focus"
+    },
+    {
+        "key": "alt+f f",
+        "command": "workbench.files.action.focusFilesExplorer"
+    },
+    {
+        "key": "alt+f e",
+        "command": "workbench.action.focusActiveEditorGroup"
+    },
+    {
+        "key": "alt+q",
+        "command": "workbench.action.closeActiveEditor"
+    },
+    {
+        "key": "alt+d",
+        "command": "workbench.action.quickOpen"
+    }
+]

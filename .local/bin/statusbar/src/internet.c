@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void nmtui() {
+void nmtui(void) {
 	char *args[] = {"/bin/alacritty", "--class", ",floating", "-e", "nmtui-connect", NULL};
 	setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
 	execv(args[0], args);

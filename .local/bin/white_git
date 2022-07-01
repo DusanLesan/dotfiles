@@ -2,12 +2,27 @@
 
 MSG="$([ -f .git/MERGE_MSG ] && cat .git/MERGE_MSG || echo "")"
 [[ $MSG == [M\|m]erge* ]] && exit 0
-changed="$(git diff --cached | grep -Po '^\+\K.*')"
-result=$(printf "%s\n%s\n%s\n%s" \
-	"$(echo "$changed" | grep '[[:blank:]]$')" \
-	"$(echo "$changed" | grep -P '\S[ ]{2,}\S')" \
-	"$(echo "$changed" | grep -P '\t | \t')" \
-	"$(echo "$changed" | grep -P '(?!.*then)^\s*if.*$')" )
+stagedFiles="$(git diff --cached --name-only)"
 
-[ -n "$result" ] && echo "$result" && exit 1
+validate() {
+	echo "$2" | grep -Pq "$3" && matches+="$1: $2\n"
+}
+
+result=""
+for file in $stagedFiles; do
+	matches=""
+	while IFS= read -r line; do
+		validate 'Trailing whitespaces ' "$line" '\s$'
+		validate 'Multiple spaces      ' "$line" '\S[ ]{2,}\S'
+		validate 'Mixed indentation    ' "$line" '\t | \t'
+		[[ $file != *.brs ]] && continue
+		validate 'If not having then   ' "$line" '(?!.*then)^\s*if.*$'
+		validate 'No output type       ' "$line" 'function \w*\(.*\)(?! as \w.*)'
+		validate 'No input type        ' "$line" '(sub|function)\s+\w+\((?!(?:\s*\w+\s+(.*?)as\s+\w+(?:\s*,\s*\w+\s+(.*?)as\s+\w+)*)?\s*\))'
+	done <<< "$(git diff --cached "$file" | grep -Po '^\+\K.*')"
+
+	[ -n "$matches" ] && result+="FILE                 : $file\n$matches"
+done
+
+[ -n "$result" ] && echo -e "$result" && exit 1
 exit 0
