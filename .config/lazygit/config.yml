@@ -1,6 +1,7 @@
 gui:
   scrollHeight: 10
   showRandomTip: false
+  showBottomLine: false
   showCommandLog: false
   showFileTree: true
   theme:

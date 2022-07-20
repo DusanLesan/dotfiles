@@ -38,10 +38,12 @@ def setBase():
 	recent = executeCommand(['git', 'branch', '--sort=-committerdate'])
 	recent = re.sub('[* ]', '', recent, flags=re.M)
 
-	worktree = re.search(r"(?<=\+).*", recent, flags=re.M)
+	worktree = re.findall(r"(?<=\+).*", recent, flags=re.M)
 	if worktree:
 		recent = re.sub(r'^\+.*\n', '', recent, flags=re.M)
-		recent = worktree.group() + '\n' + recent
+		worktree.reverse()
+		for line in worktree:
+			recent = line + '\n' + recent
 
 	recent = re.sub('^'+branch+'*\n', '', recent, flags=re.M)
 	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
@@ -55,7 +57,9 @@ def setTitleAndDescription():
 		if body:
 			body += '\n'
 		body += '[' + projectCode + '-' + i + '](' + ticketUrl + projectCode + '-' + i + ')'
-	title = codes + ' ' + ticketName
+	title = ticketName
+	if codes:
+		title = codes + ' ' + title
 
 def setLabels():
 	global labelList
@@ -98,7 +102,7 @@ def setReviewers():
 
 def setTitle():
 	global title
-	title = executeCommand(['fzf', '--header', 'To confirm custom value press ctrl + space', '--bind=ctrl-space:print-query', '--prompt', 'PR title: '], title)
+	title = executeCommand(['fzf', '--header', 'To confirm custom value press ctrl + space\nTo edit current selection press ctrl + s', '--bind=ctrl-space:print-query', '--bind=ctrl-s:replace-query', '--prompt', 'PR title: '], title)
 
 def verify():
 	preview = 'Title:\n' + title + '\n\nBase:\n' + base + '\n\nBranch:\n' + branch \

@@ -4,7 +4,6 @@
 	"editor.fontLigatures": true,
 	"editor.renderWhitespace": "all",
 	"editor.snippetSuggestions": "top",
-	"editor.minimap.enabled": false,
 	"workbench.startupEditor": "none",
 	"explorer.confirmDelete": false,
 	"git.autofetch": true,

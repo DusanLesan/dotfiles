@@ -6,9 +6,12 @@
 #include <unistd.h>
 
 void nmtui(void) {
-	char *args[] = {"/bin/alacritty", "--class", ",floating", "-e", "nmtui-connect", NULL};
-	setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
-	execv(args[0], args);
+	pid_t child_pid = fork();
+	if (child_pid == 0) {
+		char *args[] = {"/bin/alacritty", "--class", ",floating", "-e", "nmtui-connect", NULL};
+		setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
+		execv(args[0], args);
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -56,7 +59,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	char output[32];
+	char* output;
 	if (e == 1)
 		strcat(output, " ");
 	if (h == 1) {

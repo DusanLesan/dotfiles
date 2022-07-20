@@ -25,15 +25,21 @@ void openhtop(void) {
 	execv(args[0], args);
 }
 
+void runbackground(void f()) {
+	pid_t child_pid = fork();
+	if (child_pid == 0)
+		f();
+}
+
 int main(void) {
 	char* button = getenv("BLOCK_BUTTON");
 	if (button != NULL) {
 		switch (atoi(button)) {
 			case 1:
-				displayhogs();
+				runbackground(displayhogs);
 				break;
 			case 3:
-				openhtop();
+				runbackground(openhtop);
 				break;
 		}
 	}
