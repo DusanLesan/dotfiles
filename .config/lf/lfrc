@@ -1,5 +1,3 @@
-# interpreter for shell commands (needs to be POSIX compatible)
-
 set scrolloff 10
 set hidden true
 set previewer ~/.config/lf/preview
@@ -99,22 +97,53 @@ cmd mount_archive ${{
 }}
 
 cmd fzf_jump ${{
+	old="$f"
 	while true; do
-		sel="$(ls -a --color=always | tail -n +3 | fzf --ansi --reverse --bind 'esc:execute(echo {+})+abort,space:accept,right:accept,left:execute(echo ..)+abort' --preview '[ -f {} ] && highlight -O ansi {}' --preview-window '75%,<90(50%)')"
-		res=$?
-		[ -z "$sel" ] && exit 0
-		if [ $res -eq 130 ] && [ "$sel" != ".." ] ; then
-			lf -remote "send $id select \"$sel\""
+		selected=$(ls -a --color=always | tail -n +3 | \
+			fzf --ansi --reverse \
+			--bind 'esc:execute(echo "")+abort,space:execute(echo {})+abort,right:accept,left:execute(echo ..)+abort' \
+			--preview '[ -f {} ] && bat -p --color=always {} --theme "Visual Studio Dark+" --tabs 2 || ls -ahl {}' \
+			--preview-window '75%,<90(50%)'
+		)
+		if [ $? -eq 130 ] && [ "$selected" != ".." ]; then
+			[ -z "$selected" ] && selected="$old"
+			lf -remote "send $id select \"$selected\""
 			exit 0
-		elif [ -f "$sel" ]; then
-			[ $? -eq 0 ] && xdg-open "$sel"
-			lf -remote "send $id select \"$sel\""
-			exit 0
-		elif [ -d "$sel" ]; then
-			cd "$sel"
-			lf -remote "send $id cd \"$sel\""
+		else
+			if [ -f "$selected" ]; then
+				lf -remote "send $id select \"$selected\""
+				xdg-open "$selected"
+				exit 0
+			elif [ -d "$selected" ]; then
+				cd "$selected"
+				lf -remote "send $id cd \"$selected\""
+			fi
 		fi
 	done
+}}
+
+cmd fzf_find_file ${{
+	selected="$(rg --files * | fzf)"
+	lf -remote "send $id select \"$selected\""
+}}
+
+cmd fzf_find_line ${{
+	RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+	INITIAL_QUERY="${*:-}"
+	selected=$(
+		FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+		fzf --ansi --disabled --query "$INITIAL_QUERY" \
+		--bind 'space:execute(echo {+})+abort' \
+		--bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+		--delimiter : \
+		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
+	)
+	code=$?
+	if [ -n "${selected[0]}" ]; then
+		IFS=':' read -ra selected <<< "$selected"
+		lf -remote "send $id select \"${selected[0]}\""
+		[ $code -ne 130 ] && $EDITOR +"${selected[1]}" "${selected[0]}"
+	fi
 }}
 
 # Remove some defaults
@@ -125,16 +154,18 @@ map d
 # Basic Functions
 map H top
 map L bottom
-map <a-f> :fzf_jump
+map <a-f>j :fzf_jump
+map <a-f>f :fzf_find_file
+map <a-f>l :fzf_find_line
 map . set hidden!
 map DD delete
 map x cut
 map Y yank_path
 map <a-y> yank_image
-map r rename
+map r :rename; reload
 map dr &dragon-drop -a -x $fx
 map u %du -sh $f
-map c :clear; unselect
+map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
 
 map mf mkfile
 map md mkdir
@@ -148,6 +179,8 @@ map am mount_archive
 map R reload
 map C clear
 map U unselect
+map c :clear; unselect
+
 map spd set nopreview
 map spe set preview
 map sr1 set ratios 1

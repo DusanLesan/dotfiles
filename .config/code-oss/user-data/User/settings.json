@@ -27,4 +27,6 @@
 	"vim.normalModeKeyBindingsNonRecursive": [
 		{ "before": [ "<leader>", "d" ], "after": [ "d", "d" ]},
 	],
+	"terminal.integrated.enablePersistentSessions": false,
+	"terminal.integrated.persistentSessionReviveProcess": "never"
 }

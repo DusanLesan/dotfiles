@@ -34,5 +34,19 @@
     {
         "key": "alt+d",
         "command": "workbench.action.quickOpen"
+    },
+    {
+        "key": "f6",
+        "command": "workbench.action.focusNextPart",
+        "when": "!textCompareEditorVisible"
+    },
+    {
+        "key": "f6",
+        "command": "-workbench.action.focusNextPart"
+    },
+    {
+        "key": "f6",
+        "command": "workbench.action.compareEditor.nextChange",
+        "when": "textCompareEditorVisible"
     }
 ]
