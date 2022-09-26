@@ -1,5 +1,6 @@
 #!/bin/sh
 
+firewall_down
 sudo -A iptables -F
 sudo iptables -X
 sudo iptables -t nat -F
@@ -12,6 +13,9 @@ sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 --name DEFAULT --mask 255.255.255.255 --rsource -j DROP
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -m recent --set --name DEFAULT --mask 255.255.255.255 --rsource
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -j ACCEPT
+[ "$1" = "bt" ] && sudo iptables -A INPUT -p tcp --dport 51413 -j ACCEPT
+[ "$1" = "ut" ] && sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -p tcp --dport 51413 -j ACCEPT
+
 sudo iptables -A INPUT -p udp --dport 67 -s 0.0.0.0 -j ACCEPT
 sudo iptables -A INPUT -j DROP
 sudo iptables -A FORWARD -s 10.42.0.0/24 -j ACCEPT
