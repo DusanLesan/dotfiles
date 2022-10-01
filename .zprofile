@@ -10,6 +10,7 @@ export BROWSER="brave"
 # ~/ Clean-up:
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
 export GNUPGHOME="${XDG_DATA_HOME:-$HOME/.local/share}/gnupg"
 export GTK2_RC_FILES="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-2.0/gtkrc-2.0"
@@ -24,6 +25,3 @@ export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
 export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.
-
-# Unlock keyring
-export $(gnome-keyring-daemon --start)
