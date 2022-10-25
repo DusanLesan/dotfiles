@@ -8,7 +8,7 @@
 void nmtui(void) {
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
-		char *args[] = {"/bin/alacritty", "--class", ",floating", "-e", "nmtui-connect", NULL};
+		char *args[] = {"/bin/alacritty", "--class", "floating", "-e", "nmtui-connect", NULL};
 		setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
 		execv(args[0], args);
 	}

@@ -6,7 +6,7 @@ setVolume() {
 }
 
 case $BLOCK_BUTTON in
-	1) alacritty --class ",floating" -e "pulsemixer" ;;
+	1) alacritty --class "floating" -e "pulsemixer" ;;
 	3) setVolume set-sink-mute 0 toggle ;;
 	4) setVolume set-sink-volume 0 +5% ;;
 	5) setVolume set-sink-volume 0 -5% ;;
