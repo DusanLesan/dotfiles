@@ -4,8 +4,8 @@ default_floating_border pixel
 client.focused #A54242 #A54242 #eceff4 #FF0000 #A54242
 
 smart_gaps on
-gaps inner 5
-gaps outer 0
+gaps inner 10
+gaps outer -5
 
 set $mod Mod4
 set $term alacritty
@@ -36,7 +36,7 @@ floating_modifier $mod normal
 bindsym $mod+Shift+c reload
 
 # Exit sway (logs you out of your Wayland session)
-bindsym $mod+Shift+q exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 
 # Move your focus around
 bindsym $mod+$left focus left
@@ -134,8 +134,3 @@ bar {
 }
 
 include /etc/sway/config.d/*
-
-input type:keyboard {
-    repeat_delay 400
-    repeat_rate 50
-}
