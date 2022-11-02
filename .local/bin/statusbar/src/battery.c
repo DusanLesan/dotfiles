@@ -2,25 +2,21 @@
 #include <string.h>
 #include <stdlib.h>
 
-void setbacklight(int val) {
-	FILE *fb = fopen("/sys/class/backlight/intel_backlight/brightness", "r+");
-	char br[4];
-	fscanf(fb, "%[^\n]", br);
-	val = atoi(br) + val;
-	if (val > 50)
-		fprintf(fb, "%d", val);
-	fclose(fb);
+void setbacklight(char* action) {
+	char cmd[16] = "sudo backlight ";
+	strncat(cmd, action, 1);
+	system(cmd);
 }
 
-int main() {
+int main(void) {
 	char* button = getenv("BLOCK_BUTTON");
 	if (button != NULL) {
 		switch (atoi(button)) {
 			case 4:
-				setbacklight(100);
+				setbacklight("+");
 				break;
 			case 5:
-				setbacklight(-100);
+				setbacklight("-");
 				break;
 		}
 	}

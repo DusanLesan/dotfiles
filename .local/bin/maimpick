@@ -33,7 +33,7 @@ case "$target" in
 	;;
 esac
 
-destination=( "File" "Clipboard" "Both" )
+destination=( "Clipboard" "File" "Both" )
 dest=$(printf '%s\n' "${destination[@]}" | dmenu -p 'Destination:') || exit 1
 case "$dest" in
 	'File')

@@ -28,7 +28,7 @@ case $MIMETYPE in
 		image "$1" "$2" "$3" "$4" "$5" ;;
 	*)
 		[ "$( stat --printf='%s' -- "$1" )" -gt "262143" ] && exit 2
-		highlight --replace-tabs="8" --out-format="xterm256" --style="pablo" --force -- "$1" ;;
+		bat -p --color=always "$1" --theme 'Visual Studio Dark+' --tabs 2 ;;
 esac
 exit 0
 

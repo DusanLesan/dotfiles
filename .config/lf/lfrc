@@ -1,29 +1,37 @@
-# interpreter for shell commands (needs to be POSIX compatible)
-
 set scrolloff 10
 set hidden true
-set previewer ~/.config/lf/preview
-set cleaner ~/.config/lf/cleaner
 set ifs "\n"
 set autoquit true
 
+set previewer ctpv
+set cleaner ctpvclear
+&ctpv -s $id
+&ctpvquit $id
+
 cmd open ${{
 	case $(file --mime-type "$f" -b) in
-		image/*) lf -remote "send $id openimages" ;;
-		*/octet-stream) dmenumount "$f" ;;
-		*/zip) lf -remote "send $id mountarchive" ;;
+		image/*) lf -remote "send $id open_images" ;;
+		*/x-raw-disk-image) dmenumount "$f" ;;
+		*/zip) lf -remote "send $id mount_archive" ;;
 		text/*) $EDITOR $fx ;;
 		*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done ;;
 	esac
 }}
 
-cmd openimages ${{
+cmd open_images ${{
 	devour nsxiv -aiop 2>/dev/null <<< "$fx" |
 	(lf -remote "send $id unselect"
 	while read -r file; do
 		lf -remote "send $id select \"$file\""
 		lf -remote "send toggle"
 	done)
+}}
+
+cmd open_new ${{
+	case $(file --mime-type "$f" -b) in
+		inode/directory) _START_LFCD=1 setsid alacritty --working-directory "$f" & ;;
+		*) setsid alacritty -e xdg-open "$f" & ;;
+	esac
 }}
 
 cmd mkdir ${{
@@ -38,11 +46,11 @@ cmd mkfile ${{
 	$EDITOR $ans
 }}
 
-cmd yank-path ${{
+cmd yank_path ${{
 	echo "$fx" | xclip -i -selection clipboard
 }}
 
-cmd yank-image ${{
+cmd yank_image ${{
 	[ $(mimetype -Mb "$f") = "image/png" ] && \
 	xclip -sel c -t "image/png" "$f" || \
 	convert "$f" png:- | xclip -select  clipboard -t "image/png"
@@ -59,8 +67,6 @@ cmd delete ${{
 		done
 	fi
 }}
-
-cmd draganddrop &dragon-drag-and-drop -a -x $fx
 
 # compress current file or selected files with tar and gunzip
 cmd tar ${{
@@ -83,7 +89,7 @@ cmd zip ${{
 	rm -rf $temp
 }}
 
-cmd mountarchive ${{
+cmd mount_archive ${{
 	mntdir="$f-archivemount"
 	[ ! -d "$mntdir" ] && {
 		mkdir "$mntdir"
@@ -94,13 +100,53 @@ cmd mountarchive ${{
 }}
 
 cmd fzf_jump ${{
-	res="$(find . -maxdepth 1 | fzf --reverse)"
-	if [ -f "$res" ]; then
-		cmd="select"
-	elif [ -d "$res" ]; then
-		cmd="cd"
+	old="$f"
+	while true; do
+		selected=$(ls -a --color=always | tail -n +3 | \
+			fzf --ansi --reverse \
+			--bind 'esc:execute(echo "")+abort,space:execute(echo {})+abort,right:accept,left:execute(echo ..)+abort' \
+			--preview '[ -f {} ] && bat -p --color=always {} --theme "Visual Studio Dark+" --tabs 2 || ls -ahl {}' \
+			--preview-window '75%,<90(50%)'
+		)
+		if [ $? -eq 130 ] && [ "$selected" != ".." ]; then
+			[ -z "$selected" ] && selected="$old"
+			lf -remote "send $id select \"$selected\""
+			exit 0
+		else
+			if [ -f "$selected" ]; then
+				lf -remote "send $id select \"$selected\""
+				xdg-open "$selected"
+				exit 0
+			elif [ -d "$selected" ]; then
+				cd "$selected"
+				lf -remote "send $id cd \"$selected\""
+			fi
+		fi
+	done
+}}
+
+cmd fzf_find_file ${{
+	selected="$(rg --files * | fzf)"
+	lf -remote "send $id select \"$selected\""
+}}
+
+cmd fzf_find_line ${{
+	RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+	INITIAL_QUERY="${*:-}"
+	selected=$(
+		FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+		fzf --ansi --disabled --query "$INITIAL_QUERY" \
+		--bind 'space:execute(echo {+})+abort' \
+		--bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+		--delimiter : \
+		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
+	)
+	code=$?
+	if [ -n "${selected[0]}" ]; then
+		IFS=':' read -ra selected <<< "$selected"
+		lf -remote "send $id select \"${selected[0]}\""
+		[ $code -ne 130 ] && $EDITOR +"${selected[1]}" "${selected[0]}"
 	fi
-	lf -remote "send $id $cmd \"$res\""
 }}
 
 # Remove some defaults
@@ -111,16 +157,18 @@ map d
 # Basic Functions
 map H top
 map L bottom
-map <a-f> :fzf_jump
+map <a-f>j :fzf_jump
+map <a-f>f :fzf_find_file
+map <a-f>l :fzf_find_line
 map . set hidden!
 map DD delete
 map x cut
-map Y yank-path
-map <a-y> yank-image
-map r rename
+map Y yank_path
+map <a-y> yank_image
+map r :rename; reload
 map dr &dragon-drop -a -x $fx
 map u %du -sh $f
-map c :clear; unselect
+map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
 
 map mf mkfile
 map md mkdir
@@ -129,11 +177,15 @@ map mu %dmenuumount "$fx"
 map ae $ext $f
 map at tar
 map az zip
-map am mountarchive
+map am mount_archive
 
 map R reload
 map C clear
 map U unselect
+map c :clear; unselect
+
+map L $devour alacritty -e lazygit
+
 map spd set nopreview
 map spe set preview
 map sr1 set ratios 1
@@ -147,6 +199,7 @@ map <enter> shell
 # dedicated keys for file opener actions
 map o &xdg-open "$f"
 map O $mimeopen --ask $f 2> /dev/null
+map <c-o> open_new
 map <a-o> $sh $f &
 
 # Movement
@@ -158,5 +211,6 @@ map gl cd ~/.local
 map gc cd ~/.config
 map gG cd  ~/git
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
+map gpo cd ~/git/5.0_roku/pluto-tv-roku/cicd/out
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/

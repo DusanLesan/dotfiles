@@ -1,0 +1,8 @@
+preview any_text text/* {{
+	bat -p --color=always "${f}" --theme 'Visual Studio Dark+' --tabs 2
+}}
+
+preview zip */zip {{
+	unzip -l "${f}"
+}}
+

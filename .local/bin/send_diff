@@ -1,0 +1,5 @@
+#!/bin/sh
+
+diff="$3"
+[ "$diff" == "staged" ] && diff="$(git diff --cached)"
+send_text "$1" "$2" "$diff"

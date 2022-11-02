@@ -1,6 +1,7 @@
 gui:
   scrollHeight: 10
   showRandomTip: false
+  showBottomLine: false
   showCommandLog: false
   showFileTree: true
   theme:
@@ -9,13 +10,25 @@ gui:
 
 customCommands:
   - key: 'C'
-    command: 'cpr {{.SelectedLocalBranch.Name}}'
+    command: 'alacritty -e cpr'
     description: 'Create PR'
     context: 'localBranches'
   - key: 'F'
     command: 'alacritty -e lf {{.SelectedFile.Name}}'
     description: 'Open file location'
     context: 'files'
+  - key: '<c-y>'
+    description: 'Create Patch'
+    context: 'files'
+    command: 'send_text {{index .PromptResponses 0}} {{index .PromptResponses 1}} "$(git diff --cached)"'
+    prompts:
+      - type: 'menu'
+        title: 'Where to save?'
+        options:
+          - value: 'drop'
+          - value: 'file'
+      - type: 'input'
+        title: 'File Name:'
 
 os:
   editCommand: 'nvim +{{line}} {{filename}}'

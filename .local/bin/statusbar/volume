@@ -1,16 +1,20 @@
 #!/bin/sh
 
-# Prints the current volume or 🔇 if muted.
+setVolume() {
+	pactl "$@"
+	kill -39 $(pidof dwmblocks)
+}
+
 case $BLOCK_BUTTON in
-	1) alacritty --class ",floating" -e "pulsemixer" ;;
-	3) pamixer -t ;;
-	4) pamixer --allow-boost -i 5 ;;
-	5) pamixer --allow-boost -d 5 ;;
+	1) alacritty --class "floating" -e "pulsemixer" ;;
+	3) setVolume set-sink-mute 0 toggle ;;
+	4) setVolume set-sink-volume 0 +5% ;;
+	5) setVolume set-sink-volume 0 -5% ;;
 esac
 
 [ "$(pacmd list-sinks | awk '/muted/ { print $2 }')" = "yes" ] && echo  && exit
 
-vol="$(pamixer --get-volume)%"
 icon="墳"
+vol="$(pactl get-sink-volume 0 | awk -F  "/" '{gsub(" ", "", $2); print $2}')"
 
 echo "$icon$vol"
