@@ -1,81 +1,83 @@
-@define-color critical #ff0000; /* critical color */
-@define-color warning #f3f809;  /* warning color */
 @define-color fgcolor #ffffff;  /* foreground color */
 @define-color bgcolor #181818;  /* background color */
-@define-color alert   #df3320;
+@define-color blue #005577;
+@define-color red #a54242;
 
 * {
-    border: none;
-    border-radius: 8px;
-    font-family: "JetBrainsMono Bold", "Roboto Mono Medium", Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    min-height: 0;
+	border: none;
+	border-radius: 8px;
+	font-family: "JetBrainsMono Bold", "Roboto Mono Medium", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	min-height: 0;
+	padding: 0;
 }
 
 window#waybar {
 	opacity: 0.9;
-    background-color: rgba(50, 50, 50, 0.9);
-    background-color: @bgcolor;
-    color: @fgcolor;
-    transition-property: background-color;
-    transition-duration: .5s;
-    border-radius: 5;
+	background-color: @bgcolor;
+	color: @fgcolor;
+	transition-property: background-color;
+	transition-duration: .5s;
+	border-radius: 5;
 }
 
 window#waybar.hidden {
-    opacity: 0.2;
+	opacity: 0.2;
 }
 
 #workspaces button {
-    padding: 0 0 0 0;
-    margin: 0 0 0 0;
-    background-color: transparent;
-    color: #ffffff;
-    min-width: 25px;
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+	background-color: transparent;
+	color: @fgcolor;
+	min-width: 25px;
 }
 
 #workspaces button.active {
-    padding: 0 0 0 0;
-    margin: 0 0 0 0;
-    background-color: #ddddff;
-    color: #000000;
-    min-width: 25px;
+	padding: 0 0 0 0;
+	margin: 0 0 0 0;
+	background-color: @fgcolor;
+	color: @bgcolor;
+	min-width: 25px;
 }
 
 #workspaces button:hover {
-    background: rgba(0, 0, 0, 0.2);
+	background: @blue;
 }
 
 #workspaces button.focused {
-    background-color: #bbccdd;
-    color: #323232;
+	background-color: #bbccdd;
+	color: #323232;
 }
 
 #workspaces button.urgent {
-    background-color: #eb4d4b;
+	background-color: @red;
 }
 
 .modules-left > widget:first-child > #workspaces {
-    margin-left: 10;
+	margin-left: 10;
 }
 
 .modules-right > widget:last-child > #workspaces {
-    margin-right: 0;
+	margin-right: 0;
+}
+
+button:disabled {
+	all: unset;
+}
+
+label {
+	all: unset;
 }
 
 @keyframes blink {
-    to {
-        background-color: #ffffff;
-        color: #333333;
-    }
-}
-
-label:focus {
-    background-color: #000000;
+	to {
+		background-color: @fgcolor;
+		color: #333333;
+	}
 }
 
 #custom-separator {
-    color: #606060;
-    margin: 0 1px;
+	color: #303030;
+	margin: 0 1px;
 }
-
