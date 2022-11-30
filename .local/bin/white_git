@@ -15,8 +15,9 @@ for file in $stagedFiles; do
 		validate 'Trailing whitespaces ' "$line" '\s$'
 		validate 'Multiple spaces      ' "$line" '\S[ ]{2,}\S'
 		validate 'Mixed indentation    ' "$line" '\t | \t'
+		[[ $file = *.xml ]] && validate 'Bad spacing around = ' "$line" '( =|= )'
 		[[ $file != *.brs ]] && continue
-		validate 'If not having then   ' "$line" '(?!.*then)^\s*if.*$'
+		validate 'If not having then   ' "$line" '(?!.*then)^\s*(else )?if.*$'
 		validate 'No output type       ' "$line" 'function \w*\(.*\)(?! as \w.*)'
 		validate 'No input type        ' "$line" '(sub|function)\s+\w+\((?!(?:\s*\w+\s+(.*?)as\s+\w+(?:\s*,\s*\w+\s+(.*?)as\s+\w+)*)?\s*\))'
 	done <<< "$(git diff --cached "$file" | grep -Po '^\+\K.*')"

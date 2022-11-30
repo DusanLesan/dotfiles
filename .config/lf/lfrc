@@ -136,7 +136,7 @@ cmd fzf_find_line ${{
 	selected=$(
 		FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
 		fzf --ansi --disabled --query "$INITIAL_QUERY" \
-		--bind 'space:execute(echo {+})+abort' \
+		--bind 'alt-f:execute(echo {+})+abort' \
 		--bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
 		--delimiter : \
 		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'

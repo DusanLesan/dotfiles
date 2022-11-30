@@ -2,6 +2,7 @@
 
 case $1 in
 	"p" | "profiler") ~/.local/share/applications/appimages/bsprof-visualization-tool-linux64.AppImage ;;
+	"r" | "resource") ~/.local/share/applications/appimages/roku-resource-monitor-linux64.AppImage ;;
 	"s" | "stream") ~/.local/share/applications/appimages/roku-stream-tester-linux64.AppImage ;;
 	"d" | "deeplink") ~/.local/share/applications/appimages/roku-deep-linking-tester-linux64.AppImage ;;
 	*) ~/.local/share/applications/appimages/roku-advanced-layout-editor-linux64.AppImage ;;
