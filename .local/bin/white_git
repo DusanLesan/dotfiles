@@ -5,7 +5,15 @@ MSG="$([ -f .git/MERGE_MSG ] && cat .git/MERGE_MSG || echo "")"
 stagedFiles="$(git diff --cached --name-only)"
 
 validate() {
-	echo "$2" | grep -Pq "$3" && matches+="$1: $2\n"
+	IFS=':' read -r number code <<< "$2"
+	echo "$code" | grep -Pq "$3" && matches+="$1: $number: $code\n"
+}
+
+enumerate() {
+	awk 'match($0,"^@@ -([0-9]+),([0-9]+) [+]([0-9]+),([0-9]+) @@", header){ number=header[3] }
+		/^(---|\+\+\+|[^-+ ])|^[-]/ { next }
+		/^[+]/ { printf "%s:%s\n", number, substr($0, 2) }
+		{ number++ }'
 }
 
 result=""
@@ -20,7 +28,7 @@ for file in $stagedFiles; do
 		validate 'If not having then   ' "$line" '(?!.*then)^\s*(else )?if.*$'
 		validate 'No output type       ' "$line" 'function \w*\(.*\)(?! as \w.*)'
 		validate 'No input type        ' "$line" '(sub|function)\s+\w+\((?!(?:\s*\w+\s+(.*?)as\s+\w+(?:\s*,\s*\w+\s+(.*?)as\s+\w+)*)?\s*\))'
-	done <<< "$(git diff --cached "$file" | grep -Po '^\+\K.*')"
+	done <<< "$(git diff --cached "$file" | enumerate )"
 
 	[ -n "$matches" ] && result+="FILE                 : $file\n$matches"
 done
