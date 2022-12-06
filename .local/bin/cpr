@@ -1,9 +1,10 @@
-#!/bin/env python
+#!/bin/python -B
 
 from subprocess import Popen, PIPE
 from threading import Thread
 from textwrap import fill
 from pathlib import Path
+from lint import check
 from json import load
 from glob import glob
 import re
@@ -62,6 +63,7 @@ def setTitleAndDescription():
 		title = codes + ' ' + title
 
 def setLabels():
+	checkStyling()
 	global labelList
 	global labels
 	label = executeCommand(['fzf', '--prompt', 'Label: '], labelList)
@@ -74,6 +76,7 @@ def setLabels():
 		setLabels()
 
 def setMilestone():
+	checkStyling()
 	global milestone
 	milestone = executeCommand(['fzf', '--prompt', 'Milestone: '], milestoneList)
 
@@ -104,7 +107,23 @@ def setTitle():
 	global title
 	title = executeCommand(['fzf', '--header', 'To confirm custom value press ctrl + space\nTo edit current selection press ctrl + s', '--bind=ctrl-space:print-query', '--bind=ctrl-s:replace-query', '--prompt', 'PR title: '], title)
 
+def startStylingCheck():
+	global blockLinter
+	if not blockLinter:
+		global errors
+		errors = check(base, branch)
+
+def checkStyling():
+	global errors
+	if errors:
+		errors = errors.replace('\n', '\\n').replace("'", "\\'").replace('"', '\\"')
+		confirmed = executeCommand(['fzf', '--header', 'Ignore errors? ', '--preview', 'python -c "print(\'' + errors + '\')"', '--preview-window', '80%'], 'no\nyes')
+		errors = ''
+		if confirmed == 'no':
+			quit()
+
 def verify():
+	checkStyling()
 	preview = 'Title:\n' + title + '\n\nBase:\n' + base + '\n\nBranch:\n' + branch \
 		+ '\n\nReviewers:\n' + fill(reviewers.replace(',', ', '), 70, break_on_hyphens=False) \
 		+ '\n\nDescription:\n' + body.replace('\\', '') + '\n\nLabels:\n' + labels + '\n\nMilestone:\n' + milestone
@@ -115,10 +134,11 @@ def verify():
 
 t1 = Thread(target=setList, args=('labelList', 'listLabels'))
 t2 = Thread(target=setList, args=('milestoneList', 'listMilestones'))
+t3 = Thread(target=startStylingCheck)
 t1.start()
 t2.start()
 
-assignee = team = projectCode = dteLabel = devOnlyLabel = ticketUrl = teamListsPath = ''
+assignee = team = projectCode = dteLabel = devOnlyLabel = ticketUrl = teamListsPath = blockLinter = errors = ''
 parseConfig()
 
 branch = executeCommand(['git', 'branch', '--show-current'])
@@ -130,6 +150,8 @@ title = base = reviewers = labels = milestone = body = ''
 labelList = milestoneList = ''
 
 setBase()
+t3.start()
+
 setTitleAndDescription()
 setTitle()
 
@@ -141,6 +163,7 @@ t2.join()
 milestoneList = '\n' + milestoneList
 setMilestone()
 
+t3.join()
 setReviewers()
 verify()
 
