@@ -3,9 +3,8 @@ if not status_ok then
 	return
 end
 
-colorizer.setup(
-	{'*';},
-	{
+colorizer.setup( {
+	user_default_options = {
 		RGB = true;
 		RRGGBB = true;
 		names = true;
@@ -15,4 +14,4 @@ colorizer.setup(
 		css = true;
 		css_fn = true;
 	}
-)
+})

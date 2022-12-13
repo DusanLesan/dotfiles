@@ -2,6 +2,7 @@ set scrolloff 10
 set hidden true
 set ifs "\n"
 set autoquit true
+set wrapscroll true
 
 set previewer ctpv
 set cleaner ctpvclear

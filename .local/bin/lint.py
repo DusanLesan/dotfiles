@@ -23,7 +23,7 @@ def validateFile(file):
 	errors = ''
 	lineNum = 0
 
-	changes = executeCommand(['git', 'diff', "-U0"] + additionalGitArgs + [file])
+	changes = executeCommand(['git', 'diff', "-U0"] + additionalGitArgs + ["--"] + [file])
 
 	for line in changes.splitlines():
 		if line.startswith('@@'):

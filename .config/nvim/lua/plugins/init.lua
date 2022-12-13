@@ -91,7 +91,7 @@ return require("packer").startup(function(use)
 
 	-- Colors and treesitter
 	use { "entrez/roku.vim" }
-	use { "norcalli/nvim-colorizer.lua" }
+	use { "NvChad/nvim-colorizer.lua" }
 	use { "nvim-treesitter/nvim-treesitter" }
 	use { "Mofiqul/vscode.nvim" }
 
