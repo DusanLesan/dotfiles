@@ -168,7 +168,7 @@ map Y yank_path
 map <a-y> yank_image
 map r :rename; reload
 map dr &dragon-drop -a -x $fx
-map u %du -sh $f
+map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
 
 map mf mkfile
@@ -199,9 +199,9 @@ map <enter> shell
 
 # dedicated keys for file opener actions
 map o &xdg-open "$f"
-map O $mimeopen --ask $f 2> /dev/null
+map O $mimeopen --ask "$f"
 map <c-o> open_new
-map <a-o> $sh $f &
+map <a-o> $sh "$f" &
 
 # Movement
 map ~ mark-save

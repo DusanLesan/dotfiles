@@ -17,7 +17,9 @@ list="
 	$HOME/.config/skypeforlinux/PredefinedImages
 	$HOME/.config/Skype
 	$HOME/.config/Electron
-	$HOME/.local/share/recently-used.xbel"
+	$HOME/.local/share/recently-used.xbel
+	$HOME/.m2
+	$HOME/.npm"
 
 rm -rf $list
 

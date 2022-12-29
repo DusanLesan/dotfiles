@@ -3,49 +3,71 @@
 path="$HOME/hdd_1/Pictures/screenshot"
 args=""
 type=""
-
-modes=(
-	"Select"
-	"Fullscreen"
-)
-
-displays=$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
-IFS=$'\n'
 declare -A display_mode
-for i in $displays; do
-	modes[${#modes[@]}]="${i%% *}"
-	display_mode[${i%% *}]="${i##* }"
-done
-unset IFS
 
-target=$(printf '%s\n' "${modes[@]}" | dmenu -p 'Screenshot:') || exit 1
+getType() {
+	modes=(
+		"Select"
+		"Fullscreen"
+	)
+
+	displays=$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
+	IFS=$'\n'
+	for i in $displays; do
+		modes[${#modes[@]}]="${i%% *}"
+		display_mode[${i%% *}]="${i##* }"
+	done
+	unset IFS
+
+	target=$(printf '%s\n' "${modes[@]}" | dmenu -p 'Screenshot:') || exit 1
+	
+}
+
+getDestination() {
+	destination=( "Clipboard" "File" "Both" )
+	dest=$(printf '%s\n' "${destination[@]}" | dmenu -p 'Destination:') || exit 1
+}
+
+case "$1" in
+	"-a")
+		target="Window"
+		dest="File"
+	;;
+	*)
+		getType
+		getDestination
+	;;
+esac
+
 case "$target" in
 	'Fullscreen')
+		args="-window root"
 		type="full"
 	;;
 	'Select')
-		args="-suo"
 		type="select"
+		pkill unclutter
+	;;
+	'Window')
+		args="-window $(xdotool getwindowfocus)"
+		type="active"
 	;;
 	*)
-		args="-g ${display_mode[$target]}"
+		args="-window root -crop ${display_mode[$target]}"
 		type="$target"
 	;;
 esac
 
-destination=( "Clipboard" "File" "Both" )
-dest=$(printf '%s\n' "${destination[@]}" | dmenu -p 'Destination:') || exit 1
 case "$dest" in
-	'File')
-		maim $args "$path/$type-$(date '+%Y%m%d-%H%M%S').png"
-	;;
 	'Clipboard')
-		maim $args | xclip -sel c -t image/png
+		import $args png:- | xclip -sel c -t image/png
 	;;
 	'Both')
-		maim $args | tee "$path/$type-$(date '+%Y%m%d-%H%M%S').png" | xclip -sel c -t image/png
+		import $args png:- | tee "$path/$type-$(date '+%Y%m%d-%H%M%S').png" | xclip -sel c -t image/png
 	;;
 	*)
-		exit 1
+		import $args "$path/$type-$(date '+%Y%m%d-%H%M%S').png"
 	;;
 esac
+
+[ "$target" = "Select" ] && exec unclutter
