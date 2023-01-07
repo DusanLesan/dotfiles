@@ -1,36 +1,27 @@
 #!/bin/sh
 
-active=$(nmcli -g name,type c s -a | grep vpn | cut -d ":" -f 1)
-
 connect() {
-	[ -n "$active" ] && nmcli c d $active
-	vpnlist=$(nmcli -g name,type c s | grep :vpn | cut -d ":" -f 1)
+	ip link show up | grep -q "tun" && sudo kill-openvpn
+
+	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//' )
 	name=$(dmenu -p "Connect: " <<< $vpnlist)
 	[ $? -ne 0 ] && exit 0
 
 	pass=$(secret-tool lookup pass $name)
 	user=$(secret-tool lookup user $name)
 
-	if [ -n "$user" ]; then
-		nmcli c mod $name vpn.user-name "$user"
-	fi
-
-	if [ -n "$pass" ]; then
-		tmp=$(mktemp)
-		chmod 600 $tmp
-		printf "vpn.secrets.password:$pass" > $tmp
-		nmcli c u $name passwd-file $tmp
-		connected=$?
-		rm $tmp
-	else
-		nmcli c u $uuid
-		connected=$?
-	fi
+	tmp=$(mktemp)
+	chmod 600 $tmp
+	echo "$user" > $tmp
+	echo "$pass" >> $tmp
+	sudo openvpn --config ~/.local/share/ovpn/$name.ovpn --auth-user-pass $tmp
+	connected=$?
+	rm $tmp
 	[ $connected -eq 0 ] && myip || notify-send -u "critical" "VPN" "Connection failed"
 }
 
 disconnect() {
-	nmcli c d $active && myip || notify-send -u "critical" "VPN" "Disconnection failed"
+	ip link show up | grep -q "tun" && sudo kill-openvpn || notify-send -u "critical" "VPN" "Disconnection failed"
 }
 
 [ -z $1 ] && connect || disconnect

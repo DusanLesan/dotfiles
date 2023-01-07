@@ -1,0 +1,37 @@
+#!/bin/sh
+
+. utils
+
+wifiInterface="wlan0"
+declare -A networks
+
+scan() {
+	iwctl station $wifiInterface scan
+}
+
+selectNetwork() {
+	scan
+	sleep 1
+	list=("$(iwctl station wlan0 get-networks | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g' )")
+	while IFS=';' read -ra array; do
+		networks["${array[1]}"]="${array[2]}"
+	done <<< $list
+
+	selected="$(cat <(echo "RESCAN") <(printf "%s\n" "${!networks[@]}") | prompt "Network:")" || exit 1
+	[ "$selected" == "RESCAN" ] && selectNetwork
+}
+
+connect() {
+	if [ "${networks[$selected]}" != "open" ]; then
+		iwctl known-networks list | grep "  $selected  " || pass="$(getpass "Pass:")"
+	fi
+
+	if [ -n $pass ]; then
+		iwctl station "$wifiInterface" connect "$selected" --passphrase "$pass"
+	else
+		iwctl station "$wifiInterface" connect "$selected"
+	fi
+}
+
+selectNetwork
+connect

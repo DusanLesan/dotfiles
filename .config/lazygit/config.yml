@@ -32,4 +32,5 @@ customCommands:
 
 os:
   editCommand: 'nvim +{{line}} {{filename}}'
-  openCommand: 'code {{filename}}'
+  openCommand: 'code -g {{filename}}:{{line}}'
+promptToReturnFromSubprocess: false

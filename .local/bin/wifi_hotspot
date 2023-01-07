@@ -1,13 +1,13 @@
 #!/bin/sh
 
-. super_secret_file
-
 case "$1" in
 	"-q")
-		nmcli connection down B
+		sudo pkill hostapd
 	;;
 	*)
-		nmcli device wifi hotspot con-name B ssid B band bg password "$hotspot_pass"
+		ip link show dev ap0 || sudo iw dev wlan0 interface add ap0 type managed addr 12:34:56:78:ab:ce
+		sudo ip link set dev ap0 up
+		sudo hostapd /etc/hostapd/hostapd.conf
 		[ $(ps -o stat= -p $$) = "S+" ] || notify-send "Wifi hotspot" "Wifi hotspot activated"
 	;;
 esac
