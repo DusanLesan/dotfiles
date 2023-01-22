@@ -1,10 +1,19 @@
 #!/usr/bin/env sh
+
+. utils
+
 while read file
 do
 	case "$1" in
-		"e") devour display "$file" & ;;
-		"r") convert -rotate 90 "$file" "$file" ;;
-		"R") convert -rotate -90 "$file" "$file" ;;
+		"r") name="$(basename "$file")"
+			dir="$(dirname "$file")"
+			newName="$(dmenu -i -p "Rename:" <<< "$name" || exit 0)"
+			newName="$(getfilename "$newName")"
+			mv "$file" "$newName"
+			;;
+		"e") devour /opt/Gimp.AppImage "$file" & ;;
+		"bracketright") convert -rotate 90 "$file" "$file" ;;
+		"bracketleft") convert -rotate -90 "$file" "$file" ;;
 		"f") convert -flop "$file" "$file" ;;
 		"y")
 			echo -n "$file" | xclip -selection clipboard &&
@@ -15,6 +24,5 @@ do
 			convert "$file" png:- | xclip -select  clipboard -t "image/png" & ;;
 		"d")
 			[ "$(printf "No\\nYes" | dmenu -i -p "Really delete $file?")" = "Yes" ] && rm "$file" && notify-send "$file deleted." ;;
-		"g") ifinstalled gimp && gimp "$file" & ;;
 	esac
 done

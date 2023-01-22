@@ -17,7 +17,6 @@ export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc-2.0"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 export LESSHISTFILE="-"
 export VSCODE_PORTABLE="$XDG_CONFIG_HOME/code-oss"
-export SSB_HOME="$XDG_DATA_HOME/zoom"
 export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
 
 # Other program settings:

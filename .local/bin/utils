@@ -24,3 +24,19 @@ getpass() {
 		dmenu -nb "#A54242" -P -p "$1" <&-
 	fi
 }
+
+getfilename() {
+	name="$1"
+	dir="$2"
+	if [ -e "$dir$name" ]; then
+		name="${1%.*}"
+		ext="${1#"$name"}"
+		i="$(grep -o '[[:digit:]]*$' <<< "$name" )"
+		[ -z $i ] && i=1 || name="${name%%$i*}"
+		while [ -e "$dir$name$i$ext" ]; do
+			((i++))
+		done
+		name="$name$i$ext"
+	fi
+	echo "$name"
+}

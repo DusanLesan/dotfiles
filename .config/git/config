@@ -4,3 +4,6 @@
 	res = reset --soft HEAD~1
 	reb = rebase -i HEAD~10
 	can = commit --amend --no-edit
+[user]
+	email = oalfodr@gmail.com
+	name = Dusan

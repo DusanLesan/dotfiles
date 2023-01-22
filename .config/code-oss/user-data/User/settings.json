@@ -28,5 +28,6 @@
 		{ "before": [ "<leader>", "d" ], "after": [ "d", "d" ]},
 	],
 	"terminal.integrated.enablePersistentSessions": false,
-	"terminal.integrated.persistentSessionReviveProcess": "never"
+	"terminal.integrated.persistentSessionReviveProcess": "never",
+	"terminal.external.linuxExec": "alacritty"
 }
