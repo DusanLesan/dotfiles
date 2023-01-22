@@ -20,12 +20,26 @@ cmd open ${{
 }}
 
 cmd open_images ${{
-	devour nsxiv -aiop 2>/dev/null <<< "$fx" |
-	(lf -remote "send $id unselect"
-	while read -r file; do
-		lf -remote "send $id select \"$file\""
-		lf -remote "send toggle"
-	done)
+	[ -z "$fs" ] && lf -remote "send $id :invert; open_images all" && exit 0
+	i="$(grep -Fxn "$f" <<< "$fx" | cut -d ':' -f 1)"
+
+	if [ -z $i ]; then
+		list="$f"$'\n'"$fs"
+	elif [ $i -eq 1 ]; then
+		list="$fx"
+	else
+		list="$(tail -n +$i <<<"$fx")"$'\n'"$(head -$((i-1)) <<<"$fx")"
+	fi
+
+	out="$(devour nsxiv -aiop 2>/dev/null <<< "$list")"
+	if [ -n "$out" ] || [ -n "$1" ]; then
+		lf -remote "send $id unselect"
+		[ -z "$out" ] && exit 0
+		while read -r file; do
+			lf -remote "send $id toggle \"$file\""
+		done <<< "$out"
+		lf -remote "send $id select \"${out##*$'\n'}\""
+	fi
 }}
 
 cmd open_new ${{
@@ -47,6 +61,14 @@ cmd mkfile ${{
 	$EDITOR $ans
 }}
 
+cmd new_permission &{{
+	for file in $fx; do
+		sudo -A chmod "$1" "$file"
+	done
+	lf -remote "send $id reload"
+	lf -remote "send $id reload"
+}}
+
 cmd yank_path ${{
 	echo "$fx" | xclip -i -selection clipboard
 }}
@@ -57,14 +79,11 @@ cmd yank_image ${{
 	convert "$f" png:- | xclip -select  clipboard -t "image/png"
 }}
 
-# define a custom 'delete' command
 cmd delete ${{
-	printf "$fx\n"
-	printf "delete?[y/n]"
-	read ans
-	if [ $ans = "y" ]; then
+	printf "$fx\ndelete?[y/n]"
+	if read -d '' -s -n 1 && [ $REPLY == 'y' ]; then
 		for x in $fx; do
-			rm -rf "$x"
+			rm -rf "$x" || sudo -A rm -rf "$x"
 		done
 	fi
 }}
@@ -173,6 +192,7 @@ map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
 
 map mf mkfile
 map md mkdir
+map S push :new_permission<space>
 map mu %dmenuumount "$fx"
 
 map ae $ext $f

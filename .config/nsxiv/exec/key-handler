@@ -1,10 +1,25 @@
 #!/usr/bin/env sh
+
+echo $1 > ~/log
+
 while read file
 do
 	case "$1" in
+		"r") name="$(basename "$file")"
+			dir="$(dirname "$file")"
+			newName="$(dmenu -i -p "Rename:" <<< "$name" || exit 0)"
+			if [ -e "$newName" ]; then
+				i=1
+				while [ -e "$dir/$newName-$i" ]; do
+					i=$((i+1))
+				done
+				newName="$dir/$newName$i"
+			fi
+			mv "$file" "$newName"
+			;;
 		"e") devour display "$file" & ;;
-		"r") convert -rotate 90 "$file" "$file" ;;
-		"R") convert -rotate -90 "$file" "$file" ;;
+		"bracketright") convert -rotate 90 "$file" "$file" ;;
+		"bracketleft") convert -rotate -90 "$file" "$file" ;;
 		"f") convert -flop "$file" "$file" ;;
 		"y")
 			echo -n "$file" | xclip -selection clipboard &&

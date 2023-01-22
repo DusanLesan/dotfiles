@@ -17,3 +17,4 @@ application/x-shellscript=nvim.desktop;
 text/x-python3=nvim.desktop;
 text/x-java=nvim.desktop;
 x-scheme-handler/mailto=brave-browser.desktop
+application/office.document=office.desktop
