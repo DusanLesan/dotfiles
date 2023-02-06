@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. utils
+file="$2"
+[ "$file" == "prompt" ] && file="$(echo | prompt 'File Name?')"
+
+case "$1" in
+	"drop")
+		dir=$(mktemp -d -t share-${temp}.XXX)
+		echo "${@:3}" > "$dir/$file"
+		dragon-drop -x "$dir/$file"
+	;;
+	"file")
+		echo "${@:3}" > "$file"
+	;;
+esac

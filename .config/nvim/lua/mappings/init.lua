@@ -5,23 +5,28 @@ local default_opts = {noremap = true, silent = true}
 map('i', 'jk', '<Esc>', {silent = true})
 
 -- Move lines up and down with alt-up/down
-map('n', '<A-up>', ':m .-2<CR>', {silent = true})
-map('n', '<A-down>', ':m .+1<CR>', {silent = true})
+map('n', '<A-k>', ':m .-2<CR>', {silent = true})
+map('n', '<A-j>', ':m .+1<CR>', {silent = true})
 
 -- Toggle spelling
 map('n', '<F10>', ':set spell!<CR>', {silent = true})
 
 -- Window controls
-map('n', '<C-h>', '<C-w>h', {silent = true})
-map('n', '<C-j>', '<C-w>j', {silent = true})
-map('n', '<C-k>', '<C-w>k', {silent = true})
-map('n', '<C-l>', '<C-w>l', {silent = true})
+map('n', '<A-Up>', '<C-w>k', {silent = true})
+map('n', '<A-Down>', '<C-w>j', {silent = true})
+map('n', '<A-Left>', '<C-w>h', {silent = true})
+map('n', '<A-Right>', '<C-w>l', {silent = true})
+
+map('t', '<A-Up>', '<C-\\><C-N><C-w>k', {silent = true})
+map('t', '<A-Down>', '<C-\\><C-N><C-w>j', {silent = true})
+map('t', '<A-Left>', '<C-\\><C-N><C-w>h', {silent = true})
+map('t', '<A-Right>', '<C-\\><C-N><C-w>l', {silent = true})
 
 -- Window resizing
-map('n', '<C-Up>', ':resize -2<CR>', {silent = true})
-map('n', '<C-Down>', ':resize +2<CR>', {silent = true})
-map('n', '<C-Left>', ':vertical resize -2<CR>', {silent = true})
-map('n', '<C-Right>', ':vertical resize +2<CR>', {silent = true})
+map('n', '<S-Up>', ':resize -2<CR>', {silent = true})
+map('n', '<S-Down>', ':resize +2<CR>', {silent = true})
+map('n', '<S-Left>', ':vertical resize -2<CR>', {silent = true})
+map('n', '<S-Right>', ':vertical resize +2<CR>', {silent = true})
 
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', { noremap = true, silent = true })
@@ -33,7 +38,8 @@ map('n', '<leader>bc', ':Bdelete this<CR>', { noremap = true, silent = true })
 
 -- FileManagers
 map('n', '<leader>e', ':NvimTreeToggle<CR>', default_opts)
-map('n', '<leader>E', ':NvimTreeFocus<CR>', default_opts)
+map('n', '<C-f>', ':NvimTreeToggle<CR>', default_opts)
+map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
 
 -- Write
 map('n', '<leader>w', ':w<CR>', default_opts)
@@ -61,13 +67,6 @@ map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
 map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
 map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
-
--- Term
-map('n', '<leader>ts', ':ToggleTerm size=12 direction=horizontal<CR>', default_opts)
-map('n', '<leader>tt', ':ToggleTerm<CR>', default_opts)
-map("n", "<leader>tg", "<cmd>lua _lazygit_toggle()<CR>", default_opts)
-map("n", "<leader>th", "<cmd>lua _htop_toggle()<CR>", default_opts)
-map("n", "<leader>tp", "<cmd>lua _python_toggle()<CR>", default_opts)
 
 -- Git
 map('n', '<leader>gr', ":Gitsigns reset_hunk<CR>", default_opts)

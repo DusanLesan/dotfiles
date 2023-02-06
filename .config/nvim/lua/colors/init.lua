@@ -6,7 +6,7 @@ end
 local colors = {
 	notify_bg = 'Normal',
 	white = "#abb2bf",
-	black = "#1e1e1e",
+	black = "#181818",
 	bg = "#252526",
 	fg = "#bbc2cf",
 	yellow = "#ECBE7B",

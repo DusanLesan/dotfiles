@@ -11,7 +11,7 @@ case $MIMETYPE in
 	*7z) 7z l "$1" ;;
 	*)
 		[ "$( stat --printf='%s' -- "$1" )" -gt "262143" ] && exit 2
-		bat -p --color=always --theme=base16 "$1" ;;
+		bat -p --color=always "$1" --theme 'Visual Studio Dark+' --tabs 2 ;;
 esac
 exit 0
 

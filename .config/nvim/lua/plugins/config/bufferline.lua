@@ -5,8 +5,26 @@ end
 local colors = require("colors")
 
 bufferline.setup {
+	highlights = {
+		background = {
+			fg = colors.white,
+		},
+		close_button = {
+			fg = colors.white,
+			bg = colors.black
+		},
+		buffer_selected = {
+			bold = true,
+			bg = colors.bg
+		},
+		close_button_selected = {
+			bold = true,
+			bg = colors.bg
+		},
+	},
 	options = {
 		offsets = { { filetype = "NvimTree", text = "" } },
+		close_command = "bdelete! %d",       -- can be a string | function, see "Mouse actions"
 		buffer_close_icon = "",
 		modified_icon = "*",
 		show_close_icon = false,
@@ -16,7 +34,7 @@ bufferline.setup {
 		enforce_regular_tabs = true,
 		view = "multiwindow",
 		show_buffer_close_icons = true,
-		always_show_bufferline = true,
+		always_show_bufferline = false,
 		diagnostics = "nvim_lsp",
 		diagnostics_indicator = function(_, _, diagnostics_dict)
 			local s = " "
@@ -27,11 +45,9 @@ bufferline.setup {
 			end
 			return s
 		end
-	},
-	highlights = {
-		fill = {
-			guifg = colors.white,
-			guibg = colors.bg
-		}
 	}
 }
+
+vim.cmd([[
+ 	autocmd ColorScheme * highlight BufferLineFill guibg=none
+]])
