@@ -2,25 +2,19 @@ local servers = {
 	"clangd",
 	"bashls",
 	"jdtls",
-	"sumneko_lua"
+	"lua_ls"
 }
 
-local status_ok, lsp_installer = pcall(require, "nvim-lsp-installer")
+local status_ok, lsp_installer = pcall(require, "mason-lspconfig")
 if not status_ok then
 	return
 end
 
-lsp_installer.setup({
-	ensure_installed = servers,
-	automatic_installation = true,
-	ui = {
-		icons = {
-			server_installed = "✓",
-			server_pending = "➜",
-			server_uninstalled = "✗"
-		}
-	}
-})
+require("mason").setup()
+lsp_installer.setup {
+	ensure_installed = servers
+
+}
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.documentationFormat = { 'markdown', 'plaintext' }
@@ -49,8 +43,9 @@ local config = {
 		source = "always",
 		header = "",
 		prefix = ""
-	},
+	}
 }
+
 vim.diagnostic.config(config)
 
 local function lsp_highlight_document(client)
@@ -96,33 +91,33 @@ local function on_attach(client, bufnr)
 end
 
 local server_opts = {
-	["sumneko_lua"] = {
+	["lua_lsp"] = {
 		settings = {
 			Lua = {
 				diagnostics = {
-					globals = { "vim" },
+					globals = { "vim" }
 				},
 				workspace = {
 					library = {
 						[vim.fn.expand("$VIMRUNTIME/lua")] = true,
-						[vim.fn.stdpath("config") .. "/lua"] = true,
-					},
-				},
-			},
-		},
+						[vim.fn.stdpath("config") .. "/lua"] = true
+					}
+				}
+			}
+		}
 	}
 }
 
 local lspconfig = require'lspconfig'
-for _, server in ipairs(lsp_installer.get_installed_servers()) do
+for _, server in ipairs(servers) do
 	local opts = {
 		on_attach = on_attach,
-		capabilities = capabilities,
+		capabilities = capabilities
 	}
 
-	if server_opts[server.name] ~= nil then
-		opts = vim.tbl_deep_extend("force", server_opts[server.name], opts)
+	if server_opts[server] ~= nil then
+		opts = vim.tbl_deep_extend("force", server_opts[server], opts)
 	end
 
-	lspconfig[server.name].setup(opts)
+	lspconfig[server].setup(opts)
 end
