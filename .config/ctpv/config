@@ -7,11 +7,11 @@ preview zip */zip {{
 }}
 
 preview pdf */pdf {{
-	pdftoppm -f 1 -l 1              \
-		-scale-to-x 1920            \
-		-scale-to-y -1              \
-		-singlefile                 \
-		-jpeg -tiffcompression jpeg \
+	pdftoppm -f 1 -l 1 \
+		-scale-to-x 1920 \
+		-scale-to-y -1 \
+		-singlefile \
+		-jpeg \
 		-x 0 -y 0 -W 1920 -H 3240 \
 		-cropbox \
 		-- "$f" "$cache_f" && mv -- "$cache_f.jpg" "$cache_f"

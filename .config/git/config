@@ -7,3 +7,5 @@
 [user]
 	email = oalfodr@gmail.com
 	name = Dusan
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
