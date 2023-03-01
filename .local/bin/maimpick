@@ -46,7 +46,7 @@ case "$target" in
 	;;
 	'Select')
 		type="select"
-		pkill unclutter
+		pkill xbanish
 	;;
 	'Window')
 		args="-window $(xdotool getwindowfocus)"
@@ -70,4 +70,4 @@ case "$dest" in
 	;;
 esac
 
-[ "$target" = "Select" ] && exec unclutter
+[ "$target" = "Select" ] && exec xbanish -t 5

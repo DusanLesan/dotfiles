@@ -19,3 +19,5 @@ text/x-java=nvim.desktop;
 x-scheme-handler/mailto=brave-browser.desktop
 application/office.document=office.desktop
 text/csv=office.desktop
+x-scheme-handler/magnet=torrent.desktop;
+application/x-bittorrent=torrent.desktop;

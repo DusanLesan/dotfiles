@@ -6,4 +6,4 @@ xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &>/dev/null &
 autostart &
 remaps &
-unclutter &
+xbanish -t 5 &
