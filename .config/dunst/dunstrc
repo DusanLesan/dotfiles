@@ -55,9 +55,9 @@
     timeout = 10
 
 [urgency_critical]
-    background = "#900000"
-    foreground = "#ffffff"
-    frame_color = "#ff0000"
+    background = "#A54242"
+    foreground = "#000000"
+    frame_color = "#ffffff"
     timeout = 0
 
 [date]
