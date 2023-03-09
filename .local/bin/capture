@@ -1,0 +1,15 @@
+#!/bin/sh
+
+ffmpeg -f v4l2 \
+	-framerate 30 \
+	-video_size 1280x720 \
+	-input_format mjpeg \
+	-i /dev/video0 \
+	-c:a pcm_s16le \
+	-c:v mjpeg \
+	-b:v 64000k \
+	output.avi \
+	-map 0:v \
+	-vf "format=yuv420p" \
+	-f xv display
+

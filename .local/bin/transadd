@@ -2,6 +2,8 @@
 
 . utils
 
+ip link show up | grep -q "tun" && notify-send -u critical 'VPN Active' && exit 0
+
 if ! pidof transmission-daemon >/dev/null; then
 	transmission-daemon && notify-send "Starting transmission daemon..."
 	wait "transmission-remote --session-info > /dev/null"

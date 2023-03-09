@@ -4,8 +4,10 @@ dest="$1"
 
 for file in $(find . -type f); do
 	if [ -e "$dest$file" ]; then
+		# diff --strip-trailing-cr $file $dest$file > /dev/null || echo "File $file id not matching the destination"
 		cmp $file $dest$file || echo "File $file id not matching the destination"
 	else
 		echo "File $dest$file does not exist"
 	fi
 done
+
