@@ -10,9 +10,9 @@ if [ ! -L /dev/v4l/by-id/$device_id ]; then
 fi
 
 video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
-file_name="$(getfilename "output.avi" "$PWD/" )"
+file_name="$(getfilename "output.avi" "$PWD/")"
 
-prime-run ffmpeg -loglevel error \
+ffmpeg -loglevel error \
 	-f v4l2 \
 	-framerate 30 \
 	-video_size 1280x720 \

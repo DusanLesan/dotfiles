@@ -2,4 +2,9 @@
 
 site=ipinfo.io/json
 info=$(curl -s $site | jq '.country, .city, .ip')
-tty -s && echo "$info" || notify-send "IP Info:" "$info"
+
+if tty -s || [ ! -z $USE_TERM ]; then
+	echo "$info"
+else
+	notify-send "IP Info:" "$info"
+fi

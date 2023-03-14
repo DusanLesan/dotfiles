@@ -2,12 +2,11 @@
 
 case "$1" in
 	"-q")
-		sudo pkill hostapd
+		sudo kill_task hostapd
 	;;
 	*)
 		ip link show dev ap0 || sudo iw dev wlan0 interface add ap0 type managed addr 12:34:56:78:ab:ce
 		sudo ip link set dev ap0 up
-		sudo hostapd /etc/hostapd/hostapd.conf
-		[ $(ps -o stat= -p $$) = "S+" ] || notify-send "Wifi hotspot" "Wifi hotspot activated"
+		sudo hostapd -B /etc/hostapd/hostapd.conf
 	;;
 esac

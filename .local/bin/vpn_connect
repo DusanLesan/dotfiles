@@ -3,7 +3,7 @@
 . utils
 
 connect() {
-	ip link show up | grep -q "tun" && sudo kill-openvpn
+	ip link show up | grep -q "tun" && sudo kill_task openvpn
 
 	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//' )
 	name=$(prompt "Connect: " <<< $vpnlist)
@@ -22,7 +22,7 @@ connect() {
 }
 
 disconnect() {
-	ip link show up | grep -q "tun" && sudo kill-openvpn || notify-send -u "critical" "VPN" "Disconnection failed"
+	ip link show up | grep -q "tun" && sudo kill_task openvpn || notify-send -u "critical" "VPN" "Disconnection failed"
 	wait "ping -c 1 8.8.8.8 -W 1 > /dev/null"
 }
 

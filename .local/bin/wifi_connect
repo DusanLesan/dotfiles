@@ -12,7 +12,7 @@ scan() {
 selectNetwork() {
 	scan
 	sleep 1
-	list=("$(iwctl station wlan0 get-networks | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g' )")
+	list=("$(iwctl station $wifiInterface get-networks | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g' )")
 	while IFS=';' read -ra array; do
 		networks["${array[1]}"]="${array[2]}"
 	done <<< $list
@@ -33,5 +33,9 @@ connect() {
 	fi
 }
 
-selectNetwork
-connect
+if [ "$1" == "-q" ]; then
+	iwctl station $wifiInterface disconnect
+else
+	selectNetwork
+	connect
+fi

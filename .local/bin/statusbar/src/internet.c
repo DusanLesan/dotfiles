@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 			continue;
 
 		family = ifa->ifa_addr->sa_family;
-		if (family == AF_INET || family == AF_INET6) {
+		if (family == AF_INET) {
 			s = getnameinfo(ifa->ifa_addr,
 				(family == AF_INET) ? sizeof(struct sockaddr_in):
 				sizeof(struct sockaddr_in6),
@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
 
 			switch (ifa->ifa_name[0]) {
 				case 'w':
-					if (strncmp(host, "10.42.0", 6) == 0)
-						h = 1;
-					else
-						w = 1;
+					w = 1;
+					break;
+				case 'a':
+					h = 1;
 					break;
 				case 'e':
 					e = 1;
@@ -62,11 +62,10 @@ int main(int argc, char *argv[]) {
 	char* output;
 	if (e == 1)
 		strcat(output, " ");
-	if (h == 1) {
+	if (h == 1)
 		strcat(output, " ");
-	} else if (w == 1) {
+	if (w == 1)
 		strcat(output, " 直");
-	}
 	if (v == 1)
 		strcat(output, " ");
 
