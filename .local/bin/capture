@@ -10,29 +10,57 @@ if [ ! -L /dev/v4l/by-id/$device_id ]; then
 fi
 
 video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
-file_name="$(getfilename "output.avi" "$PWD/")"
+file_name="$(getfilename "output.mkv" "$PWD/")"
 
-ffmpeg -loglevel error \
-	-f v4l2 \
-	-framerate 30 \
-	-video_size 1280x720 \
-	-input_format mjpeg \
-	-i $video_path \
-	-f alsa \
-	-ar 48000 \
-	-itsoffset 0.2 \
-	-i hw:1 \
-	-c:a aac \
-	-b:a 96k \
-	-c:v mjpeg \
-	-b:v 32000k \
-	-map 0:v \
-	-map 1:a \
-	-vf "format=yuv420p" \
-	-af "aresample=async=1:min_hard_comp=0.100000:first_pts=0" \
-	-ac 2 \
-	-vsync 2 \
-	-shortest \
-	-f matroska - \
-	| tee "$file_name" \
-	| ffplay -i - -vf "format=yuv420p" -af "aresample=async=1" -ac 2 -autoexit
+display() {
+	ffmpeg -f v4l2 -i $video_path -vf "format=yuv420p" -f xv -
+}
+
+record() {
+	ffmpeg -f v4l2 \
+		-framerate 30 \
+		-video_size 1280x720 \
+		-input_format mjpeg \
+		-i $video_path \
+		-c:a pcm_s16le \
+		-c:v mjpeg \
+		-b:v 64000k \
+		-f matroska \
+		$file_name \
+		-map 0:v \
+		-vf "format=yuv420p" \
+		-f xv display
+}
+
+recordWithSound() {
+	ffmpeg -loglevel error \
+		-f v4l2 \
+		-framerate 30 \
+		-video_size 1280x720 \
+		-input_format mjpeg \
+		-i $video_path \
+		-f alsa \
+		-ar 48000 \
+		-itsoffset 0.2 \
+		-i hw:1 \
+		-c:a aac \
+		-b:a 96k \
+		-c:v mjpeg \
+		-b:v 32000k \
+		-map 0:v \
+		-map 1:a \
+		-vf "format=yuv420p" \
+		-af "aresample=async=1:min_hard_comp=0.100000:first_pts=0" \
+		-ac 2 \
+		-vsync 2 \
+		-shortest \
+		-f matroska - \
+		| tee "$file_name" \
+		| ffplay -i - -vf "format=yuv420p" -af "aresample=async=1" -ac 2 -autoexit
+}
+
+case "$1" in
+	"-r") record ;;
+	"-s") recordWithSound ;;
+	*) display ;;
+esac

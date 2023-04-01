@@ -1,0 +1,1 @@
+/home/dusan/.local/src/mpv-scripts/mdmenu.lua

@@ -1,25 +1,13 @@
 #!/bin/sh
 
-while getopts 'q' OPTION; do
-	case "$OPTION" in
-		q)
-			skypeforlinux --shutdown
-			pkill slack
-			kill -TERM "$(pgrep -fo mattermost)"
-		;;
+. utils
 
-		?)
-			echo "$(basename $0) -q for quiting all" >&2
-			exit 1
-		;;
-	esac
-done
-
-if [ $OPTIND = 1 ]; then
-
-	while ! ping -c 1 -W 1 8.8.8.8; do
-		sleep 1
-	done
+if [ -n "$1" ]; then
+	skypeforlinux --shutdown
+	pkill slack
+	kill -TERM "$(pgrep -fo mattermost)"
+else
+	wait "ping -c 1 8.8.8.8 -W 1 > /dev/null"
 	pgrep -x "slack" > /dev/null || slack &> /dev/null &
 	pgrep -x "skypeforlinux" > /dev/null || skypeforlinux &> /dev/null &
 	pgrep -fo "mattermost" > /dev/null || mattermost-desktop &> /dev/null &

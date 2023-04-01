@@ -1,6 +1,7 @@
 #!/bin/sh
+
 # Adds `~/.local/bin` and its subdirectories to $PATH
-export PATH="$PATH:$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':')"
+export PATH="$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':'):$PATH"
 
 # Default programs:
 export EDITOR="nvim"

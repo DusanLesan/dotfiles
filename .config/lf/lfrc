@@ -149,13 +149,13 @@ cmd fzf_find_file ${{
 }}
 
 cmd fzf_find_line ${{
-	RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+	PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
 	INITIAL_QUERY="${*:-}"
 	selected=$(
-		FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+		FZF_DEFAULT_COMMAND="$PREFIX $(printf %q "$INITIAL_QUERY")" \
 		fzf --ansi --disabled --query "$INITIAL_QUERY" \
 		--bind 'alt-f:execute(echo {+})+abort' \
-		--bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+		--bind "change:reload:sleep 0.1; $PREFIX {q} || true" \
 		--delimiter : \
 		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
 	)
@@ -178,6 +178,17 @@ cmd resize &{{
 	[ ${#r[@]} -eq 1 ] && lf -remote "send $id set nopreview"
 	lf -remote "send $id set ratios ${r[*]}"
 	[ ${#r[@]} -eq 2 ] && [ $1 == "+" ] && lf -remote "send $id set preview"
+}}
+
+cmd openRemote &{{
+	. utils
+	remote=$(git remote)
+	[ $(wc -l <<< $remote) -gt 1 ] && remote=$(git remote | prompt "Pick remote:")
+	url=$(git remote get-url $remote)
+	url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
+	branch=$(git branch --show-current 2>/dev/null)
+	[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
+	$BROWSER $url
 }}
 
 # Remove some defaults
@@ -249,3 +260,4 @@ map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpo cd ~/git/5.0_roku/pluto-tv-roku/cicd/out
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
+map gr openRemote
