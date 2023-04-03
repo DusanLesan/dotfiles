@@ -3,15 +3,23 @@
 export USE_TERM=true
 declare -A interfaces
 
-while read interface status address ; do
+checkInterface() {
+	if [ -z "${interfaces["$1"]}" ]; then
+		opt+=$'\n'"$2"
+	else
+		opt+=$'\n'"$3"
+		args+="$4"
+	fi
+}
+
+while read interface _status address ; do
 	interfaces["$interface"]=$address
 done <<< "$(ip -br -4 addr)"
 
-[ -z "${interfaces["tun0"]}" ] && opt="VPN connect" || opt="VPN disconnect"$'\n'"VPN change"
-[ -z "${interfaces["ap0"]}" ] && opt=$opt$'\n'"Hotspot connect" || opt=$opt$'\n'"Hotspot disconnect"
-[ -z "${interfaces["wlan0"]}" ] && opt=$opt$'\n'"WIFI connect" || opt=$opt$'\n'"WIFI disconnect"
-
-sel="$(fzf --preview 'myip' <<< "$opt" )"
+checkInterface "tun0" "VPN connect" "VPN disconnect"$'\n'"VPN change" "v"
+checkInterface "ap0" "Hotspot connect" "Hotspot disconnect" "h"
+checkInterface "wlan0" "WIFI connect" "WIFI disconnect" "w"
+sel="$(fzf --preview 'myip -c'$args <<< "$opt" )"
 
 case "$sel" in
 	"VPN connect" | "VPN change") vpn_connect ;;

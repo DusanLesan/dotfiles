@@ -1,23 +1,18 @@
 #!/bin/sh
 
-ACTION=$(printf "Primary only\nFollow\nToggle" | dmenu -i -p "Action: ")
+. utils
 
-retVal=$?
-if [ $retVal -eq 1 ]; then
-	exit 1
-fi
+action=$(prompt "Action:" <<< $'Toggle\nPrimary only\nFollow') || exit
 
-case "$ACTION" in
+case "$action" in
 	"Primary only")
 		sed -i -e "s/.*follow =.*/    # follow = keyboard/g" $XDG_CONFIG_HOME/dunst/dunstrc
 		pkill dunst
 	;;
-
 	"Follow")
 		sed -i -e "s/.*follow =.*/    follow = keyboard/g" $XDG_CONFIG_HOME/dunst/dunstrc
 		pkill dunst
 	;;
-
 	"Toggle")
 		dunstctl set-paused toggle
 	;;

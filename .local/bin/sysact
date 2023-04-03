@@ -1,20 +1,26 @@
 #!/bin/sh
 
+. utils
+
 actions=(
-	"lock"
-	"logout"
-	"sleep"
-	"reboot"
-	"shutdown"
-	"reset dwm"
+	'dunst'
+	'display'
+	''
+	'lock'
+	'logout'
+	'sleep'
+	'reboot'
+	'shutdown'
 )
 
-case "$(printf '%s\n' "${actions[@]}" | dmenu -i -l 6 -p 'Action: ')" in
+action="$(printf '%s\n' "${actions[@]}" | prompt 'Action:')" &&
+case "$action" in
+	'dunst') dunst_config ;;
+	'display') displayselect ;;
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;
 	'sleep') slock systemctl suspend ;;
 	'reboot') systemctl reboot ;;
 	'shutdown') systemctl poweroff ;;
-	'reset dwm') kill -HUP "$(pgrep -u "$USER" "\bdwm$")"; dwm ;;
-	*) exit 1 ;;
+	*) exit 0 ;;
 esac

@@ -1,16 +1,31 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define BUF_MAX 256
 #define MAX_CPU 31
 
-int read_fields(char buffer[], unsigned long long int *fields)
-{
+void sysact(void) {
+	pid_t child_pid = fork();
+	if (child_pid == 0) {
+		char *args[] = {"/bin/alacritty", "--class", "floating", "-e", "sysact", NULL};
+		setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
+		setenv("USE_TERM", "true", 1);
+		execv(args[0], args);
+	}
+}
+
+int read_fields(char buffer[], unsigned long long int *fields) {
 	return sscanf(buffer, "c%*s %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
 		&fields[0], &fields[1], &fields[2], &fields[3], &fields[4], &fields[5], &fields[6], &fields[7], &fields[8], &fields[9]);
 }
 
-int main(void)
-{
+int main(void) {
+	char* button = getenv("BLOCK_BUTTON");
+	if(button != NULL)
+		if (atoi(button) == 1)
+			sysact();
+
 	FILE *statFile, *cacheFile;
 	unsigned long long int fields[10], total_tick[MAX_CPU], total_tick_old[MAX_CPU], idle[MAX_CPU], idle_old[MAX_CPU], del_total_tick[MAX_CPU], del_idle[MAX_CPU];
 	int i, cpus = 0;

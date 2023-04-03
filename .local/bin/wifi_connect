@@ -7,18 +7,22 @@ declare -A networks
 
 scan() {
 	iwctl station $wifiInterface scan
+	sleep 1
 }
 
 selectNetwork() {
-	scan
-	sleep 1
-	list=("$(iwctl station $wifiInterface get-networks | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g' )")
+	networks="$(iwctl station $wifiInterface get-networks 2>/dev/null)"
+	list=("$(echo "$networks" | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g')")
+
 	while IFS=';' read -ra array; do
 		networks["${array[1]}"]="${array[2]}"
 	done <<< $list
 
 	selected="$(cat <(echo "RESCAN") <(printf "%s\n" "${!networks[@]}") | prompt "Network:")" || exit 1
-	[ "$selected" == "RESCAN" ] && selectNetwork
+	if [ "$selected" == "RESCAN" ]; then
+		scan
+		selectNetwork
+	fi
 }
 
 connect() {
@@ -36,6 +40,8 @@ connect() {
 if [ "$1" == "-q" ]; then
 	iwctl station $wifiInterface disconnect
 else
+	scan
+	wait "iwctl station $wifiInterface get-networks 2>/dev/null | grep -vzq 'No networks available'"
 	selectNetwork
 	connect
 fi

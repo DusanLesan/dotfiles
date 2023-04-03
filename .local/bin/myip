@@ -1,10 +1,37 @@
 #!/bin/sh
 
 site=ipinfo.io/json
-info=$(curl -s $site | jq '.country, .city, .ip')
+
+getvpn() {
+	for pid in $(pgrep openvpn); do
+		vpn=$(cat /proc/$pid/cmdline | tr '\0' ' ' | grep -oP '(?<=/)[^/]*(?=\.ovpn)')
+		if [ -n "$vpn" ]; then
+			printf "%s%s\n%s%s\n\n" "$red" "Active VPN:" "$vpn" "$reset"
+		fi
+	done
+}
+
+getwifi() {
+	wifi="$(iwctl station wlan0 get-networks | awk '/>/ {print "SSID: " $4 "; Signal " $6}')"
+	printf "%s%s\n%s%s\n\n" "$blue" "WIFI connected:" "$wifi" "$reset"
+}
 
 if tty -s || [ ! -z $USE_TERM ]; then
-	echo "$info"
+	pipe=$(mktemp -u)
+	mkfifo "$pipe"
+	curl -s $site | jq '.country, .city, .ip' > "$pipe" &
+
+	while getopts 'chvw' OPTION; do
+		case "$OPTION" in
+			c) blue=$'\033[34m'; green=$'\033[32m'; red=$'\033[31m'; reset=$'\033[0m';;
+			h) printf "%s%s\n%s%s\n\n" "$green" "Hotspot Active:" 'SSID B' "$reset";;
+			v) getvpn;;
+			w) getwifi;;
+		esac
+	done
+
+	cat "$pipe"
+	rm "$pipe"
 else
-	notify-send "IP Info:" "$info"
+	notify-send 'IP Info:' "$(curl -s $site | jq '.country, .city, .ip')"
 fi
