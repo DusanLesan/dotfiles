@@ -7,7 +7,6 @@ if [ -n "$1" ]; then
 	pkill slack
 	kill -TERM "$(pgrep -fo mattermost)"
 else
-	wait "ping -c 1 8.8.8.8 -W 1 > /dev/null"
 	pgrep -x "slack" > /dev/null || slack &> /dev/null &
 	pgrep -x "skypeforlinux" > /dev/null || skypeforlinux &> /dev/null &
 	pgrep -fo "mattermost" > /dev/null || mattermost-desktop &> /dev/null &

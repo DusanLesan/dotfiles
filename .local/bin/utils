@@ -1,7 +1,7 @@
 #!/bin/sh
 
 prompt() {
-	if [ -z $DISPLAY ] || [ ! -z $USE_TERM ]; then
+	if [ -z $DISPLAY ] || [ -n "$USE_TERM" ]; then
 		fzf --bind=ctrl-space:print-query --prompt "$1" < /dev/stdin
 	else
 		dmenu -i -p "$1" < /dev/stdin

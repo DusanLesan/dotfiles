@@ -29,5 +29,6 @@
 	],
 	"terminal.integrated.enablePersistentSessions": false,
 	"terminal.integrated.persistentSessionReviveProcess": "never",
-	"terminal.external.linuxExec": "alacritty"
+	"terminal.external.linuxExec": "alacritty",
+	"git.openRepositoryInParentFolders": "never"
 }

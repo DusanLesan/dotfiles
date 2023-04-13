@@ -2,27 +2,32 @@
 
 . utils
 
-while read file
-do
+rename() {
+	name="$(basename "$file")"
+	dir="$(dirname "$file")"
+	newName="$(dmenu -i -p "Rename:" <<< "$name" || exit 0)"
+	newName="$(getfilename "$newName")"
+	mv "$file" "$newName"
+}
+
+copyImage() {
+	if [ $(mimetype -Mb "$file") = "image/png" ]; then
+		xclip -sel c -t "image/png" "$file" >/dev/null 2>&1 &
+	else
+		convert "$file" png:- | xclip -sel c -t "image/png" &
+	fi
+}
+
+while read file; do
 	case "$1" in
-		"r") name="$(basename "$file")"
-			dir="$(dirname "$file")"
-			newName="$(dmenu -i -p "Rename:" <<< "$name" || exit 0)"
-			newName="$(getfilename "$newName")"
-			mv "$file" "$newName"
-			;;
+		"r") rename ;;
 		"e") devour /opt/Gimp.AppImage "$file" & ;;
 		"bracketright") convert -rotate 90 "$file" "$file" ;;
 		"bracketleft") convert -rotate -90 "$file" "$file" ;;
 		"f") convert -flop "$file" "$file" ;;
-		"y")
-			echo -n "$file" | xclip -selection clipboard &&
-			notify-send "$file copied to clipboard" & ;;
-		"Y")
-			[ $(mimetype -Mb "$file") = "image/png" ] && \ 
-			xclip -sel c -t "image/png" "$file" || \ 
-			convert "$file" png:- | xclip -select  clipboard -t "image/png" & ;;
-		"d")
-			[ "$(printf "No\\nYes" | dmenu -i -p "Really delete $file?")" = "Yes" ] && rm "$file" && notify-send "$file deleted." ;;
+		"y") echo -n "$file" | xclip -sel c && notify "$file copied " & ;;
+		"Y") copyImage ;;
+		"d") [ $(prompt "Delete $file?" <<< $'No\nYes') = "Yes" ] &&
+			rm "$file" && notify "$file deleted." ;;
 	esac
 done
