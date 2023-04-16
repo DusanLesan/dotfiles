@@ -19,6 +19,7 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 export LESSHISTFILE="-"
 export VSCODE_PORTABLE="$XDG_CONFIG_HOME/code-oss"
 export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
 
 # Other program settings:
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
