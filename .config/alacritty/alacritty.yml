@@ -398,3 +398,5 @@ key_bindings:
   - { key: PageDown,  mods: Shift,   action: ScrollPageDown, mode: ~Alt       }
   - { key: Home,      mods: Shift,   action: ScrollToTop,    mode: ~Alt       }
   - { key: End,       mods: Shift,   action: ScrollToBottom, mode: ~Alt       }
+  #  Map shift-enter to ctrl-J
+  - { key: Return,   mods: Shift,    chars: "\x0a" }

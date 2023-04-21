@@ -5,7 +5,7 @@
 rename() {
 	name="$(basename "$file")"
 	dir="$(dirname "$file")"
-	newName="$(dmenu -i -p "Rename:" <<< "$name" || exit 0)"
+	newName="$(prompt "Rename:" <<< "$name" || exit 0)"
 	newName="$(getfilename "$newName")"
 	mv "$file" "$newName"
 }

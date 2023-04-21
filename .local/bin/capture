@@ -13,7 +13,13 @@ video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
 file_name="$(getfilename "output.mkv" "$PWD/")"
 
 display() {
-	ffmpeg -f v4l2 -i $video_path -vf "format=yuv420p" -f xv -
+	ffmpeg -f v4l2 \
+		-framerate 30 \
+		-video_size 1280x720 \
+		-input_format mjpeg \
+		-i $video_path \
+		-vf "format=yuv420p" \
+		-f xv -
 }
 
 record() {
