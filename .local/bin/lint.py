@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
 from subprocess import Popen, PIPE
+import tempfile
+import json
 import re
 
 output = errors = ''
 
-def executeCommand(params, input = ''):
-	process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
-	out = process.communicate(input=input.encode())[0].decode('utf-8')
-	if process.returncode != 0:
-		quit()
-	return out
+def executeCommand(params, failQuit = True):
+	try:
+		process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
+		out = process.communicate()[0].decode('utf-8')
+		if failQuit and process.returncode != 0:
+			quit()
+		return out
+	except FileNotFoundError:
+		return ''
 
 def processFiles(files):
 	for file in files.splitlines():
@@ -20,10 +25,16 @@ def validateFile(file):
 	global errors
 	global output
 	global additionalGitArgs
-	errors = ''
+	spellcheck = False
+	errors = typos = ''
 	lineNum = 0
 
 	changes = executeCommand(['git', 'diff', "-U0"] + additionalGitArgs + ["--"] + [file])
+
+	if executeCommand(['typos', '--version']):
+		temp = tempfile.NamedTemporaryFile(mode='w')
+		f = open(temp.name, mode='a')
+		spellcheck = True
 
 	for line in changes.splitlines():
 		if line.startswith('@@'):
@@ -34,6 +45,9 @@ def validateFile(file):
 		if line.startswith('+'):
 			line = line[1:]
 
+			if spellcheck:
+				f.write(f'{line}\n')
+
 			validateAll(line, lineNum)
 			if file.endswith('.brs'):
 				validateBRS(line, lineNum)
@@ -41,8 +55,22 @@ def validateFile(file):
 				validateXML(line, lineNum)
 
 			lineNum += 1
-	if errors:
-		output += 'FILE                 : ' + file + '\n' + errors + '\n'
+
+	if spellcheck:
+		f.close()
+		data = executeCommand([ 'typos', '--format', 'json', '--color', 'never', temp.name ], False)
+		temp.close()
+		for typo in data.splitlines():
+			typo = json.loads(typo)
+			typo = f'{typo["typo"]} -> {", ".join(typo["corrections"])}'
+			typos += f'{typo}\n'
+
+	if errors or typos:
+		output += f'FILE                 : {file}\n'
+		if errors:
+			output += f'{errors}\n'
+		if typos:
+			output += f'Misspelled?\n{typos}\n'
 
 def validateLine(text, regex, lineNum, errorMsg):
 	regexp = re.compile(regex)
@@ -76,8 +104,8 @@ def main(args):
 
 if __name__ == '__main__':
 	main(['--cached'])
-	print(output)
 	if output:
+		print(output)
 		exit(1)
 	else:
 		exit(0)

@@ -19,7 +19,7 @@ case "$action" in
 	'display') displayselect ;;
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;
-	'sleep') slock systemctl suspend ;;
+	'sleep') slock systemctl suspend -i;;
 	'reboot') systemctl reboot ;;
 	'shutdown') systemctl poweroff ;;
 	*) exit 0 ;;

@@ -132,6 +132,8 @@ def verify():
 	if confirmed != 'yes':
 		quit()
 
+executeCommand(['git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'])
+
 t1 = Thread(target=setList, args=('labelList', 'listLabels'))
 t2 = Thread(target=setList, args=('milestoneList', 'listMilestones'))
 t3 = Thread(target=startStylingCheck)
