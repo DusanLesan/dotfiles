@@ -14,7 +14,7 @@ esac
 
 [ "$(pacmd list-sinks | awk '/muted/ { print $2 }')" = "yes" ] && echo  && exit
 
-icon="墳"
+icon="󰕾 "
 vol="$(pactl get-sink-volume 0 | awk -F  "/" '{gsub(" ", "", $2); print $2}')"
 
 echo "$icon$vol"

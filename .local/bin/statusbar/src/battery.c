@@ -31,11 +31,11 @@ int main(void) {
 	fscanf(fs, "%[^\n]", stat);
 	fclose(fs);
 
-	char* icon = "";
+	char* icon = "󰁹";
 	if(strcmp(stat, "Discharging") == 0)
-		icon = "";
+		icon = "󱟟";
 	else if (strcmp(stat, "Charging") == 0)
-		icon = "";
+		icon = "󰂄";
 	printf("%s%s\n", icon, cap);
 
 	return 0;

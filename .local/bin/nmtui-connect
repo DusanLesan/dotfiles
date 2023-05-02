@@ -16,13 +16,13 @@ while read interface _status address ; do
 	interfaces["$interface"]=$address
 done <<< "$(ip -br -4 addr)"
 
-checkInterface "tun0" "VPN connect" "VPN disconnect"$'\n'"VPN change" "v"
+checkInterface "tun0" "VPN connect" "VPN disconnect"$'\n'"VPN connect" "v"
 checkInterface "ap0" "Hotspot connect" "Hotspot disconnect" "h"
-checkInterface "wlan0" "WIFI connect" "WIFI disconnect" "w"
+checkInterface "wlan0" "WIFI connect" "WIFI disconnect"$'\n'"WIFI connect" "w"
 sel="$(fzf --preview 'myip -c'$args <<< "$opt" )"
 
 case "$sel" in
-	"VPN connect" | "VPN change") vpn_connect ;;
+	"VPN connect") vpn_connect ;;
 	"VPN disconnect") vpn_connect -q ;;
 	"WIFI connect") wifi_connect ;;
 	"WIFI disconnect") wifi_connect -q ;;

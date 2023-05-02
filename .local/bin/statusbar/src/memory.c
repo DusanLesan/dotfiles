@@ -58,6 +58,6 @@ int main(void) {
 	}
 	fclose(meminfo);
 	double used = total - free - buffers - cached - sReclaimable;
-	printf("%.2f\n", used / 1024 / 1024);
+	printf("󰍛%.2f\n", used / 1024 / 1024);
 	return 0;
 }
