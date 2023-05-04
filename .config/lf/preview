@@ -9,10 +9,13 @@ image() {
 	fi
 }
 
-CACHE="/tmp/lf/thumbnail.$(stat --printf '%n\0%i\0%F\0%s\0%W\0%Y' -- "$(readlink -f "$1")" | sha256sum | awk '{print $1}'))"
-MIMETYPE="$( file --dereference --brief --mime-type -- "$1" )"
+setCache() {
+	dir="$XDG_CACHE_HOME/lf"
+	cache="$(readlink -f "$1" | sha256sum)"
+	cache="$dir/thumb.${cache%% *}"
+}
 
-case $MIMETYPE in
+case "$(file --dereference --brief --mime-type -- "$1")" in
 	*gzip) tar tzf "$1" ;;
 	*txz) xz --list "$1" ;;
 	*tar) tar tf "$1" ;;
@@ -20,10 +23,18 @@ case $MIMETYPE in
 	*rar) unrar l "$1" ;;
 	*7z) 7z l "$1" ;;
 	audio/mpeg) mp3info "$1" ;;
+	*office*)
+		setCache "$1"
+		if [ ! -f "${cache}" ]; then
+			jpg="$(printf '%s\n' "$1" | sed 's|^.*/||; s|\..*$||')"
+			libreoffice --convert-to jpg --outdir "$dir" "$1" >/dev/null \
+				&& mv "$dir/$jpg.jpg" "$cache"
+		fi
+		image "${cache}" "$2" "$3" "$4" "$5";;
 	*/pdf)
-		[ ! -f "${CACHE}.jpg" ] && \
-			pdftoppm -jpeg -f 1 -singlefile "$1" "$CACHE"
-		image "${CACHE}.jpg" "$2" "$3" "$4" "$5" ;;
+		setCache "$1"
+		[ ! -f "${cache}.jpg" ] && pdftoppm -jpeg -f 1 -singlefile "$1" "$cache"
+		image "${cache}.jpg" "$2" "$3" "$4" "$5" ;;
 	image/*)
 		image "$1" "$2" "$3" "$4" "$5" ;;
 	*)

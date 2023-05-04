@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	char* output;
+	char output[24] = "";
 	if (e == 1)
 		strcat(output, " 󰈀");
 	if (h == 1)

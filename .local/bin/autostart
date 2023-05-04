@@ -10,9 +10,11 @@ if [ 6 -gt "$D" ] && [ 10 -lt "$H" ] && [ "$H" -lt 20 ]; then
 	if [ -z "$(pgrep -fo $BROWSER)" ]; then
 		$BROWSER \
 			--new-window "https://mail.pcionline.net" \
+			--new-window "https://www.acumatter.com" \
+			--new-window "https://web.skype.com" \
 			--new-window "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
 			</dev/null >/dev/null 2>&1 &
 	fi
 
-	comms
+	pgrep -x "slack" > /dev/null || slack &> /dev/null &
 fi

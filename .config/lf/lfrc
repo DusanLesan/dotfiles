@@ -4,10 +4,8 @@ set ifs "\n"
 set autoquit true
 set wrapscroll true
 
-set previewer ctpv
-set cleaner ctpvclear
-&ctpv -s $id
-&ctpvquit $id
+set previewer ~/.config/lf/preview
+set cleaner ~/.config/lf/cleaner
 
 cmd open ${{
 	case $(file --mime-type "$f" -b) in
