@@ -1,28 +1,18 @@
 #!/bin/sh
 
-export SUDO_ASKPASS="$HOME/.local/bin/askpass"
-interface=$(nmcli device status | grep "wifi\s*connected" | cut -d " " -f 1)
+interface="ap0"
 bandwidth=200
 unit=kbit
+. utils
 
 function getInfo {
-	ACTION=$(prompt "Add rule\nChange rule\nDelete rule" "Action")
+	ACTION=$(prompt "Action:" <<< "Add rule"$'\n'"Change rule"$'\n'"Delete rule" )
 	[ "$ACTION" = "Delete rule" ] && return 0
-	OPTION=$(prompt "Default values($bandwidth$unit @ $interface)\nChange values" "Set values")
+	OPTION=$(prompt "Values:" <<< "Default values($bandwidth$unit @ $interface)"$'\n'"Change values")
 	if [ "$OPTION" = "Change values" ]; then
-		interface=$(prompt "$interface" "Interface name")
-		bandwidth=$(prompt "$bandwidth" "Bandwith in $unit")
+		interface="$(ip -br -4 addr | awk '$2 == "UP" {print $1}' | prompt "Select interface:")"
+		bandwidth=$(prompt "Bandwith in $unit" <<< "$bandwidth")
 	fi
-}
-
-function prompt {
-	[ -x "$(command -v dmenu)" ] && [ x$DISPLAY != x ] && echo $(promptDmenu "$1" "$2")
-}
-
-function promptDmenu {
-	result=$(printf "$1" | dmenu -i -p "$2: ")
-	[ $? -eq 1 ] && kill $$
-	echo "$result"
 }
 
 function help {
