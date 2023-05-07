@@ -31,6 +31,7 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.number = true
 vim.opt.relativenumber = true
+vim.opt.whichwrap:append "<>[]hl"
 
 vim.opt.cmdheight = 1
 vim.opt.mouse = 'a'

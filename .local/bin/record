@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. utils
+
+declare -A params
+while read key size offset; do
+	modes[${#modes[@]}]="$key"
+	params[$key,size]="$size"
+	params[$key,offset]="$offset"
+done <<< "$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1, $2"x"$4, $6","$7}')"
+
+target=$(printf '%s\n' "${modes[@]}" | prompt 'Record:') || exit 1
+ffmpeg -f x11grab -draw_mouse 1 -video_size "${params[$target,size]}" -i ":0.0+${params[$target,offset]}" -c:v libx264 -qp 0 "$(getfilename "${target}_recording.mkv" "$PWD/")"

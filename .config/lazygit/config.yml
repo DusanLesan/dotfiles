@@ -31,6 +31,7 @@ customCommands:
         title: 'File Name:'
 
 os:
-  editCommand: 'nvim +{{line}} {{filename}}'
-  openCommand: 'code -g {{filename}}:{{line}}'
+  edit: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && code -g {{filename}} || nvim {{filename}}'
+  editAtLine: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && code -g {{filename}}:{{line}} || nvim +{{line}} {{filename}}'
+
 promptToReturnFromSubprocess: false

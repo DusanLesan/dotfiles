@@ -1,6 +1,7 @@
 #!/bin/sh
+
 # Adds `~/.local/bin` and its subdirectories to $PATH
-export PATH="$PATH:$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':')"
+export PATH="$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':'):$PATH"
 
 # Default programs:
 export EDITOR="nvim"
@@ -17,8 +18,8 @@ export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc-2.0"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 export LESSHISTFILE="-"
 export VSCODE_PORTABLE="$XDG_CONFIG_HOME/code-oss"
-export SSB_HOME="$XDG_DATA_HOME/zoom"
 export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
 
 # Other program settings:
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock

@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 if test "$1" != '_CALLED_INTERNALLY'; then
 	exec cmd-polkit-agent -s -c "$0 _CALLED_INTERNALLY"

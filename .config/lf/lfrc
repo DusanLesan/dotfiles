@@ -26,7 +26,7 @@ cmd open_images ${{
 	elif [ $i -eq 1 ]; then
 		list="$fx"
 	else
-		list="$(tail -n +$i <<<"$fx")"$'\n'"$(head -$((i-1)) <<<"$fx")"
+		list="$(tail -n +$i <<< "$fx")"$'\n'"$(head -$((i-1)) <<< "$fx")"
 	fi
 
 	out="$(devour nsxiv -aiop 2>/dev/null <<< "$list")"
@@ -70,6 +70,8 @@ cmd new_permission &{{
 cmd yank_path ${{
 	echo "$fx" | xclip -i -selection clipboard
 }}
+
+cmd yank_path $echo "$fx" | xclip -i -selection clipboard
 
 cmd yank_image ${{
 	[ $(mimetype -Mb "$f") = "image/png" ] && \
@@ -149,13 +151,13 @@ cmd fzf_find_file ${{
 }}
 
 cmd fzf_find_line ${{
-	RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+	PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
 	INITIAL_QUERY="${*:-}"
 	selected=$(
-		FZF_DEFAULT_COMMAND="$RG_PREFIX $(printf %q "$INITIAL_QUERY")" \
+		FZF_DEFAULT_COMMAND="$PREFIX $(printf %q "$INITIAL_QUERY")" \
 		fzf --ansi --disabled --query "$INITIAL_QUERY" \
 		--bind 'alt-f:execute(echo {+})+abort' \
-		--bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+		--bind "change:reload:sleep 0.1; $PREFIX {q} || true" \
 		--delimiter : \
 		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
 	)
@@ -165,6 +167,30 @@ cmd fzf_find_line ${{
 		lf -remote "send $id select \"${selected[0]}\""
 		[ $code -ne 130 ] && $EDITOR +"${selected[1]}" "${selected[0]}"
 	fi
+}}
+
+cmd resize_pane &lf -remote "send $id set user_pane $1"
+
+cmd resize &{{
+	IFS=':'
+	read -a r <<< "$lf_ratios"
+	[ -n $lf_user_pane ] && n=$lf_user_pane || n=${#r[@]}
+	((r[$n-1]$1$1))
+	[ ${r[$n-1]} -lt 1 ] && r=( "${r[@]:0:$n-1}" "${r[@]:$n}" )
+	[ ${#r[@]} -eq 1 ] && lf -remote "send $id set nopreview"
+	lf -remote "send $id set ratios ${r[*]}"
+	[ ${#r[@]} -eq 2 ] && [ $1 == "+" ] && lf -remote "send $id set preview"
+}}
+
+cmd openRemote &{{
+	. utils
+	remote=$(git remote)
+	[ $(wc -l <<< $remote) -gt 1 ] && remote=$(git remote | prompt "Pick remote:")
+	url=$(git remote get-url $remote)
+	url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
+	branch=$(git branch --show-current 2>/dev/null)
+	[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
+	$BROWSER $url
 }}
 
 # Remove some defaults
@@ -210,7 +236,9 @@ map spe set preview
 map sr1 set ratios 1
 map sr2 set ratios 1:2
 map sr3 set ratios 1:2:3
-map sr4 set ratios 1:2:3:5
+map sq push :resize_pane<space>
+map + resize +
+map - resize -
 
 # use enter for shell commands
 map <enter> shell
@@ -222,6 +250,7 @@ map <c-o> open_new
 map <a-o> $sh "$f" &
 
 # Movement
+map <c-space> :toggle; up
 map ~ mark-save
 map ` mark-load
 map gds cd ~/Documents
@@ -233,3 +262,4 @@ map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpo cd ~/git/5.0_roku/pluto-tv-roku/cicd/out
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
+map gr openRemote

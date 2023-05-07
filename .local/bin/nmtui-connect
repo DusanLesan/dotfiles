@@ -1,0 +1,31 @@
+#!/bin/sh
+
+export USE_TERM=true
+declare -A interfaces
+
+checkInterface() {
+	if [ -z "${interfaces["$1"]}" ]; then
+		opt+=$'\n'"$2"
+	else
+		opt+=$'\n'"$3"
+		args+="$4"
+	fi
+}
+
+while read interface _status address ; do
+	interfaces["$interface"]=$address
+done <<< "$(ip -br -4 addr)"
+
+checkInterface "tun0" "VPN connect" "VPN disconnect"$'\n'"VPN connect" "v"
+checkInterface "ap0" "Hotspot connect" "Hotspot disconnect" "h"
+checkInterface "wlan0" "WIFI connect" "WIFI disconnect"$'\n'"WIFI connect" "w"
+sel="$(fzf --preview 'myip -c'$args <<< "$opt" )"
+
+case "$sel" in
+	"VPN connect") vpn_connect ;;
+	"VPN disconnect") vpn_connect -q ;;
+	"WIFI connect") wifi_connect ;;
+	"WIFI disconnect") wifi_connect -q ;;
+	"Hotspot connect") wifi_hotspot ;;
+	"Hotspot disconnect") wifi_hotspot -q ;;
+esac

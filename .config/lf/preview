@@ -1,14 +1,42 @@
 #!/bin/sh
 
-MIMETYPE="$( file --dereference --brief --mime-type -- "$1" )"
+image() {
+	if [ -n "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ]; then
+		printf '{"action": "add", "identifier": "PREVIEW", "x": "%s", "y": "%s", "width": "%s", "height": "%s", "scaler": "contain", "path": "%s"}\n' "$4" "$5" "$(($2-1))" "$(($3-1))" "$1" > "$FIFO_UEBERZUG"
+		exit 1
+	else
+		chafa "$1" -s "$4x"
+	fi
+}
 
-case $MIMETYPE in
+setCache() {
+	dir="$XDG_CACHE_HOME/lf"
+	cache="$(readlink -f "$1" | sha256sum)"
+	cache="$dir/thumb.${cache%% *}"
+}
+
+case "$(file --dereference --brief --mime-type -- "$1")" in
 	*gzip) tar tzf "$1" ;;
 	*txz) xz --list "$1" ;;
 	*tar) tar tf "$1" ;;
 	*/zip|*java-archive) unzip -l "$1" ;;
 	*rar) unrar l "$1" ;;
 	*7z) 7z l "$1" ;;
+	audio/mpeg) mp3info "$1" ;;
+	*office*)
+		setCache "$1"
+		if [ ! -f "${cache}" ]; then
+			jpg="$(printf '%s\n' "$1" | sed 's|^.*/||; s|\..*$||')"
+			libreoffice --convert-to jpg --outdir "$dir" "$1" >/dev/null \
+				&& mv "$dir/$jpg.jpg" "$cache"
+		fi
+		image "${cache}" "$2" "$3" "$4" "$5";;
+	*/pdf)
+		setCache "$1"
+		[ ! -f "${cache}.jpg" ] && pdftoppm -jpeg -f 1 -singlefile "$1" "$cache"
+		image "${cache}.jpg" "$2" "$3" "$4" "$5" ;;
+	image/*)
+		image "$1" "$2" "$3" "$4" "$5" ;;
 	*)
 		[ "$( stat --printf='%s' -- "$1" )" -gt "262143" ] && exit 2
 		bat -p --color=always "$1" --theme 'Visual Studio Dark+' --tabs 2 ;;
