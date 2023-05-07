@@ -1,0 +1,5 @@
+#!/bin/sh
+
+pkill sshd
+
+exit 0
