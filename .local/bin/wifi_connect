@@ -11,12 +11,12 @@ scan() {
 }
 
 selectNetwork() {
-	networks="$(iwctl station $wifiInterface get-networks 2>/dev/null)"
-	list=("$(echo "$networks" | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g')")
+	list="$(iwctl station $wifiInterface get-networks 2>/dev/null)"
+	list="$(echo "$list" | head -n -1 | tail +5 | sed -e $'s/\e\\[[0-9;:]*[a-zA-Z]//g' -e 's/^  >//' -Ee 's/  +/;/g')"
 
 	while IFS=';' read -ra array; do
 		networks["${array[1]}"]="${array[2]}"
-	done <<< $list
+	done <<< "$list"
 
 	selected="$(cat <(echo "RESCAN") <(printf "%s\n" "${!networks[@]}") | prompt "Network:")" || exit 1
 	if [ "$selected" == "RESCAN" ]; then
@@ -41,7 +41,7 @@ if [ "$1" == "-q" ]; then
 	iwctl station $wifiInterface disconnect
 else
 	scan
-	wait "iwctl station $wifiInterface get-networks 2>/dev/null | grep -vzq 'No networks available'"
+	wait iwctl station $wifiInterface get-networks 2>/dev/null | grep -vzq 'No networks available'
 	selectNetwork
 	connect
 fi

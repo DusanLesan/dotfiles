@@ -2,7 +2,8 @@ local servers = {
 	"clangd",
 	"bashls",
 	"jdtls",
-	"lua_ls"
+	"lua_ls",
+	"bright_script"
 }
 
 local status_ok, lsp_installer = pcall(require, "mason-lspconfig")
@@ -13,7 +14,6 @@ end
 require("mason").setup()
 lsp_installer.setup {
 	ensure_installed = servers
-
 }
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
