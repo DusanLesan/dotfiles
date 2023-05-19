@@ -15,4 +15,4 @@ if [ -z "$url" ]; then
 	esac
 fi
 
-$BROWSER "$url" &>/dev/null &
+$BROWSER "$url" >/dev/null 2>&1 &

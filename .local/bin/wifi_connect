@@ -30,7 +30,7 @@ connect() {
 		iwctl known-networks list | grep "  $selected  " || pass="$(getpass "Pass:")"
 	fi
 
-	if [ -n $pass ]; then
+	if [ -n "$pass" ]; then
 		iwctl station "$wifiInterface" connect "$selected" --passphrase "$pass"
 	else
 		iwctl station "$wifiInterface" connect "$selected"

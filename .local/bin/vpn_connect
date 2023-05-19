@@ -6,11 +6,9 @@ connect() {
 	ip link show up | grep -q "tun" && sudo kill_task openvpn
 
 	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//' )
-	name=$(prompt "Connect: " <<< $vpnlist)
-	[ $? -ne 0 ] && exit 0
-
-	pass=$(secret-tool lookup pass $name)
-	user=$(secret-tool lookup user $name)
+	name=$(prompt "Connect: " <<< "$vpnlist") || exit 0
+	pass=$(secret-tool lookup pass "$name")
+	user=$(secret-tool lookup user "$name")
 
 	tmp=$(mktemp)
 	chmod 600 $tmp

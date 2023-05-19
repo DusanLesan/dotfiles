@@ -16,5 +16,5 @@ if [ 6 -gt "$D" ] && [ 10 -lt "$H" ] && [ "$H" -lt 20 ]; then
 			</dev/null >/dev/null 2>&1 &
 	fi
 
-	pgrep -x "slack" > /dev/null || slack &> /dev/null &
+	pgrep -x "slack" > /dev/null || slack > /dev/null 2>&1 &
 fi

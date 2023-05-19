@@ -3,6 +3,7 @@ set hidden true
 set ifs "\n"
 set autoquit true
 set wrapscroll true
+set ruler 'acc:progress:df:selection:ind'
 
 set previewer ~/.config/lf/preview
 set cleaner ~/.config/lf/cleaner
@@ -90,7 +91,7 @@ cmd tar ${{
 	temp=$f.tmp
 	mkdir $temp
 	cp -r $fx $temp
-	tar czf $f.tar.gz $temp
+	tar czf $f.tar.gz -C $temp .
 	rm -rf $temp
 }}
 
@@ -165,7 +166,7 @@ cmd fzf_find_line ${{
 	fi
 }}
 
-cmd resize_pane &lf -remote "send $id set user_pane $1"
+cmd setNumber &lf -remote "send $id set user_pane $lf_count"
 
 cmd resize &{{
 	IFS=':'
@@ -232,9 +233,9 @@ map spe set preview
 map sr1 set ratios 1
 map sr2 set ratios 1:2
 map sr3 set ratios 1:2:3
-map sq push :resize_pane<space>
-map + resize +
+map n setNumber
 map - resize -
+map + resize +
 
 # use enter for shell commands
 map <enter> shell

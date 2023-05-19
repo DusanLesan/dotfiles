@@ -16,7 +16,7 @@ getwifi() {
 	printf "%s%s\n%s%s\n\n" "$blue" "WIFI connected:" "$wifi" "$reset"
 }
 
-if tty -s || [ ! -z $USE_TERM ]; then
+if tty -s || [ -n "$USE_TERM" ]; then
 	pipe=$(mktemp -u)
 	mkfifo "$pipe"
 	curl -s $site | jq '.country, .city, .ip' > "$pipe" &

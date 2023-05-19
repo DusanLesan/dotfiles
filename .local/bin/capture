@@ -17,7 +17,7 @@ display() {
 		-framerate 30 \
 		-video_size 1280x720 \
 		-input_format mjpeg \
-		-i $video_path \
+		-i "$video_path" \
 		-vf "format=yuv420p" \
 		-f xv -
 }
@@ -27,12 +27,12 @@ record() {
 		-framerate 30 \
 		-video_size 1280x720 \
 		-input_format mjpeg \
-		-i $video_path \
+		-i "$video_path" \
 		-c:a pcm_s16le \
 		-c:v mjpeg \
 		-b:v 64000k \
 		-f matroska \
-		$file_name \
+		"$file_name" \
 		-map 0:v \
 		-vf "format=yuv420p" \
 		-f xv display
@@ -44,7 +44,7 @@ recordWithSound() {
 		-framerate 30 \
 		-video_size 1280x720 \
 		-input_format mjpeg \
-		-i $video_path \
+		-i "$video_path" \
 		-f alsa \
 		-ar 48000 \
 		-itsoffset 0.2 \

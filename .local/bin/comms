@@ -7,7 +7,7 @@ if [ -n "$1" ]; then
 	pkill slack
 	kill -TERM "$(pgrep -fo mattermost)"
 else
-	pgrep -x "slack" > /dev/null || slack &> /dev/null &
-	pgrep -x "skypeforlinux" > /dev/null || skypeforlinux &> /dev/null &
-	pgrep -fo "mattermost" > /dev/null || mattermost-desktop &> /dev/null &
+	pgrep -x "slack" > /dev/null || slack > /dev/null 2>&1 &
+	pgrep -x "skypeforlinux" > /dev/null || skypeforlinux > /dev/null 2>&1 &
+	pgrep -fo "mattermost" > /dev/null || mattermost-desktop > /dev/null 2>&1 &
 fi

@@ -14,7 +14,7 @@ case $1 in
 esac
 
 if [ ! -S /tmp/ssh_auth_sock ]; then
-	eval `ssh-agent` > /dev/null
+	eval $(ssh-agent) > /dev/null
 	ln -sf "$SSH_AUTH_SOCK" /tmp/ssh_auth_sock
 fi
 

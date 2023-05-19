@@ -20,7 +20,6 @@ getType() {
 	unset IFS
 
 	target=$(printf '%s\n' "${modes[@]}" | dmenu -p 'Screenshot:') || exit 1
-	
 }
 
 getDestination() {

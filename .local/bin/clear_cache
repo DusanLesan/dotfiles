@@ -21,7 +21,7 @@ list="
 	$HOME/.m2
 	$HOME/.npm"
 
-rm -rf $list
+rm -rf "$list"
 
 sed -i 's/^[[:blank:]]*//;s/[[:blank:]]*$//' "$HOME/.config/zsh/zhistory"
 cat -n "$HOME/.config/zsh/zhistory" | sort -k2 -k1,1nr | sort -k2 -u | sort -n | cut -f2 > "$HOME/.config/zsh/zhistory.tmp"

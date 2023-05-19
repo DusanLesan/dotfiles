@@ -19,7 +19,7 @@ done <<< "$(ip -br -4 addr)"
 checkInterface "tun0" "VPN connect" "VPN disconnect"$'\n'"VPN connect" "v"
 checkInterface "ap0" "Hotspot connect" "Hotspot disconnect" "h"
 checkInterface "wlan0" "WIFI connect" "WIFI disconnect"$'\n'"WIFI connect" "w"
-sel="$(fzf --preview 'myip -c'$args <<< "$opt" )"
+sel="$(fzf --preview "myip -c$args" <<< "$opt" )"
 
 case "$sel" in
 	"VPN connect") vpn_connect ;;

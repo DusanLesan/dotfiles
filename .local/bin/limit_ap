@@ -5,7 +5,7 @@ bandwidth=200
 unit=kbit
 . utils
 
-function getInfo {
+getInfo {
 	ACTION=$(prompt "Action:" <<< "Add rule"$'\n'"Change rule"$'\n'"Delete rule" )
 	[ "$ACTION" = "Delete rule" ] && return 0
 	OPTION=$(prompt "Values:" <<< "Default values($bandwidth$unit @ $interface)"$'\n'"Change values")
@@ -15,7 +15,7 @@ function getInfo {
 	fi
 }
 
-function help {
+help {
 	echo "$(basename $0) -i interface (default: $interface)" >&2
 	echo "$(basename $0) -b bandwidth (default: $bandwidth)" >&2
 	echo "$(basename $0) -u unit (default: $unit)" >&2
