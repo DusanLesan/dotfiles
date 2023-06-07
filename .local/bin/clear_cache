@@ -2,8 +2,9 @@
 
 list="
 	$HOME/.cache/*
-	$HOME/.config/*/Cache/
-	$HOME/.config/*/Code*Cache/
+	$HOME/.config/*/Cache/*
+	$HOME/.config/*/Code*Cache/*
+	$HOME/.config/*/DawnCache/*
 	$HOME/.config/*/GPUCache
 	$HOME/.config/*/Crashpad
 	$HOME/.config/*/Crash*Reports/
@@ -14,14 +15,12 @@ list="
 	$HOME/.config/BraveSoftware/Brave-Browser/Default/Session*Storage
 	$HOME/.config/BraveSoftware/Brave-Browser/Default/Sessions
 	$HOME/.config/Slack/Service*Worker
-	$HOME/.config/skypeforlinux/PredefinedImages
-	$HOME/.config/Skype
 	$HOME/.config/Electron
 	$HOME/.local/share/recently-used.xbel
 	$HOME/.m2
 	$HOME/.npm"
 
-rm -rf "$list"
+rm -rf $list
 
 sed -i 's/^[[:blank:]]*//;s/[[:blank:]]*$//' "$HOME/.config/zsh/zhistory"
 cat -n "$HOME/.config/zsh/zhistory" | sort -k2 -k1,1nr | sort -k2 -u | sort -n | cut -f2 > "$HOME/.config/zsh/zhistory.tmp"

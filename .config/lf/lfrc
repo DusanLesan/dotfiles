@@ -210,6 +210,7 @@ map r :rename; reload
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
+map V invert-below
 
 map mf mkfile
 map md mkdir
