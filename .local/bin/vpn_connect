@@ -3,20 +3,24 @@
 . utils
 
 connect() {
-	ip link show up | grep -q "tun" && sudo kill_task openvpn
-
 	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//' )
 	name=$(prompt "Connect: " <<< "$vpnlist") || exit 0
 	pass=$(secret-tool lookup pass "$name")
 	user=$(secret-tool lookup user "$name")
 
+	sudo kill_task openvpn
+
+	file=~/.local/share/ovpn/$name.ovpn
+	ip="$(grep -m 1 -oP '^remote \K\S+' $file)"
+
 	tmp=$(mktemp)
 	chmod 600 $tmp
 	echo "$user"$'\n'"$pass" > $tmp
-	sudo openvpn --daemon --config ~/.local/share/ovpn/$name.ovpn --auth-user-pass $tmp
+
+	sudo openvpn --daemon --config $file --auth-user-pass $tmp
 	[ $? -ne 0 ] && notify-send -u "critical" "VPN" "Connection failed"
+	wait '[ $(curl -sS https://ipinfo.io/ip) = '$ip' ]'
 	rm $tmp
-	wait "ip link show up | grep -q 'tun'"
 }
 
 disconnect() {
@@ -25,4 +29,3 @@ disconnect() {
 }
 
 [ -z $1 ] && connect || disconnect
-myip

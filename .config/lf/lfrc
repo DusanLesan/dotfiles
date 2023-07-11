@@ -196,8 +196,6 @@ map o
 map d
 
 # Basic Functions
-map H top
-map L bottom
 map <a-f>j :fzf_jump
 map <a-f>f :fzf_find_file
 map <a-f>l :fzf_find_line
@@ -227,7 +225,7 @@ map C clear
 map U unselect
 map c :clear; unselect
 
-map L $devour alacritty -e lazygit
+map <c-l> $devour alacritty -e lazygit
 
 map spd set nopreview
 map spe set preview
@@ -257,7 +255,7 @@ map gl cd ~/.local
 map gc cd ~/.config
 map gG cd  ~/git
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
-map gpo cd ~/git/5.0_roku/pluto-tv-roku/cicd/out
+map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
 map gr openRemote

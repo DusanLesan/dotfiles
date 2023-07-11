@@ -30,5 +30,6 @@
 	"terminal.integrated.enablePersistentSessions": false,
 	"terminal.integrated.persistentSessionReviveProcess": "never",
 	"terminal.external.linuxExec": "alacritty",
-	"git.openRepositoryInParentFolders": "never"
+	"git.openRepositoryInParentFolders": "never",
+	"terminal.integrated.scrollback": 100000
 }
