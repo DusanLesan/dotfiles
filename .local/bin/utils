@@ -2,9 +2,10 @@
 
 prompt() {
 	if [ -z $DISPLAY ] || [ -n "$USE_TERM" ]; then
-		fzf --bind=ctrl-J:print-query --prompt "$1" < /dev/stdin
+		[ -z "$2" ] && additionalBind=' --bind=enter:print-query'
+		fzf --bind=ctrl-J:print-query$additionalBind --prompt "$1" <<< "$2"
 	else
-		dmenu -i -p "$1" < /dev/stdin
+		dmenu -i -p "$1" <<< "$2"
 	fi
 }
 

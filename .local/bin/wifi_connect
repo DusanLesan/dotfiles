@@ -18,7 +18,7 @@ selectNetwork() {
 		networks["${array[1]}"]="${array[2]}"
 	done <<< "$list"
 
-	selected="$(cat <(echo "RESCAN") <(printf "%s\n" "${!networks[@]}") | prompt "Network:")" || exit 1
+	selected="$(prompt 'Network:' "$(printf "%s\n%s\n" 'RESCAN' "${!networks[@]}")")" || exit 1
 	if [ "$selected" == "RESCAN" ]; then
 		scan
 		selectNetwork

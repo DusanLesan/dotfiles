@@ -3,9 +3,9 @@
 . utils
 
 multimon() {
-	mirror=$(prompt 'Mirror displays?' <<< $'no\nyes') || exit
+	mirror=$(prompt 'Mirror displays?' $'no\nyes') || exit
 	if [ "$mirror" = 'yes' ]; then
-		external=$(prompt 'Optimize resolution for:' <<< "$screens") || exit
+		external=$(prompt 'Optimize resolution for:' "$screens") || exit
 		internal=$(echo "$screens" | grep -v "$external")
 
 		res_external=$(xrandr --query | sed -n "/^$external/,/\+/p" | tail -n 1 | awk '{print $1}')
@@ -23,9 +23,9 @@ multimon() {
 			--output "$internal" --auto --same-as "$external" \
 			--scale "$scale_x"x"$scale_y"
 	else
-		primary=$(prompt 'Select primary display:' <<< "$screens") || exit
+		primary=$(prompt 'Select primary display:' "$screens") || exit
 		secondary=$(echo "$screens" | grep -v "$primary")
-		direction=$(prompt "What side of $primary should $secondary be on?" <<< $'right\nleft') || exit
+		direction=$(prompt "What side of $primary should $secondary be on?" $'right\nleft') || exit
 		xrandr --output "$primary" --auto --scale 1.0x1.0 --output "$secondary" --"$direction"-of "$primary" --auto --scale 1.0x1.0
 	fi
 }
@@ -44,7 +44,7 @@ screens=$(echo "$allposs" | awk '/ connected/ {print $1}')
 [ "$(echo "$screens" | wc -l)" -lt 2 ] &&
 	{ onescreen "$screens"; postrun; notify 'Only one screen detected.' 'Using it in its optimal settings...'; exit ;}
 
-chosen=$(prompt 'Select display arangement:' <<< "$screens"$'\nmulti-monitor') || exit
+chosen=$(prompt 'Select display arangement:' "$screens"$'\nmulti-monitor') || exit
 [ "$chosen" == 'multi-monitor' ] && multimon || onescreen "$chosen"
 
 postrun

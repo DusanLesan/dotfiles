@@ -22,14 +22,17 @@
 	"vim.useCtrlKeys": false,
 	"vim.leader": "<space>",
 	"vim.insertModeKeyBindings": [
-		{ "before": [ "j", "k" ], "after": [ "<Esc>" ]},
+		{ "before": [ "j", "k" ], "after": [ "<Esc>" ]}
 	],
 	"vim.normalModeKeyBindingsNonRecursive": [
-		{ "before": [ "<leader>", "d" ], "after": [ "d", "d" ]},
+		{ "before": [ "<leader>", "d" ], "after": [ "d", "d" ]}
 	],
 	"terminal.integrated.enablePersistentSessions": false,
 	"terminal.integrated.persistentSessionReviveProcess": "never",
 	"terminal.external.linuxExec": "alacritty",
 	"git.openRepositoryInParentFolders": "never",
-	"terminal.integrated.scrollback": 100000
+	"terminal.integrated.scrollback": 100000,
+	"search.exclude": {
+		"cicd/automation": true
+	}
 }

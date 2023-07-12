@@ -5,7 +5,7 @@
 rename() {
 	name="$(basename "$file")"
 	dir="$(dirname "$file")"
-	newName="$(prompt "Rename:" <<< "$name" || exit 0)"
+	newName="$(prompt 'Rename:' "$name" || exit 0)"
 	newName="$(getfilename "$newName")"
 	mv "$file" "$newName"
 }
@@ -27,7 +27,7 @@ while read file; do
 		"f") convert -flop "$file" "$file" ;;
 		"y") echo -n "$file" | xclip -sel c && notify "$file copied " & ;;
 		"Y") copyImage ;;
-		"d") [ $(prompt "Delete $file?" <<< $'No\nYes') = "Yes" ] &&
+		"d") [ $(prompt "Delete $file?" $'No\nYes') = "Yes" ] &&
 			rm "$file" && notify "$file deleted." ;;
 	esac
 done

@@ -6,7 +6,7 @@ unmountdrive() {
 	if [ -z "$chosen" ]; then
 		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/home$|SWAP/&&length($2)>3{printf "%s (%s)\n",$1,$2}')
 		[ -z "$drives" ] && exit
-		chosen="$(echo "$drives" | prompt "Unmount which drive?")" || exit 1
+		chosen="$(prompt 'Unmount which drive?' "$drives")" || exit 1
 		chosen="$(echo "$chosen" | awk '{print $1}')"
 	fi
 	drive=($(lsblk -nrpo "mountpoint,name,type" | awk -v chosen="$chosen" '$1==chosen{print $2, $3}'))
@@ -20,22 +20,21 @@ unmountdrive() {
 }
 
 unmountandroid() {
-	chosen="$(awk '/simple-mtpfs/ {print $2}' /etc/mtab | prompt "Unmount which device?")" || exit 1
+	chosen="$(prompt 'Unmount which device?' "$(awk '/simple-mtpfs/ {print $2}' /etc/mtab)")" || exit 1
 	[ -z "$chosen" ] && exit
 	sudo -A umount -l "$chosen"
 	end $? "Unmounting"
 }
 
 umountssh() {
-	shfs="$(mount | grep "$1" | awk '{print $3}')"
-	chosen="$(echo "$shfs" | prompt "Unmount:")"
+	chosen="$(prompt 'Unmount:' "$(mount | grep "$1" | awk '{print $3}')")"
 	[ -z "$chosen" ] && exit
 	fusermount -u "$chosen"
 	end $? "Unmounting"
 }
 
 asktype() {
-	choice="$(printf "Drive\\nAndroid\\nSSH" | prompt "Unmount:")" || exit 1
+	choice="$(prompt 'Unmount:' $'Drive\nAndroid\nSSH')" || exit 1
 	case "$choice" in
 		Drive) unmountdrive ;;
 		Android) unmountandroid ;;

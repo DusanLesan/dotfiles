@@ -4,12 +4,12 @@
 
 getchoice() {
 	drives="$(lsblk -rpo "name,size,type,fstype,mountpoint" | grep "$1" | awk '$5==""{printf "%s (%s)\n",$1,$2}')"
-	chosen="$(echo "$drives" | prompt "Mount which drive?")" || exit 1
+	chosen="$(prompt 'Mount which drive?' "$drives" )" || exit 1
 	chosen="${chosen%% *}"
 }
 
 getmount() {
-	mnt="$(echo $1 | prompt "Mount point?")"
+	mnt="$(prompt 'Mount point?' "$1")" || exit 1
 	[ ! -d "$mnt" ] && mkdir -p "$mnt"
 }
 
@@ -32,7 +32,7 @@ open() {
 }
 
 getname() {
-	name="$(prompt "$1" < /dev/null)" || exit 1
+	name="$(prompt "$1")" || exit 1
 	[ -e /dev/mapper/$name ] && getname "Name already exists or empty. Name: "
 }
 
@@ -48,8 +48,8 @@ decrypt() {
 }
 
 mountssh() {
-	host="$(grep -P "^Host ([^*]+)$" $HOME/.ssh/config | sed 's/Host //' | prompt "Mount which host?")" || exit 1
-	target="$(echo "" | prompt "Target mount point?")"
+	host="$(prompt 'Mount which host?' "$(grep -P "^Host ([^*]+)$" $HOME/.ssh/config | sed 's/Host //')")" || exit 1
+	target="$(prompt 'Target mount point?')"
 	getmount "$HOME/mnt/$host"
 	sshfs $host:$target $mnt -o follow_symlinks
 	end $?
@@ -62,7 +62,7 @@ mountandroid() {
 }
 
 asktype() {
-	choice="$(printf "Drive\\nSSH\\nCrypt\\nAndroid" | prompt "Mount:")" || exit 1
+	choice="$(prompt 'Mount:' $'Drive\nSSH\nCrypt\nAndroid')" || exit 1
 	case "$choice" in
 		Drive) mountdrive ;;
 		SSH) mountssh ;;

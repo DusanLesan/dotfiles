@@ -2,7 +2,7 @@
 
 . utils
 
-action=$(prompt "Action:" <<< $'Toggle\nPrimary only\nFollow') || exit
+action=$(prompt 'Action:' $'Toggle\nPrimary only\nFollow') || exit
 
 case "$action" in
 	"Primary only")

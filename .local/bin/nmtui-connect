@@ -16,8 +16,8 @@ while read interface _status address ; do
 	interfaces["$interface"]=$address
 done <<< "$(ip -br -4 addr)"
 
-tun=$(ip -br link show | grep -oP 'tun\K\d+' || echo "tun0")
-checkInterface "$tun" "VPN connect" "VPN disconnect"$'\n'"VPN connect" "v"
+tun=$(ip -br link show | grep -oP 'tun\K\d+' || echo "0")
+checkInterface "tun$tun" "VPN connect" "VPN disconnect"$'\n'"VPN connect" "v"
 checkInterface "ap0" "Hotspot connect" "Hotspot disconnect" "h"
 checkInterface "wlan0" "WIFI connect" "WIFI disconnect"$'\n'"WIFI connect" "w"
 sel="$(fzf --preview "myip -c$args" <<< "$opt" )"

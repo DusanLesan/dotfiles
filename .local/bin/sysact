@@ -12,7 +12,7 @@ actions=(
 	'shutdown'
 )
 
-action="$(printf '%s\n' "${actions[@]}" | prompt 'Action:')" &&
+action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" &&
 case "$action" in
 	'dunst') dunst_config ;;
 	'display') displayselect ;;
