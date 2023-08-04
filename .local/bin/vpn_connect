@@ -19,7 +19,7 @@ connect() {
 
 	sudo openvpn --daemon --config $file --auth-user-pass $tmp
 	[ $? -ne 0 ] && notify-send -u "critical" "VPN" "Connection failed"
-	wait '[ $(curl -sS https://ipinfo.io/ip) = '$ip' ]'
+	wait '[ $(curl -sS https://ipinfo.io/ip) = "$ip" ]'
 	rm $tmp
 }
 

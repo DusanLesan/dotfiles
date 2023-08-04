@@ -6,7 +6,7 @@ wifiInterface="wlan0"
 declare -A networks
 
 scan() {
-	iwctl station $wifiInterface scan
+	iwctl station $wifiInterface scan > /dev/null 2>&1
 	sleep 1
 }
 
@@ -41,7 +41,7 @@ if [ "$1" == "-q" ]; then
 	iwctl station $wifiInterface disconnect
 else
 	scan
-	wait iwctl station $wifiInterface get-networks 2>/dev/null | grep -vzq 'No networks available'
+	wait "iwctl station $wifiInterface get-networks 2>/dev/null | grep -vzq 'No networks available'"
 	selectNetwork
 	connect
 fi

@@ -2,20 +2,19 @@
 
 . utils
 
-device_id="usb-MACROSILICON_USB_Video-video-index0"
-
-if [ ! -L /dev/v4l/by-id/$device_id ]; then
-	notify-send -u critical "Device $device_id not found"
-	exit 1
-fi
-
-video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
-file_name="$(getfilename "output.mkv" "$PWD/")"
+setDefaultVideoPath() {
+	device_id="usb-MACROSILICON_USB_Video-video-index0"
+	if [ ! -L /dev/v4l/by-id/$device_id ]; then
+		notify-send -u critical "Device $device_id not found"
+		exit 1
+	fi
+	video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
+}
 
 display() {
 	ffmpeg -f v4l2 \
 		-framerate 30 \
-		-video_size 1280x720 \
+		-video_size $video_size \
 		-input_format mjpeg \
 		-i "$video_path" \
 		-vf "format=yuv420p" \
@@ -25,7 +24,7 @@ display() {
 record() {
 	ffmpeg -f v4l2 \
 		-framerate 30 \
-		-video_size 1280x720 \
+		-video_size $video_size \
 		-input_format mjpeg \
 		-i "$video_path" \
 		-c:a pcm_s16le \
@@ -42,7 +41,7 @@ recordWithSound() {
 	ffmpeg -loglevel error \
 		-f v4l2 \
 		-framerate 30 \
-		-video_size 1280x720 \
+		-video_size $video_size \
 		-input_format mjpeg \
 		-i "$video_path" \
 		-f alsa \
@@ -65,8 +64,25 @@ recordWithSound() {
 		| ffplay -i - -vf "format=yuv420p" -af "aresample=async=1" -ac 2 -autoexit
 }
 
-case "$1" in
-	"-r") record ;;
-	"-s") recordWithSound ;;
+file_name="$(getfilename "output.mkv" "$PWD/")"
+video_size=1280x720
+
+
+while getopts ":rs:v:d:" opt; do
+	case "$opt" in
+		r) mode=record ;;
+		s) mode=sound ;;
+		v) video_path="$OPTARG" ;;
+		d) video_size="$OPTARG" ;;
+	esac
+done
+
+if [ -z "$video_path" ]; then
+	setDefaultVideoPath
+fi
+
+case "$mode" in
+	"record") record ;;
+	"sound") recordWithSound ;;
 	*) display ;;
 esac
