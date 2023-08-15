@@ -4,7 +4,7 @@
 
 unmountdrive() {
 	if [ -z "$chosen" ]; then
-		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/home$|SWAP/&&length($2)>3{printf "%s (%s)\n",$1,$2}')
+		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/$/&&length($2)>1{printf "%s (%s)\n",$1,$2}')
 		[ -z "$drives" ] && exit
 		chosen="$(prompt 'Unmount which drive?' "$drives")" || exit 1
 		chosen="$(echo "$chosen" | awk '{print $1}')"

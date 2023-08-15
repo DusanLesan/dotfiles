@@ -67,7 +67,6 @@ recordWithSound() {
 file_name="$(getfilename "output.mkv" "$PWD/")"
 video_size=1280x720
 
-
 while getopts ":rs:v:d:" opt; do
 	case "$opt" in
 		r) mode=record ;;

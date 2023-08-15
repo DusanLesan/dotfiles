@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. utils
+
+remote=$(git remote)
+[ $(wc -l <<< $remote) -gt 1 ] && remote=$(prompt "Pick remote:" "$remote")
+url=$(git remote get-url $remote)
+url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
+[ -n "$1" ] && branch="$1" || branch=$(git branch --show-current 2>/dev/null)
+[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
+$BROWSER $url

@@ -1,0 +1,10 @@
+{
+  "name": "insomnia-plugin-vscode-theme",
+  "version": "1.0.0",
+  "main": "main.js",
+  "private": true,
+  "insomnia": {
+    "name": "vscode-theme",
+    "description": "Copy of Marco Maldonado's theme with a few hidden UI elements for features behind the login"
+  }
+}
