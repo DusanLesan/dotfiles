@@ -14,9 +14,15 @@ customCommands:
     description: 'Create PR'
     context: 'localBranches'
   - key: 'G'
-    command: 'openRemote "{{.SelectedLocalBranch.Name}}"'
+    command: 'openRemote "{{.SelectedLocalBranch.Name}}" {{index .PromptResponses 0}}'
     description: 'Open remote branch'
     context: 'localBranches'
+    prompts:
+      - type: 'menu'
+        title: 'What to open?'
+        options:
+          - value: 'tree'
+          - value: 'pr'
   - key: 'F'
     command: 'alacritty -e lf {{.SelectedFile.Name}}'
     description: 'Open file location'

@@ -179,17 +179,6 @@ cmd resize &{{
 	[ ${#r[@]} -eq 2 ] && [ $1 == "+" ] && lf -remote "send $id set preview"
 }}
 
-cmd openRemote &{{
-	. utils
-	remote=$(git remote)
-	[ $(wc -l <<< $remote) -gt 1 ] && remote=$(git remote | prompt "Pick remote:")
-	url=$(git remote get-url $remote)
-	url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
-	branch=$(git branch --show-current 2>/dev/null)
-	[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
-	$BROWSER $url
-}}
-
 # Remove some defaults
 map m
 map o
@@ -258,4 +247,4 @@ map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
-map gr openRemote
+map gr &openRemote

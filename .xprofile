@@ -2,7 +2,6 @@
 
 solid-bg '#181818' &
 export $(gnome-keyring-daemon --start)
-xrdb ${XDG_CONFIG_HOME:-$HOME/.config}/x11/xresources &
 dwmblocks &>/dev/null &
 autostart &
 remaps &
