@@ -12,6 +12,8 @@ setDefaultVideoPath() {
 }
 
 display() {
+	[ -n "$audio" ] && ffplay -f alsa -i hw:${audio//c/$defaultAudio} -nodisp &
+
 	ffmpeg \
 		-f v4l2 \
 		-framerate $framerate \
@@ -20,6 +22,8 @@ display() {
 		-i "$video_path" \
 		-vf "format=yuv420p" \
 		-f xv -
+
+	killall ffplay
 }
 
 record() {
@@ -49,7 +53,7 @@ recordWithSound() {
 		-f alsa \
 		-ar 48000 \
 		-itsoffset 0.2 \
-		-i hw:1 \
+		-i hw:${audio:-$defaultAudio} \
 		-c:a aac \
 		-b:a 96k \
 		-c:v mjpeg \
@@ -69,11 +73,13 @@ recordWithSound() {
 file_name="$(getfilename "output.mkv" "$PWD/")"
 video_size=1280x720
 framerate=30
+defaultAudio=MS2109
 
-while getopts ":rs:v:d:f:" opt; do
+while getopts "rsa:v:d:f:" opt; do
 	case "$opt" in
 		r) mode=record ;;
 		s) mode=sound ;;
+		a) audio="$OPTARG" ;;
 		v) video_path="$OPTARG" ;;
 		d) video_size="$OPTARG" ;;
 		f) framerate="$OPTARG" ;;

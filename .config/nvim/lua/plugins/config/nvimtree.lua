@@ -25,17 +25,12 @@ nvimtree.setup {
 	},
 	view = {
 		width = 30,
-		side = 'left',
-		mappings = {
-			custom_only = false,
-			list = {}
-		}
+		side = 'left'
 	},
 	renderer = {
 		add_trailing = false,
 		group_empty = false,
 		highlight_git = false,
-		highlight_opened_files = "true",
 		root_folder_modifier = ":~",
 		indent_markers = {
 			enable = false,

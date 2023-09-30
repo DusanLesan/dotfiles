@@ -3,31 +3,22 @@
 . utils
 
 multimon() {
-	mirror=$(prompt 'Mirror displays?' $'no\nyes') || exit
-	if [ "$mirror" = 'yes' ]; then
-		external=$(prompt 'Optimize resolution for:' "$screens") || exit
-		internal=$(echo "$screens" | grep -v "$external")
+	while [ -n "$screens" ]; do
+		screen="$(prompt "Select screens from left to right" "$screens")" || break
+		ordered_list="${ordered_list}${screen}"$'\n'
+		screens=$(sed "/$screen/d" <<< "$screens")
+	done
 
-		res_external=$(xrandr --query | sed -n "/^$external/,/\+/p" | tail -n 1 | awk '{print $1}')
-		res_internal=$(xrandr --query | sed -n "/^$internal/,/\+/p" | tail -n 1 | awk '{print $1}')
+	primary="$(prompt "Primary screen:" "$ordered_list")"
 
-		res_ext_x=$(echo "$res_external" | sed 's/x.*//')
-		res_ext_y=$(echo "$res_external" | sed 's/.*x//')
-		res_int_x=$(echo "$res_internal" | sed 's/x.*//')
-		res_int_y=$(echo "$res_internal" | sed 's/.*x//')
+	for screen in $ordered_list; do
+		cmd="$cmd --output $screen --auto --scale 1.0x1.0"
+		[ -n "$left" ] && cmd="$cmd --right-of $left"
+		left="$screen"
+		[ "$screen" = "$primary" ] && cmd="$cmd --primary"
+	done
 
-		scale_x=$(expr $res_ext_x / $res_int_x)
-		scale_y=$(expr $res_ext_y / $res_int_y)
-
-		xrandr --output "$external" --auto --scale 1.0x1.0 \
-			--output "$internal" --auto --same-as "$external" \
-			--scale "$scale_x"x"$scale_y"
-	else
-		primary=$(prompt 'Select primary display:' "$screens") || exit
-		secondary=$(echo "$screens" | grep -v "$primary")
-		direction=$(prompt "What side of $primary should $secondary be on?" $'right\nleft') || exit
-		xrandr --output "$primary" --auto --scale 1.0x1.0 --output "$secondary" --"$direction"-of "$primary" --auto --scale 1.0x1.0
-	fi
+	xrandr $cmd $(awk 'NF {print "--output", $0, "--off"}' <<< "$screens")
 }
 
 onescreen() {

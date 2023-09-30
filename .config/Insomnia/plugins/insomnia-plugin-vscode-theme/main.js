@@ -3,15 +3,11 @@ module.exports.themes = [{
 	displayName: 'VSCode',
 	theme: {
 		rawCss: `
-			.app > div:nth-child(2) > header {
-				opacity: 0;
-				height: 0;
-				padding: 0;
-			}
-			.app > div:nth-child(2) {
-				grid-template: "Header Header" auto
-				"Navbar Content" 1fr
-				"Statusbar Statusbar" 1px / 0px 1fr;
+			.app > div > div {
+				grid-template: "Header Header" 0px
+					"Banner Banner" 0px
+					"Navbar Content" 1fr
+					"Statusbar Statusbar" 1px [row-end] / 0px 1fr;
 			}
 			.notice.error {
 				border-style: unset;
