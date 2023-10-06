@@ -1,0 +1,24 @@
+#!/bin/sh
+
+. utils
+
+echo "OK"
+
+counter=0
+while [ "$counter" -lt 300 ]; do
+	read -r command
+
+	case "$command" in
+		"GETPIN")
+			pass="$(getpass "Passphrase:")" || exit 1
+			echo "D $pass"
+		;;
+		"BYE")
+			break
+		;;
+	esac
+	
+	echo "OK"
+
+	counter=$((counter + 1))
+done
