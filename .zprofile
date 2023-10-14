@@ -20,6 +20,7 @@ export LESSHISTFILE="-"
 export VSCODE_PORTABLE="$XDG_CONFIG_HOME/code-oss"
 export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
 export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+export CUDA_CACHE_PATH="$XDG_CACHE_HOME"/nv
 
 # Other program settings:
 export SSH_AUTH_SOCK=/tmp/ssh_auth_sock

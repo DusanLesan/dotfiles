@@ -1,18 +1,14 @@
 #!/bin/sh
 
 . utils
-. "$(dirname "$0")/secrets/priv"
+. "$XDG_DATA_HOME/secrets/priv"
 
-dir="$HOME/.local/share/totp/"
+dir="$XDG_DATA_HOME/totp/"
 keys=$(ls $dir)
 keys=$(echo "$keys" | sed 's/\.gpg$//')
-
 sel=$(prompt "Select key" "$keys") || exit 1
 key="$dir$sel.gpg"
-
-[ ! -f "$key" ] && { notify "key not found."; exit 2; }
 totp=$(gpg2 --quiet -u "$gpgKey" -r "$email" --decrypt "$key") || exit 1
-
 code=$(oathtool -b --totp "$totp")
 echo $code | xclip -sel clip
 echo "$code"

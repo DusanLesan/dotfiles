@@ -4,6 +4,8 @@
 	"editor.fontLigatures": true,
 	"editor.renderWhitespace": "all",
 	"editor.snippetSuggestions": "top",
+	"editor.minimap.enabled": false,
+	"window.menuBarVisibility": "toggle",
 	"workbench.startupEditor": "none",
 	"explorer.confirmDelete": false,
 	"git.autofetch": true,
@@ -34,5 +36,10 @@
 	"terminal.integrated.scrollback": 100000,
 	"search.exclude": {
 		"cicd/automation": true
-	}
+	},
+	"gitlens.currentLine.enabled": false,
+	"gitlens.hovers.currentLine.over": "line",
+	"redhat.telemetry.enabled": false,
+	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",
+	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml",
 }

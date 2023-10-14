@@ -2,23 +2,26 @@
 
 . utils
 
-echo "OK"
+prompt="Passphrase:"
 
+echo "OK"
 counter=0
 while [ "$counter" -lt 300 ]; do
 	read -r command
 
 	case "$command" in
 		"GETPIN")
-			pass="$(getpass "Passphrase:")" || exit 1
+			pass="$(getpass "$prompt")" || exit 1
 			echo "D $pass"
 		;;
 		"BYE")
 			break
 		;;
+		"SETERROR"*)
+			prompt="${command#* }"
+		;;
 	esac
 	
 	echo "OK"
-
 	counter=$((counter + 1))
 done

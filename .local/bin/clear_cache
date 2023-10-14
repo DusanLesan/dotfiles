@@ -16,9 +16,7 @@ list="
 	$HOME/.config/BraveSoftware/Brave-Browser/Default/Sessions
 	$HOME/.config/Slack/Service*Worker
 	$HOME/.config/Electron
-	$HOME/.local/share/recently-used.xbel
-	$HOME/.m2
-	$HOME/.npm"
+	$HOME/.local/share/recently-used.xbel"
 
 rm -rf $list
 
