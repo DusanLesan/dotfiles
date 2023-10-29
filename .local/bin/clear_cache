@@ -1,6 +1,15 @@
 #!/bin/sh
 
-list="
+pruneVscodeWorkspaces() {
+	for dir in "$XDG_CONFIG_HOME/code-oss/user-data/User/workspaceStorage"/*/; do
+		if [ -f "$dir/workspace.json" ]; then
+			[ ! -e "$(jq -r '.folder' < "$dir/workspace.json" | sed 's|^file://||')" ] && rm -r "$dir"
+		fi
+	done
+}
+
+cleanCache() {
+	list="
 	$HOME/.cache/*
 	$HOME/.config/*/Cache/*
 	$HOME/.config/*/Code*Cache/*
@@ -15,17 +24,26 @@ list="
 	$HOME/.config/BraveSoftware/Brave-Browser/Default/Session*Storage
 	$HOME/.config/BraveSoftware/Brave-Browser/Default/Sessions
 	$HOME/.config/Slack/Service*Worker
+	$HOME/.config/Slack/logs
 	$HOME/.config/Electron
 	$HOME/.local/share/recently-used.xbel"
 
-rm -rf $list
+	rm -rf $list
 
-sed -i 's/^[[:blank:]]*//;s/[[:blank:]]*$//' "$HOME/.config/zsh/zhistory"
-cat -n "$HOME/.config/zsh/zhistory" | sort -k2 -k1,1nr | sort -k2 -u | sort -n | cut -f2 > "$HOME/.config/zsh/zhistory.tmp"
-mv "$HOME/.config/zsh/zhistory.tmp" "$HOME/.config/zsh/zhistory"
+	find .config/BraveSoftware/Brave-Browser/* -not \( -path '*Default*' -or -name 'First Run' -or -name 'Local State' -or -name 'chrome_shutdown_ms.txt' \) -delete
+	find .config/code-oss/user-data/* -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete
+}
+
+cleanShellHistory() {
+	sed -i 's/^[[:blank:]]*//;s/[[:blank:]]*$//' "$HOME/.config/zsh/zhistory"
+	cat -n "$HOME/.config/zsh/zhistory" | sort -k2 -k1,1nr | sort -k2 -u | sort -n | cut -f2 > "$HOME/.config/zsh/zhistory.tmp"
+	mv "$HOME/.config/zsh/zhistory.tmp" "$HOME/.config/zsh/zhistory"
+}
+
+pruneVscodeWorkspaces
+cleanCache
+cleanShellHistory
 
 sudo journalctl --vacuum-time=1s
 sudo pacman -Scq
 
-find .config/BraveSoftware/Brave-Browser/* -not \( -path '*Default*' -or -name 'First Run' -or -name 'Local State' -or -name 'chrome_shutdown_ms.txt' \) -delete
-find .config/code-oss/user-data/* -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete
