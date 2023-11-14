@@ -1,6 +1,5 @@
 #!/bin/sh
 
-firewall_down
 sudo -A iptables -F
 sudo iptables -X
 sudo iptables -t nat -F
@@ -8,25 +7,28 @@ sudo iptables -t nat -X
 sudo iptables -t mangle -F
 sudo iptables -t mangle -X
 
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+sudo iptables -P OUTPUT DROP
+
 sudo iptables -A INPUT -i lo -j ACCEPT
 sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 --name DEFAULT --mask 255.255.255.255 --rsource -j DROP
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -m recent --set --name DEFAULT --mask 255.255.255.255 --rsource
 sudo iptables -A INPUT -p tcp -m tcp --dport 5622 -m state --state NEW -j ACCEPT
 [ "$1" = "bt" ] && sudo iptables -A INPUT -p tcp --dport 51413 -j ACCEPT
-[ "$1" = "ut" ] && sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -p tcp --dport 51413 -j ACCEPT
 
-sudo iptables -A INPUT -p udp --dport 67 -s 0.0.0.0 -j ACCEPT
-sudo iptables -A INPUT -j DROP
-sudo iptables -A FORWARD -s 10.42.0.0/24 -j ACCEPT
-sudo iptables -A FORWARD -d 10.42.0.0/24 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 67 -j ACCEPT
+
+sudo iptables -A FORWARD -s 192.168.56.0/24 -j ACCEPT
+sudo iptables -A FORWARD -d 192.168.56.0/24 -j ACCEPT
 sudo iptables -A OUTPUT -o lo -j ACCEPT
 sudo iptables -A OUTPUT -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
 
 if [ "$1" = "log" ]; then
-	sudo iptables -I INPUT 1 -m limit --limit 1/m -j LOG --log-prefix="iptables: dropped packets I: " --log-level 4
-	sudo iptables -I OUTPUT 1 -m limit --limit 1/m -j LOG --log-prefix="iptables: dropped packets O: " --log-level 4
-	sudo iptables -I FORWARD 1 -m limit --limit 1/m -j LOG --log-prefix="iptables: dropped packets F: " --log-level 4
+	sudo iptables -I INPUT 1 -j LOG --log-prefix="iptables: dropped packets I: " --log-level 4
+	sudo iptables -I OUTPUT 1 -j LOG --log-prefix="iptables: dropped packets O: " --log-level 4
+	sudo iptables -I FORWARD 1 -j LOG --log-prefix="iptables: dropped packets F: " --log-level 4
 fi
 
 sudo iptables -nL

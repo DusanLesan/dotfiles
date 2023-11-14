@@ -10,9 +10,9 @@ for file in "$mdir"/*; do
 done
 
 if [[ -n $subs ]]; then
-	mpv --sub-files="$subs" "$1"
+	devour mpv --sub-files="$subs" "$1"
 else
-	mpv "$1"
+	devour mpv "$1"
 fi
 
 exit 0

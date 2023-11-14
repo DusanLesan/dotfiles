@@ -1,0 +1,8 @@
+#!/bin/sh
+
+. "$XDG_DATA_HOME/secrets/priv"
+
+[ ! -f "$1" ] && { echo "$1 file not found"; exit 2; }
+[ -f "$1.gpg" ] && { echo "Encrypted file $1.gpg exists"; exit 3; }
+
+gpg2 -u "${gpgKey}" -r "${email}" --encrypt "$1" && rm "$1"

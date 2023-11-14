@@ -182,6 +182,20 @@ cmd resize &{{
 	[ ${#r[@]} -eq 2 ] && [ $1 == "+" ] && lf -remote "send $id set preview"
 }}
 
+cmd on-redraw &{{
+	if [ $lf_width -lt 90 ]; then
+		lf -remote "send $id set preview false"
+		lf -remote "send $id set ratios 1"
+		$lf_cleaner
+	elif [ $lf_width -lt 110 ]; then
+		lf -remote "send $id set ratios 1:1"
+		lf -remote "send $id set preview true"
+	else
+		lf -remote "send $id set preview true"
+		lf -remote "send $id set ratios 1:2:3"
+	fi
+}}
+
 # Remove some defaults
 map m
 map o
