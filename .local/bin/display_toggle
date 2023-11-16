@@ -1,0 +1,24 @@
+#!/bin/sh
+
+setCmd() {
+	cmd="$cmd --output $1 --auto --scale 1.0x1.0"
+	[ -n "$left" ] && cmd="$cmd --right-of $left"
+	left="$1"
+}
+
+connected_displays=($(xrandr | grep -E '\bconnected\b' | awk '{print $1}'))
+active_displays=($(xrandr --listmonitors | awk '{print $4}'))
+
+for ((i=0; i<${#connected_displays[@]}; i++)); do
+	if [ "$1" -eq "$((i))" ]; then
+		if [[ " ${active_displays[@]} " =~ " ${connected_displays[i]} " ]]; then
+			cmd="$cmd --output ${connected_displays[i]} --off"
+		else
+			setCmd ${connected_displays[i]}
+		fi
+	elif [[ " ${active_displays[@]} " =~ " ${connected_displays[i]} " ]]; then
+		setCmd ${connected_displays[i]}
+	fi
+done
+
+xrandr $cmd
