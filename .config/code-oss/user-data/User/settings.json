@@ -41,5 +41,5 @@
 	"gitlens.hovers.currentLine.over": "line",
 	"redhat.telemetry.enabled": false,
 	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",
-	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml",
+	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml"
 }

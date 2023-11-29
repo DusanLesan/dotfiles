@@ -1,5 +1,6 @@
 [Desktop Entry]
 Type=Application
+MimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.oasis.opendocument.text;application/vnd.oasis.opendocument.presentation
 Name=Libre Office
 Exec=/opt/libreOffice.AppImage %F
 Terminal=true
