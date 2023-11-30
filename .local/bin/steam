@@ -1,0 +1,17 @@
+#!/bin/sh
+
+FAKEHOME=$XDG_DATA_HOME/Steam/fakehome
+
+link_dir() {
+	link_name=$(echo $1 | sed "s|^$HOME|$FAKEHOME|")
+	mkdir -p $(dirname $link_name)
+	[ ! -d $link_name ] && ln -s $1 $link_name
+}
+
+mkdir -p $FAKEHOME
+
+link_dir $XDG_DATA_HOME
+link_dir $XDG_CACHE_HOME
+link_dir $XDG_CONFIG_HOME
+
+HOME=$FAKEHOME exec /usr/bin/steam $@

@@ -264,4 +264,4 @@ map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
-map gr &openRemote
+map gr &open-remote
