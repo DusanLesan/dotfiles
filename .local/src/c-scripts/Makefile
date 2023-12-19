@@ -1,4 +1,3 @@
-CC = gcc
 LIBS = -lX11
 INSTALL_DIR = /usr/local/bin
 
@@ -8,10 +7,9 @@ TARGETS = $(SOURCES:.c=)
 all: $(TARGETS)
 
 %: %.c
-	$(CC) -o $@ $< $(LIBS)
+	${CC} -o $@ $< $(LIBS)
 
 install: all
-	@echo "Moving files to $(INSTALL_DIR)"
 	@mkdir -p $(INSTALL_DIR)
 	@for file in $(TARGETS); do \
 		mv $$file $(INSTALL_DIR)/; \
@@ -19,4 +17,3 @@ install: all
 
 clean:
 	rm -f $(TARGETS)
-

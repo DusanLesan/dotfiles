@@ -14,7 +14,7 @@ customCommands:
     description: 'Create PR'
     context: 'localBranches'
   - key: 'G'
-    command: 'openRemote "{{.SelectedLocalBranch.Name}}" {{index .PromptResponses 0}}'
+    command: 'open-remote "{{.SelectedLocalBranch.Name}}" {{index .PromptResponses 0}}'
     description: 'Open remote branch'
     context: 'localBranches'
     prompts:
@@ -30,7 +30,7 @@ customCommands:
   - key: '<c-y>'
     description: 'Create Patch'
     context: 'files'
-    command: 'send_text {{index .PromptResponses 0}} {{index .PromptResponses 1}} "$(git diff --cached)"'
+    command: 'send-text {{index .PromptResponses 0}} {{index .PromptResponses 1}} "$(git diff --cached)"'
     prompts:
       - type: 'menu'
         title: 'Where to save?'

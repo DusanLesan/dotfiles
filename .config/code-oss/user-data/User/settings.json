@@ -1,45 +1,44 @@
 {
 	"window.title": "${dirty}${activeEditorShort}",
-	"editor.fontFamily": "'monospace', monospace",
-	"editor.fontLigatures": true,
-	"editor.renderWhitespace": "all",
-	"editor.snippetSuggestions": "top",
-	"editor.minimap.enabled": false,
 	"window.menuBarVisibility": "toggle",
-	"workbench.startupEditor": "none",
+	"window.density.editorTabHeight": "compact",
+	"editor.fontFamily": "'monospace', monospace",
+	"editor.snippetSuggestions": "top",
+	"editor.renderWhitespace": "all",
+	"editor.minimap.enabled": false,
+	"editor.fontLigatures": true,
 	"explorer.confirmDelete": false,
-	"git.autofetch": true,
-	"npm.packageManager": "npm",
+	"terminal.integrated.enablePersistentSessions": false,
+	"terminal.integrated.persistentSessionReviveProcess": "never",
+	"terminal.integrated.scrollback": 100000,
+	"workbench.startupEditor": "none",
 	"workbench.colorCustomizations": {
 		"sideBar.background": "#1e1e1e",
 		"editor.background": "#181818"
 	},
-	"brightscript.output.focusOnLaunch": false,
-	"brightscript.deviceDiscovery.enabled": false,
-	"brightscript.debug.logfilePath": "/home/dusan/git/5.0_roku/brightscriptLog",
-	"brightscript.debug.raleTrackerTaskFileLocation": "/home/dusan/git/5.0_roku/pluto-tv-roku/RALEComponent/TrackerTask.xml",
-	"vim.camelCaseMotion.enable": true,
-	"vim.enableNeovim": true,
-	"vim.useSystemClipboard": true,
-	"vim.useCtrlKeys": false,
-	"vim.leader": "<space>",
-	"vim.insertModeKeyBindings": [
-		{ "before": [ "j", "k" ], "after": [ "<Esc>" ]}
-	],
-	"vim.normalModeKeyBindingsNonRecursive": [
-		{ "before": [ "<leader>", "d" ], "after": [ "d", "d" ]}
-	],
-	"terminal.integrated.enablePersistentSessions": false,
-	"terminal.integrated.persistentSessionReviveProcess": "never",
-	"terminal.external.linuxExec": "alacritty",
-	"git.openRepositoryInParentFolders": "never",
-	"terminal.integrated.scrollback": 100000,
 	"search.exclude": {
+		"**/components/AviaLibrary": true,
+		"**/components/kochava": true,
+		"**/components/OTPublishersSDK": true,
+		"**/components/redfast": true,
+		"**/components/youbora": true,
 		"cicd/automation": true
 	},
-	"gitlens.currentLine.enabled": false,
+	"npm.packageManager": "npm",
+	"git.autofetch": true,
+	"git.openRepositoryInParentFolders": "never",
 	"gitlens.hovers.currentLine.over": "line",
+	"gitlens.plusFeatures.enabled": false,
+	"gitlens.statusBar.alignment": "left",
+	"gitlens.currentLine.enabled": false,
+	"brightscript.deviceDiscovery.enabled": false,
+	"brightscript.debug.raleTrackerTaskFileLocation": "/home/dusan/git/5.0_roku/pluto-tv-roku/RALEComponent/TrackerTask.xml",
+	"brightscript.debug.fileLogging.dir": "/home/dusan/git/5.0_roku/brightscriptLog",
 	"redhat.telemetry.enabled": false,
 	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",
-	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml"
+	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml",
+	"vscode-neovim.neovimInitVimPaths.linux": "/home/dusan/.config/nvim/init.lua",
+	"extensions.experimental.affinity": {
+		"asvetliakov.vscode-neovim": 1
+	}
 }

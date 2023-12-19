@@ -5,8 +5,7 @@
 prompt="Passphrase:"
 
 echo "OK"
-counter=0
-while [ "$counter" -lt 300 ]; do
+for counter in {1..300}; do
 	read -r command
 
 	case "$command" in
@@ -23,5 +22,4 @@ while [ "$counter" -lt 300 ]; do
 	esac
 	
 	echo "OK"
-	counter=$((counter + 1))
 done
