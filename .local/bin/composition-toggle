@@ -1,0 +1,13 @@
+#!/bin/sh
+
+mode=$(nvidia-settings --query CurrentMetaMode -t) && mode="${mode#*" :: "}"
+[[ "$mode" == *"ForceCompositionPipeline=On"* ]] && state="on" || state="off"
+[ ! -z "$1" ] && [ "$1" = "$state" ] && exit 0
+
+if [ "$state" = "on" ]; then
+	mode=$(echo "$mode" | sed 's/ForceCompositionPipeline=On/ForceCompositionPipeline=Off/g')
+else
+	mode=$(echo "$mode" | sed 's@\(}\)\([^,}]*\)@, ForceCompositionPipeline=On\1\2@g')
+fi
+
+nvidia-settings --assign CurrentMetaMode="$mode"

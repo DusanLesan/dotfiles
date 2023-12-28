@@ -14,4 +14,6 @@ link_dir $XDG_DATA_HOME
 link_dir $XDG_CACHE_HOME
 link_dir $XDG_CONFIG_HOME
 
-HOME=$FAKEHOME exec /usr/bin/steam $@
+composition-toggle off
+HOME=$FAKEHOME /usr/bin/steam $@
+composition-toggle on

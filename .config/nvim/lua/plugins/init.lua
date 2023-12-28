@@ -64,7 +64,7 @@ return require("packer").startup(function(use)
 	use { "Asheq/close-buffers.vim" }
 
 	-- comment
-	use { "winston0410/commented.nvim" }
+	use { "numToStr/Comment.nvim" }
 
 	-- Term
 	use {"akinsho/toggleterm.nvim"}

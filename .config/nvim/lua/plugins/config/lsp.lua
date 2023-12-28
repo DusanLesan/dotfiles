@@ -3,7 +3,8 @@ local servers = {
 	"bashls",
 	"jdtls",
 	"lua_ls",
-	"bright_script"
+	"bright_script",
+	"pylsp"
 }
 
 local status_ok, lsp_installer = pcall(require, "mason-lspconfig")

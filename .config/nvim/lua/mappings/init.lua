@@ -38,7 +38,7 @@ map('n', '<leader>bc', ':Bdelete this<CR>', { noremap = true, silent = true })
 
 -- FileManagers
 map('n', '<leader>e', ':NvimTreeToggle<CR>', default_opts)
-map('n', '<C-f>', ':NvimTreeToggle<CR>', default_opts)
+--map('n', '<C-f>', ':NvimTreeToggle<CR>', default_opts)
 map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
 
 -- Write
@@ -87,12 +87,3 @@ map('n', '<leader>gc', ":Telescope git_commits<CR>", default_opts)
 map('n', '<leader>pi', ":PackerInstall<CR>", default_opts)
 map('n', '<leader>pc', ":PackerClean<CR>", default_opts)
 map('n', '<leader>ps', ":PackerSync<CR>", default_opts)
-
--- Comment
-local status_ok, commented = pcall(require, "commented")
-if status_ok then
-commented.setup({
-	keybindings = { n = "<C-_>v", v = "<C-_>", nl = "<C-_>" },
-	comment_padding = " "
-})
-end

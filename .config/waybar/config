@@ -1,12 +1,12 @@
-{
-	"height": 16,
+[{
+	"height": 11,
 	"width": 1910,
 	"margin-top": 2,
+	"output": "DP-1",
 	"gtk-layer-shell": false,
 	"modules-left": [
 		"hyprland/workspaces"
 	],
-	"output": [ "DP-1" ],
 	"modules-right": [
 		"custom/cpubars",
 		"custom/separator",
@@ -54,4 +54,18 @@
 		"icon-size": 16,
 		"spacing": 6
 	}
-}
+},
+{
+	"height": 16,
+	"width": 1910,
+	"margin-top": 2,
+	"output": "!DP-1",
+	"gtk-layer-shell": false,
+	"modules-left": [
+		"hyprland/workspaces"
+	],
+	"hyprland/workspaces": {
+		"sort-by-name": true,
+		"on-click": "activate"
+	}
+}]

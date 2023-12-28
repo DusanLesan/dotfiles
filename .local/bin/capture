@@ -4,11 +4,29 @@
 
 setDefaultVideoPath() {
 	device_id="usb-MACROSILICON_USB_Video-video-index0"
-	if [ ! -L /dev/v4l/by-id/$device_id ]; then
-		notify-send -u critical "Device $device_id not found"
-		exit 1
-	fi
-	video_path="$(readlink -f /dev/v4l/by-id/$device_id)"
+	[ ! -L /dev/v4l/by-id/$device_id ] && notify-send -u critical "Device $device_id not found" && exit 1
+	video_path="/dev/v4l/by-id/$device_id"
+}
+
+optionPicker() {
+	declare -A array
+	video_path="/dev/v4l/by-id/$(prompt "Choose device" "$(ls /dev/v4l/by-id)")" || exit 1
+	while IFS= read -r line; do
+		if [[ $line =~ Interval:\ .*\(([0-9]+).**fps\) ]]; then
+			array["$format:$size"]="${array["$format:$size"]}"$'\n'"${BASH_REMATCH[1]}"
+		elif [[ $line =~ Size:\ .*\ ([0-9]+x[0-9]+) ]]; then
+			size="${BASH_REMATCH[1]}"
+			array["$format"]="${array["$format"]}"$'\n'$size
+		elif [[ $line =~ \[([0-9]+)\]:\ \'([A-Z]+)\' ]]; then
+			format="${BASH_REMATCH[2]}"
+			formats+=($format)
+		fi
+	done <<< "$(v4l2-ctl --device=$video_path --list-formats-ext)"
+
+	video_format=$(prompt "Video format:" "$(printf '%s\n' "${formats[@]}")") || exit 1
+	video_size=$(prompt "Video size:" "$(printf '%s\n' "${array[$video_format]:1}")") || exit 1
+	framerate=$(prompt "Video size:" "$(printf '%s\n' "${array[$video_format:$video_size]:1}")") || exit 1
+	[ "$video_format" == "MJPG" ] && video_format="mjpeg" || video_format="yuyv422"
 }
 
 display() {
@@ -18,7 +36,7 @@ display() {
 		-f v4l2 \
 		-framerate $framerate \
 		-video_size $video_size \
-		-input_format mjpeg \
+		-input_format $video_format \
 		-i "$video_path" \
 		-vf "format=yuv420p" \
 		-f xv -
@@ -31,7 +49,7 @@ record() {
 		-f v4l2 \
 		-framerate $framerate \
 		-video_size $video_size \
-		-input_format mjpeg \
+		-input_format $video_format \
 		-i "$video_path" \
 		-c:v libx264 \
 		-crf 28 \
@@ -48,7 +66,7 @@ recordWithSound() {
 		-f v4l2 \
 		-framerate $framerate \
 		-video_size $video_size \
-		-input_format mjpeg \
+		-input_format $video_format \
 		-i "$video_path" \
 		-f alsa \
 		-ar 48000 \
@@ -72,10 +90,11 @@ recordWithSound() {
 
 file_name="$(getfilename "output.mkv" "$PWD/")"
 video_size=1280x720
+video_format="mjpeg"
 framerate=30
 defaultAudio=MS2109
 
-while getopts "rsa:v:d:f:" opt; do
+while getopts "rsia:v:d:f:" opt; do
 	case "$opt" in
 		r) mode=record ;;
 		s) mode=sound ;;
@@ -83,10 +102,13 @@ while getopts "rsa:v:d:f:" opt; do
 		v) video_path="$OPTARG" ;;
 		d) video_size="$OPTARG" ;;
 		f) framerate="$OPTARG" ;;
+		i) interactive=1 ;;
 	esac
 done
 
-if [ -z "$video_path" ]; then
+if [ -n "$interactive" ]; then
+	optionPicker
+elif [ -z "$video_path" ]; then
 	setDefaultVideoPath
 fi
 
