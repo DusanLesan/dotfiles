@@ -1,9 +1,8 @@
-local status_ok, bufferline = pcall(require, "bufferline")
-if not status_ok then
-	return
-end
+vim.cmd([[
+ 	autocmd ColorScheme * highlight BufferLineFill guibg=none
+]])
 
-bufferline.setup {
+return {
 	options = {
 		offsets = { { filetype = "NvimTree", text = "" } },
 		close_command = "bdelete! %d",
@@ -31,7 +30,3 @@ bufferline.setup {
 		end
 	}
 }
-
-vim.cmd([[
- 	autocmd ColorScheme * highlight BufferLineFill guibg=none
-]])

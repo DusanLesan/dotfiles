@@ -1,9 +1,4 @@
-local status_ok, telescope = pcall(require, "telescope")
-if not status_ok then
-	return
-end
-
-telescope.setup {
+return {
 	defaults = {
 		vimgrep_arguments = {
 			"rg",
@@ -30,5 +25,3 @@ telescope.setup {
 		file_ignore_patterns = { "node_modules", "cicd/automation" }
 	}
 }
-
-pcall(telescope.load_extension, 'fzf')

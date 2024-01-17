@@ -1,9 +1,4 @@
-local status_ok, whichkey = pcall(require, "which-key")
-if not status_ok then
-	return
-end
-
-whichkey.setup {
+return {
 	plugins = {
 		marks = true, -- shows a list of your marks on ' and `
 		registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
@@ -50,64 +45,60 @@ whichkey.setup {
 	triggers_blacklist = {
 		i = { "j", "k" },
 		v = { "j", "k" }
+	},
+	defaults = {
+		["/"] = "Comment",
+		["e"] = "NvimTree",
+		["w"] = "Write",
+		["x"] = "Write and Quit",
+		["n"] = "New File",
+		b = {
+			name = "Buffers",
+			n = "Move Next",
+			p = "Move Previous",
+			c = "close"
+		},
+		f = {
+			name = "+Find",
+			c = "Colorschemes",
+			f = "Files",
+			h = "Recent Files"
+		},
+		g = {
+			name = "Git",
+			r = "Reset hunk",
+			R = "Reset buffer",
+			s = "Stage hunk",
+			S = "Stage buffer",
+			U = "Undo hunk stage",
+			g = "Toggle Signs",
+			j = "Next Hunk",
+			k = "Previous Hunk",
+			l = "Blame",
+			t = "Status",
+			c = "Commits"
+		},
+		s = {
+			name = "Session",
+			s = "Save",
+			l = "Load"
+		},
+		l = {
+			name = "lsp",
+			D = "Document Diagnostic",
+			d = "Definition",
+			h = "Hover",
+			r = "Rename",
+			a = "Code Action",
+			I = "Installer Info",
+			i = "Info",
+			c = "Compile Suckless"
+		},
+		p = {
+			name = "Packer",
+			i = "Install",
+			c = "Clean",
+			s = "Sync"
+		}
 	}
 }
-
-whichkey.register({
-	["/"] = "Comment",
-	["e"] = "NvimTree",
-	["w"] = "Write",
-	["x"] = "Write and Quit",
-	["n"] = "New File",
-	b = {
-		name = "Buffers",
-		n = "Move Next",
-		p = "Move Previous",
-		c = "close"
-	},
-	f = {
-		name = "+Find",
-		c = "Colorschemes",
-		f = "Files",
-		h = "Recent Files"
-	},
-	g = {
-		name = "Git",
-		r = "Reset hunk",
-		R = "Reset buffer",
-		s = "Stage hunk",
-		S = "Stage buffer",
-		U = "Undo hunk stage",
-		g = "Toggle Signs",
-		j = "Next Hunk",
-		k = "Previous Hunk",
-		l = "Blame",
-		t = "Status",
-		c = "Commits"
-	},
-	s = {
-		name = "Session",
-		s = "Save",
-		l = "Load"
-	},
-	l = {
-		name = "lsp",
-		D = "Document Diagnostic",
-		d = "Definition",
-		h = "Hover",
-		r = "Rename",
-		a = "Code Action",
-		I = "Installer Info",
-		i = "Info",
-		c = "Compile Suckless"
-	},
-	p = {
-		name = "Packer",
-		i = "Install",
-		c = "Clean",
-		s = "Sync"
-	}
-
-}, {
-	prefix = "<leader>"
-})

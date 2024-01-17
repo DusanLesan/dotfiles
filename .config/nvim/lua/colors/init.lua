@@ -1,8 +1,3 @@
-vim.api.nvim_command "hi clear"
-if vim.fn.exists "syntax_on" then
-	vim.api.nvim_command "syntax reset"
-end
-
 local colors = {
 	notify_bg = 'Normal',
 	white = "#abb2bf",

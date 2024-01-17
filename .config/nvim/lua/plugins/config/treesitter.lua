@@ -1,9 +1,4 @@
-local status_ok, ts_config = pcall(require, "nvim-treesitter.configs")
-if not status_ok then
-	return
-end
-
-ts_config.setup {
+return {
 	use_languagetree = true,
 	ensure_installed = {
 		"bash",

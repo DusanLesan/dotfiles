@@ -49,12 +49,12 @@ end
 
 ins_left('mode')
 
-ins_left {
+ins_left({
 	'branch',
 	color = { fg = colors.violet, gui = 'bold' }
-}
+})
 
-ins_left {
+ins_left({
 	'diff',
 	symbols = { added = '+', modified = '<>', removed = '-' },
 	diff_color = {
@@ -63,24 +63,24 @@ ins_left {
 		removed = { fg = colors.red }
 	},
 	cond = conditions.hide_in_width
-}
+})
 
-ins_left {
+ins_left({
 	'filesize',
 	cond = conditions.buffer_not_empty
-}
+})
 
-ins_left {
+ins_left({
 	'filename',
 	cond = conditions.buffer_not_empty,
 	color = { fg = colors.magenta, gui = 'bold' }
-}
+})
 
-ins_right { 'location' }
+ins_right({ 'location' })
 
-ins_right { 'progress', color = { fg = colors.fg, gui = 'bold' } }
+ins_right({ 'progress', color = { fg = colors.fg, gui = 'bold' } })
 
-ins_right {
+ins_right({
 	'diagnostics',
 	sources = { 'nvim_diagnostic' },
 	symbols = { error = 'X', warn = '!', info = '!' },
@@ -89,9 +89,9 @@ ins_right {
 		color_warn = { fg = colors.yellow },
 		color_info = { fg = colors.cyan }
 	}
-}
+})
 
-ins_right {
+ins_right({
 	function()
 		local msg = ''
 		local buf_ft = vim.api.nvim_buf_get_option(0, 'filetype')
@@ -108,6 +108,6 @@ ins_right {
 		return msg
 	end,
 	color = { fg = colors.yellow, gui = 'bold' }
-}
+})
 
-lualine.setup(config)
+return config
