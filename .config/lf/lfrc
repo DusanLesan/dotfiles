@@ -84,8 +84,8 @@ cmd yank_image ${{
 }}
 
 cmd delete ${{
-	printf "$fx\ndelete?[y/n]"
-	if read -d '' -s -n 1 && [ $REPLY == 'y' ]; then
+	read -p "$fx\ndelete?[y/n]" ans
+	if [ "$ans" = "y" ]; then
 		for x in $fx; do
 			rm -rf "$x" || sudo -A rm -rf "$x"
 		done

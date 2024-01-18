@@ -1,4 +1,6 @@
 local servers = {
+	"pylsp",
+	"bashls"
 }
 
 local status_ok, lsp_installer = pcall(require, "mason-lspconfig")

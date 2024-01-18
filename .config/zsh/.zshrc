@@ -1,6 +1,6 @@
 # Use lf to switch directories and bind it to ctrl-o
 lfcd () {
-	cd "$(lfrun -print-last-dir "$@")"
+	cd "$(/data/data/com.termux/files/usr/bin/lf -print-last-dir "$@")"
 }
 
 if [ "$_START_LFCD" ]; then
