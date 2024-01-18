@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Text editor
-Exec=nvim %F || exit 0
-Terminal=true

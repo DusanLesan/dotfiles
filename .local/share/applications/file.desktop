@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=LF File Manager
-Exec=lf %F
-Terminal=true

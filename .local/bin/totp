@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. utils
+. "$XDG_DATA_HOME/secrets/priv"
+
+dir="$XDG_DATA_HOME/totp/"
+keys=$(ls $dir)
+keys=$(echo "$keys" | sed 's/\.gpg$//')
+sel=$(prompt "Select key" "$keys") || exit 1
+key="$dir$sel.gpg"
+totp=$(gpg2 --quiet -u "$gpgKey" -r "$email" --decrypt "$key") || exit 1
+code=$(oathtool -b --totp "$totp")
+echo $code | xclip -sel clip
+echo "$code"

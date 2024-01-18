@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=MPV
-Comment=MPV one instance
-Exec=video %F
-Terminal=false
-Type=Application

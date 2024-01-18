@@ -2,7 +2,7 @@
 
 . utils
 file="$2"
-[ "$file" == "prompt" ] && file="$(echo | prompt 'File Name?')"
+[ "$file" == "prompt" ] && file="$(prompt 'File Name?')"
 
 case "$1" in
 	"drop")

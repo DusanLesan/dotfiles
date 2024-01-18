@@ -1,1 +1,0 @@
-/home/dusan/.local/src/mpv-scripts/thumbfast.lua

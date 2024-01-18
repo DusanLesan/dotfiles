@@ -1,8 +1,12 @@
-set scrolloff 10
+set scrolloff 100
 set hidden true
 set ifs "\n"
 set autoquit true
 set wrapscroll true
+set anchorfind false
+set incsearch true
+set findlen 0
+set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
 
 set previewer ~/.config/lf/preview
 set cleaner ~/.config/lf/cleaner
@@ -94,7 +98,7 @@ cmd tar ${{
 	temp=$f.tmp
 	mkdir $temp
 	cp -r $fx $temp
-	tar czf $f.tar.gz $temp
+	tar czf $f.tar.gz -C $temp .
 	rm -rf $temp
 }}
 
@@ -169,7 +173,7 @@ cmd fzf_find_line ${{
 	fi
 }}
 
-cmd resize_pane &lf -remote "send $id set user_pane $1"
+cmd setNumber &lf -remote "send $id set user_pane $lf_count"
 
 cmd resize &{{
 	IFS=':'
@@ -182,15 +186,18 @@ cmd resize &{{
 	[ ${#r[@]} -eq 2 ] && [ $1 == "+" ] && lf -remote "send $id set preview"
 }}
 
-cmd openRemote &{{
-	. utils
-	remote=$(git remote)
-	[ $(wc -l <<< $remote) -gt 1 ] && remote=$(git remote | prompt "Pick remote:")
-	url=$(git remote get-url $remote)
-	url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
-	branch=$(git branch --show-current 2>/dev/null)
-	[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
-	$BROWSER $url
+cmd on-redraw &{{
+	if [ $lf_width -lt 90 ]; then
+		lf -remote "send $id set preview false"
+		lf -remote "send $id set ratios 1"
+		$lf_cleaner
+	elif [ $lf_width -lt 110 ]; then
+		lf -remote "send $id set ratios 1:1"
+		lf -remote "send $id set preview true"
+	else
+		lf -remote "send $id set preview true"
+		lf -remote "send $id set ratios 1:2:3"
+	fi
 }}
 
 # Remove some defaults
@@ -199,8 +206,6 @@ map o
 map d
 
 # Basic Functions
-map H top
-map L bottom
 map <a-f>j :fzf_jump
 map <a-f>f :fzf_find_file
 map <a-f>l :fzf_find_line
@@ -213,6 +218,7 @@ map r :rename; reload
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
+map V invert-below
 
 map mf mkfile
 map md mkdir
@@ -229,16 +235,16 @@ map C clear
 map U unselect
 map c :clear; unselect
 
-map L $devour alacritty -e lazygit
+map <c-l> $devour alacritty -e lazygit
 
 map spd set nopreview
 map spe set preview
 map sr1 set ratios 1
 map sr2 set ratios 1:2
 map sr3 set ratios 1:2:3
-map sq push :resize_pane<space>
-map + resize +
+map n setNumber
 map - resize -
+map + resize +
 
 # use enter for shell commands
 map <enter> shell
@@ -259,7 +265,7 @@ map gl cd ~/.local
 map gc cd ~/.config
 map gG cd  ~/git
 map gpr cd ~/git/5.0_roku/pluto-tv-roku/
-map gpo cd ~/git/5.0_roku/pluto-tv-roku/cicd/out
+map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
-map gr openRemote
+map gr &open-remote

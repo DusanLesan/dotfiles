@@ -11,6 +11,7 @@ image() {
 
 setCache() {
 	dir="$XDG_CACHE_HOME/lf"
+	mkdir -p $dir
 	cache="$(readlink -f "$1" | sha256sum)"
 	cache="$dir/thumb.${cache%% *}"
 }
@@ -27,7 +28,7 @@ case "$(file --dereference --brief --mime-type -- "$1")" in
 		setCache "$1"
 		if [ ! -f "${cache}" ]; then
 			jpg="$(printf '%s\n' "$1" | sed 's|^.*/||; s|\..*$||')"
-			libreoffice --convert-to jpg --outdir "$dir" "$1" >/dev/null \
+			/opt/libreOffice.AppImage --convert-to jpg --outdir "$dir" "$1" >/dev/null \
 				&& mv "$dir/$jpg.jpg" "$cache"
 		fi
 		image "${cache}" "$2" "$3" "$4" "$5";;

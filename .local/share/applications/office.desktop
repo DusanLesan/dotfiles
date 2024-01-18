@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Libre Office
-Exec=/opt/libreOffice.AppImage %F
-Terminal=true

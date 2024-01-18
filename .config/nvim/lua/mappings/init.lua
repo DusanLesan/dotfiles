@@ -36,21 +36,15 @@ map('n', '<leader>bn', ':BufferLineMoveNext<CR>', { noremap = true, silent = tru
 map('n', '<leader>bp', ':BufferLineMovePrev<CR>', { noremap = true, silent = true })
 map('n', '<leader>bc', ':Bdelete this<CR>', { noremap = true, silent = true })
 
--- FileManagers
 map('n', '<leader>e', ':NvimTreeToggle<CR>', default_opts)
-map('n', '<C-f>', ':NvimTreeToggle<CR>', default_opts)
 map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
+map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
 
 -- Write
 map('n', '<leader>w', ':w<CR>', default_opts)
 map('n', '<leader>x', ':wqa!<CR>', default_opts)
 
--- Dashboard
-map('n', '<leader>d', ':Dashboard<CR>', default_opts)
-map('n', '<leader>fh', ':Telescope oldfiles<CR>', default_opts)
-map('n', '<leader>ff', ':Telescope find_files<CR>', default_opts)
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', default_opts)
-map('n', '<leader>n', ':DashboardNewFile<CR>', default_opts)
 
 -- Sessions
 map('n', '<leader>ss', ':SessionSave<CR>', default_opts)
@@ -64,6 +58,10 @@ map('n', '<leader>lr', '<cmd>lua vim.lsp.buf.rename()<CR>', default_opts)
 map('n', '<leader>lI', ':LspInstallInfo<CR>', default_opts)
 map('n', '<leader>li', ':LspInfo<CR>', default_opts)
 map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
+map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', default_opts)
+map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', default_opts)
+map('n', '<leader>ff', ':Telescope find_files<CR>', default_opts)
+map('n', '<leader>fh', ':Telescope oldfiles<CR>', default_opts)
 map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
 map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
@@ -80,17 +78,3 @@ map('n', '<leader>gk', ":Gitsigns prev_hunk<CR>", default_opts)
 map('n', '<leader>gg', ":Gitsigns toggle_signs<CR>", default_opts)
 map('n', '<leader>gt', ":Telescope git_status<CR>", default_opts)
 map('n', '<leader>gc', ":Telescope git_commits<CR>", default_opts)
-
--- Packer
-map('n', '<leader>pi', ":PackerInstall<CR>", default_opts)
-map('n', '<leader>pc', ":PackerClean<CR>", default_opts)
-map('n', '<leader>ps', ":PackerSync<CR>", default_opts)
-
--- Comment
-local status_ok, commented = pcall(require, "commented")
-if status_ok then
-commented.setup({
-	keybindings = { n = "<C-_>v", v = "<C-_>", nl = "<C-_>" },
-	comment_padding = " "
-})
-end
