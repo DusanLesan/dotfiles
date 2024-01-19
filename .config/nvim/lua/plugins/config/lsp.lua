@@ -7,14 +7,24 @@ local servers = {
 	"pylsp"
 }
 
-local status_ok, lsp_installer = pcall(require, "mason-lspconfig")
-if not status_ok then
-	return
-end
-
-require("mason").setup()
-lsp_installer.setup {
-	ensure_installed = servers
+local M = {
+	'neovim/nvim-lspconfig',
+	event = "VeryLazy",
+	dependencies = {
+		{
+			'williamboman/mason.nvim',
+			cmd = { "Mason", "MasonInstall", "MasonInstallAll", "MasonUpdate" },
+			config = true
+		},
+		{
+			'williamboman/mason-lspconfig.nvim',
+			config = function ()
+				require("mason-lspconfig").setup {
+					ensure_installed = servers
+				}
+			end
+		}
+	}
 }
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -52,16 +62,13 @@ vim.diagnostic.config(config)
 local function lsp_highlight_document(client)
 	-- Set autocommands conditional on server_capabilities
 	if client.server_capabilities.document_highlight then
-		vim.api.nvim_exec(
-			[[
+		vim.api.nvim_exec([[
 			augroup lsp_document_highlight
 			autocmd! * <buffer>
 			autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
 			autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
 			augroup END
-			]],
-			false
-		)
+		]], false)
 	end
 end
 
@@ -109,16 +116,21 @@ local server_opts = {
 	}
 }
 
-local lspconfig = require'lspconfig'
-for _, server in ipairs(servers) do
-	local opts = {
-		on_attach = on_attach,
-		capabilities = capabilities
-	}
+function M.config()
+	local lspconfig = require'lspconfig'
+	for _, server in ipairs(servers) do
+		local opts = {
+			on_attach = on_attach,
+			capabilities = capabilities
+		}
 
-	if server_opts[server] ~= nil then
-		opts = vim.tbl_deep_extend("force", server_opts[server], opts)
+		if server_opts[server] ~= nil then
+			opts = vim.tbl_deep_extend("force", server_opts[server], opts)
+		end
+
+		lspconfig[server].setup(opts)
 	end
-
-	lspconfig[server].setup(opts)
+	vim.cmd(":LspStart")
 end
+
+return M

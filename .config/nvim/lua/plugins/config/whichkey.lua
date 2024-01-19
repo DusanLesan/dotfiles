@@ -1,4 +1,9 @@
-return {
+local M = {
+	"folke/which-key.nvim",
+	event = "VeryLazy"
+}
+
+local opts = {
 	plugins = {
 		marks = true, -- shows a list of your marks on ' and `
 		registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
@@ -78,11 +83,6 @@ return {
 			t = "Status",
 			c = "Commits"
 		},
-		s = {
-			name = "Session",
-			s = "Save",
-			l = "Load"
-		},
 		l = {
 			name = "lsp",
 			D = "Document Diagnostic",
@@ -93,12 +93,14 @@ return {
 			I = "Installer Info",
 			i = "Info",
 			c = "Compile Suckless"
-		},
-		p = {
-			name = "Packer",
-			i = "Install",
-			c = "Clean",
-			s = "Sync"
 		}
 	}
 }
+
+function M.config()
+	local wk = require("which-key")
+	wk.setup(opts)
+	wk.register(opts.defaults)
+end
+
+return M

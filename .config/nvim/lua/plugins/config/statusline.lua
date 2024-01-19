@@ -1,7 +1,8 @@
-local status_ok, lualine = pcall(require, "lualine")
-if not status_ok then
-	return
-end
+local M = {
+	"nvim-lualine/lualine.nvim",
+	event = "VeryLazy"
+}
+
 local colors = require("colors")
 
 local conditions = {
@@ -18,8 +19,7 @@ local conditions = {
 	end
 }
 
--- Config
-local config = {
+local opts = {
 	options = {
 		-- Disable sections and separators
 		component_separators = '',
@@ -39,12 +39,12 @@ local config = {
 
 -- Inserts a component in lualine_c at left section
 local function ins_left(component)
-	table.insert(config.sections.lualine_c, component)
+	table.insert(opts.sections.lualine_c, component)
 end
 
 -- Inserts a component in lualine_x at right section
 local function ins_right(component)
-	table.insert(config.sections.lualine_x, component)
+	table.insert(opts.sections.lualine_x, component)
 end
 
 ins_left('mode')
@@ -110,4 +110,8 @@ ins_right({
 	color = { fg = colors.yellow, gui = 'bold' }
 })
 
-return config
+function M.config()
+	require("lualine").setup(opts)
+end
+
+return M

@@ -1,4 +1,12 @@
-return {
+local M = {
+	'nvim-telescope/telescope.nvim',
+	cmd = "Telescope",
+	dependencies = {
+		'nvim-lua/plenary.nvim'
+	}
+}
+
+M.opts = {
 	defaults = {
 		vimgrep_arguments = {
 			"rg",
@@ -25,3 +33,5 @@ return {
 		file_ignore_patterns = { "node_modules", "cicd/automation" }
 	}
 }
+
+return M

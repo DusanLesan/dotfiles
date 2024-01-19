@@ -1,20 +1,15 @@
-
-vim.cmd("let g:matchup_matchparen_offscreen = {'method': 'popup'}")
 vim.cmd("set shortmess+=c")
-vim.cmd("let g:loaded_matchit = 1")
 vim.cmd("set nofoldenable")
+vim.cmd("set laststatus=0")
 
 vim.opt.history = 100
 vim.opt.synmaxcol = 240
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.pumheight = 10
-vim.opt.timeoutlen = 150
+vim.opt.timeout = true
+vim.opt.timeoutlen = 500
 vim.opt.completeopt = "menuone,noselect"
-
-vim.g.loaded_matchit = 1
-vim.g.matchup_delim_stopline = 1500
-vim.g.matchup_matchparen_stopline = 400
 
 vim.opt.wrap = true
 vim.opt.showmode = false
@@ -36,9 +31,10 @@ vim.opt.whichwrap:append "<>[]hl"
 vim.opt.cmdheight = 1
 vim.opt.mouse = 'a'
 vim.opt.clipboard = 'unnamedplus'
-vim.g.mapleader = ' '
 
+vim.opt.list = true
+vim.opt.listchars:append("space:⋅")
+
+vim.g.mapleader = ' '
 vim.g.transparent_background = true
 vim.g.vscode_style = 'dark'
-
-
