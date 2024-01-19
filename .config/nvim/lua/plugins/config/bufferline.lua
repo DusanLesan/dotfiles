@@ -1,8 +1,13 @@
+local M = {
+	"akinsho/bufferline.nvim",
+	event = "VeryLazy"
+}
+
 vim.cmd([[
- 	autocmd ColorScheme * highlight BufferLineFill guibg=none
+	autocmd ColorScheme * highlight BufferLineFill guibg=none
 ]])
 
-return {
+M.opts = {
 	options = {
 		offsets = { { filetype = "NvimTree", text = "" } },
 		close_command = "bdelete! %d",
@@ -30,3 +35,5 @@ return {
 		end
 	}
 }
+
+return M

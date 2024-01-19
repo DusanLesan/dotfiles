@@ -1,4 +1,10 @@
-return {
+local M = 	{
+	"nvim-treesitter/nvim-treesitter",
+	event = "VeryLazy",
+	cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" }
+}
+
+M.opts = {
 	use_languagetree = true,
 	ensure_installed = {
 	},
@@ -20,3 +26,5 @@ return {
 		enable_autocmd = true
 	}
 }
+
+return M

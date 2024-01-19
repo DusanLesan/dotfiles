@@ -1,4 +1,10 @@
-return {
+local M = 	{
+	"lewis6991/gitsigns.nvim",
+	event = "VeryLazy",
+	ft = { "gitcommit", "diff" }
+}
+
+M.opts = {
 	signs = {
 		add = {hl = 'GitSignsAdd' , text = '│', numhl='GitSignsAddNr' , linehl='GitSignsAddLn'},
 		change = {hl = 'GitSignsChange', text = '│', numhl='GitSignsChangeNr', linehl='GitSignsChangeLn'},
@@ -13,3 +19,5 @@ return {
 	signcolumn = false,
 	numhl = true
 }
+
+return M
