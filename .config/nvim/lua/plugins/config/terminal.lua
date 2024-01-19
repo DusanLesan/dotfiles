@@ -1,4 +1,9 @@
-return {
+local M = 	{
+	"akinsho/toggleterm.nvim",
+	cmd = { "ToggleTerm" }
+}
+
+M.opts = {
 	open_mapping = [[<a-t>]],
 	on_config_done = nil,
 	size = 12,
@@ -18,3 +23,5 @@ return {
 		}
 	},
 }
+
+return M

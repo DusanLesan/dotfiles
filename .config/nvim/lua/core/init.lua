@@ -3,6 +3,7 @@ vim.cmd("let g:matchup_matchparen_offscreen = {'method': 'popup'}")
 vim.cmd("set shortmess+=c")
 vim.cmd("let g:loaded_matchit = 1")
 vim.cmd("set nofoldenable")
+vim.cmd("set laststatus=0")
 
 vim.opt.history = 100
 vim.opt.synmaxcol = 240
@@ -41,4 +42,5 @@ vim.g.mapleader = ' '
 vim.g.transparent_background = true
 vim.g.vscode_style = 'dark'
 
-
+vim.opt.list = true
+vim.opt.listchars:append("space:⋅")

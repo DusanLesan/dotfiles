@@ -36,7 +36,7 @@ map('n', '<leader>bn', ':BufferLineMoveNext<CR>', { noremap = true, silent = tru
 map('n', '<leader>bp', ':BufferLineMovePrev<CR>', { noremap = true, silent = true })
 map('n', '<leader>bc', ':Bdelete this<CR>', { noremap = true, silent = true })
 
-map('n', '<leader>e', ':NvimTreeToggle<CR>', default_opts)
+map('n', '<leader>e', ":Oil --float<CR>", default_opts)
 map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
 map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
 

@@ -12,72 +12,18 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-	{
-		'neovim/nvim-lspconfig',
-		config = function()
-			require("plugins/config/lsp")
-		end,
-		dependencies = {
-			{
-				'williamboman/mason.nvim',
-				cmd = { "Mason", "MasonInstall", "MasonInstallAll", "MasonUpdate" },
-				config = true
-			},
-			'williamboman/mason-lspconfig.nvim'
-		}
-	},
-
-	{
-		'nvim-telescope/telescope.nvim',
-		cmd = "Telescope",
-		opts = require("plugins/config/telescope"),
-		dependencies = {
-			'nvim-lua/plenary.nvim'
-		}
-	},
-
-	{
-		'hrsh7th/nvim-cmp',
-		event = "InsertEnter",
-		config = function()
-			require("plugins/config/cmp")
-		end,
-
-		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-nvim-lua",
-			"hrsh7th/cmp-buffer",
-			"hrsh7th/cmp-path",
-			"hrsh7th/vim-vsnip",
-			"hrsh7th/cmp-vsnip",
-			"hrsh7th/vim-vsnip-integ"
-		}
-	},
-
-	{
-		"folke/which-key.nvim",
-		event= "VeryLazy",
-		opts = require("plugins/config/whichkey"),
-		config = function(_, opts)
-			local wk = require("which-key")
-			wk.setup(opts)
-			wk.register(opts.defaults)
-		end,
-	},
-
-	{
-		"nvim-treesitter/nvim-treesitter",
-		event = "VeryLazy",
-		cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
-		opts = require("plugins/config/treesitter")
-	},
-
-	{
-		"lewis6991/gitsigns.nvim",
-		event = "VeryLazy",
-		opts = require("plugins/config/git"),
-		ft = { "gitcommit", "diff" }
-	},
+	require("plugins/config/lsp"),
+	require("plugins/config/telescope"),
+	require("plugins/config/harpoon"),
+	require("plugins/config/cmp"),
+	require("plugins/config/whichkey"),
+	require("plugins/config/treesitter"),
+	require("plugins/config/git"),
+	require("plugins/config/colorizer"),
+	require("plugins/config/bufferline"),
+	require("plugins/config/statusline"),
+	require("plugins/config/oil"),
+	require("plugins/config/terminal"),
 
 	{
 		"numToStr/Comment.nvim",
@@ -99,52 +45,27 @@ require("lazy").setup({
 	},
 
 	{
-		"lukas-reineke/indent-blankline.nvim",
-		event = "InsertEnter",
-		main = "ibl",
-		opts = require("plugins/config/indentline")
-	},
-
-	{
-		"NvChad/nvim-colorizer.lua",
-		event = "VeryLazy",
-		opts = require("plugins/config/colorizer")
-	},
-
-	{
-		"akinsho/bufferline.nvim",
-		event = "VeryLazy",
-		opts = require("plugins/config/bufferline")
-	},
-
-	{
-		"nvim-lualine/lualine.nvim",
-		event = "VeryLazy",
-		config = function()
-			 require("lualine").setup(require("plugins/config/statusline"))
-		end
-	},
-
-	{
-		"akinsho/toggleterm.nvim",
-		cmd = { "ToggleTerm" },
-		opts = require("plugins/config/terminal")
-	},
-
-	{
 		"entrez/roku.vim",
 		ft = "brs"
 	},
 
 	{
-		"nvim-tree/nvim-tree.lua",
-		cmd = { "NvimTreeToggle", "NvimTreeFocus" },
-		opts = require("plugins/config/nvimtree")
+		"nvimtools/none-ls.nvim",
+		event = "InsertEnter",
+		config = function ()
+			local null_ls = require("null-ls")
+			null_ls.setup({
+				sources = {
+					null_ls.builtins.diagnostics.typos,
+				}
+			})
+		end
 	},
 
 	{
 		"Mofiqul/vscode.nvim",
 		priority = 1000,
+		lazy = false,
 		config = function()
 			vim.cmd[[
 				colorscheme vscode
