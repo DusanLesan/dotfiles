@@ -1,0 +1,54 @@
+{
+  "parser-directories": [
+    "/home/dusan/git/"
+  ],
+  "theme": {
+    "variable.parameter": {
+      "underline": true
+    },
+    "module": 136,
+    "property": 124,
+    "attribute": {
+      "color": 124,
+      "italic": true
+    },
+    "comment": {
+      "color": 245,
+      "italic": true
+    },
+    "number": {
+      "color": 94,
+      "bold": true
+    },
+    "punctuation.bracket": 239,
+    "keyword": 56,
+    "embedded": null,
+    "punctuation.delimiter": 239,
+    "function.builtin": {
+      "bold": true,
+      "color": 26
+    },
+    "string.special": 30,
+    "constant": 94,
+    "string": 28,
+    "operator": {
+      "color": 239,
+      "bold": true
+    },
+    "constant.builtin": {
+      "color": 94,
+      "bold": true
+    },
+    "constructor": 136,
+    "tag": 18,
+    "variable.builtin": {
+      "bold": true
+    },
+    "type": 23,
+    "function": 26,
+    "type.builtin": {
+      "color": 23,
+      "bold": true
+    }
+  }
+}

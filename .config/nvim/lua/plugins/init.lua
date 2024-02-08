@@ -15,6 +15,16 @@ require("lazy").setup({
 	{ import = "plugins.config" },
 
 	{
+		"max397574/better-escape.nvim",
+		event = "InsertEnter",
+		opts = {
+			mapping = "jk",
+			timeout = vim.o.timeoutlen,
+			keys = "<Esc>"
+		}
+	},
+
+	{
 		"numToStr/Comment.nvim",
 		opts = {},
 		keys = {
@@ -31,11 +41,6 @@ require("lazy").setup({
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		opts = {}
-	},
-
-	{
-		"entrez/roku.vim",
-		ft = "brs"
 	},
 
 	{

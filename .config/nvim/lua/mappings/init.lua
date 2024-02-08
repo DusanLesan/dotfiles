@@ -1,9 +1,6 @@
 local map = vim.api.nvim_set_keymap
 local default_opts = {noremap = true, silent = true}
 
--- Escape by using jk
-map('i', 'jk', '<Esc>', default_opts)
-
 -- Move lines up and down with alt-up/down
 map('n', '<A-k>', ':m .-2<CR>', default_opts)
 map('n', '<A-j>', ':m .+1<CR>', default_opts)
@@ -59,14 +56,18 @@ map('n', '<leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>', default_opts)
 map('n', '<leader>lr', '<cmd>lua vim.lsp.buf.rename()<CR>', default_opts)
 map('n', '<leader>lI', ':LspInstallInfo<CR>', default_opts)
 map('n', '<leader>li', ':LspInfo<CR>', default_opts)
+map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
+map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
+map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
+
 map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
 map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', default_opts)
 map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', default_opts)
 map('n', '<leader>ff', ':Telescope find_files<CR>', default_opts)
 map('n', '<leader>fh', ':Telescope oldfiles<CR>', default_opts)
-map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
-map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
-map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
+map('n', '<leader>fw', ':Telescope live_grep<CR>', default_opts)
+map('n', '<leader>fb', ':Telescope buffers<CR>', default_opts)
+map('n', '<leader>fz', ':Telescope current_buffer_fuzzy_find<CR>', default_opts)
 
 -- Git
 map('n', '<leader>gr', ":Gitsigns reset_hunk<CR>", default_opts)

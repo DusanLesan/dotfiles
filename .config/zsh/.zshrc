@@ -1,5 +1,5 @@
 # Use lf to switch directories and bind it to ctrl-o
-lfcd () {
+function lfcd () {
 	cd "$(lfrun -print-last-dir "$@")"
 }
 
@@ -21,10 +21,10 @@ setopt histignorealldups                                         # If a new comm
 setopt autocd                                                    # If only directory path is entered, cd there.
 setopt HIST_IGNORE_SPACE                                         # Remove command lines starting with spacce from the history
 autoload -U colors && colors                                     # Load colors
-autoload -U compinit && compinit -d
 stty stop undef                                                  # Disable ctrl-s to freeze terminal.
 autoload -Uz vcs_info                                            # Load git info
 precmd() { vcs_info }
+autoload -U compinit && compinit
 
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'        # Case insensitive tab completion
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"          # Colored completion (different colors for dirs/files/etc)
@@ -36,8 +36,8 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 
 # History in cache directory:
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=100000
+SAVEHIST=100000
 HISTFILE=~/.config/zsh/zhistory
 
 WORDCHARS=${WORDCHARS//\/[&.;]}                                  # Don't consider certain characters part of the word
@@ -83,15 +83,53 @@ setopt prompt_subst
 PS1="%{$fg[$promptColor]%}%c $ "
 RPROMPT=$'$vcs_info_msg_0_'
 
-# Color man pages
-export LESS_TERMCAP_mb=$'\E[01;32m'
-export LESS_TERMCAP_md=$'\E[01;32m'
-export LESS_TERMCAP_me=$'\E[0m'
-export LESS_TERMCAP_se=$'\E[0m'
-export LESS_TERMCAP_so=$'\E[01;47;34m'
-export LESS_TERMCAP_ue=$'\E[0m'
-export LESS_TERMCAP_us=$'\E[01;36m'
-export LESS=-r
+## Vim mode config
+# Activate vim mode
+bindkey -v '^?' backward-delete-char
+
+# Remove mode switching delay.
+KEYTIMEOUT=1
+
+# Change cursor shape for different vi modes.
+function zle-keymap-select () {
+	case $KEYMAP in
+		vicmd) echo -ne '\e[1 q';;      # block
+		viins|main) echo -ne '\e[5 q';; # beam
+	esac
+}
+zle -N zle-keymap-select
+
+zle-line-init() {
+	zle -K viins # initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
+	echo -ne "\e[5 q"
+}
+zle -N zle-line-init
+
+# ci", ci', ci`, di", etc
+autoload -U select-quoted
+zle -N select-quoted
+for m in visual viopp; do
+	for c in {a,i}{\',\",\`}; do
+		bindkey -M $m $c select-quoted
+	done
+done
+
+# ci{, ci(, ci<, di{, etc
+autoload -U select-bracketed
+zle -N select-bracketed
+for m in visual viopp; do
+	for c in {a,i}${(s..)^:-'()[]{}<>bB'}; do
+		bindkey -M $m $c select-bracketed
+	done
+done
+
+echo -ne '\e[5 q' # Use beam shape cursor on startup.
+preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
+
+## FZF
+export FZF_COMPLETION_TRIGGER='aa'
+source /usr/share/fzf/completion.zsh
+source /usr/share/fzf/key-bindings.zsh
 
 ## Plugins section
 # Use syntax highlighting
@@ -108,34 +146,3 @@ bindkey '^[[B' history-substring-search-down
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-
-## Vim mode config
-# Activate vim mode
-bindkey -v '^?' backward-delete-char
-
-# Remove mode switching delay.
-KEYTIMEOUT=1
-
-# Change cursor shape for different vi modes.
-function zle-keymap-select {
-	if [[ ${KEYMAP} == vicmd ]] ||
-		[[ $1 = 'block' ]];
-	then
-		echo -ne '\e[1 q'
-	elif [[ ${KEYMAP} == main ]] ||
-		[[ ${KEYMAP} == viins ]] ||
-		[[ ${KEYMAP} = '' ]] ||
-		[[ $1 = 'beam' ]];
-	then
-		echo -ne '\e[5 q'
-	fi
-}
-zle -N zle-keymap-select
-
-# Use beam shape cursor on startup.
-echo -ne '\e[5 q'
-
-# Use beam shape cursor for each new prompt.
-preexec() {
-	echo -ne '\e[5 q'
-}
