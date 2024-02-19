@@ -3,7 +3,7 @@ local M = {
 	cmd = "Oil"
 }
 
-local opts = {
+M.opts = {
 	keymaps = {
 		["<leader>e"] = ":lua require('oil').discard_all_changes()<CR>:lua require('oil').close()<CR>",
 		["q"] = "actions.close",
@@ -26,21 +26,9 @@ local opts = {
 	view_options = {
 		show_hidden = true
 	},
-	float = {
-		padding = 2,
-		border = "rounded",
-		win_options = {
-			winblend = 1
-		}
-	},
 	win_options = {
 		wrap = true
 	}
 }
-
-function M.config()
-	require("oil").setup(opts)
-	vim.keymap.set("n", "<leader>to", "<CMD>oil.open_float<CR>", { desc = "Open parent directory" })
-end
 
 return M

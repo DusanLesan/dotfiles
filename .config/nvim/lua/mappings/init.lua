@@ -35,8 +35,7 @@ map('n', '<leader>bn', ':BufferLineMoveNext<CR>', default_opts)
 map('n', '<leader>bp', ':BufferLineMovePrev<CR>', default_opts)
 map('n', '<leader>bc', ':Bdelete<CR>', default_opts)
 
-map('n', '<leader>e', ":Oil --float<CR>", default_opts)
-map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
+map('n', '<leader>e', ":Oil<CR>", default_opts)
 map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
 
 -- Write

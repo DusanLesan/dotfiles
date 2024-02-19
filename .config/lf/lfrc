@@ -68,6 +68,12 @@ cmd new_permission &{{
 	lf -remote "send $id reload"
 }}
 
+cmd paste_link &{{
+	for file in $fx; do
+		ln -s "$file" .
+	done
+}}
+
 cmd yank_path $echo "$fx" | xclip -i -selection clipboard
 
 cmd yank_image ${{
@@ -216,6 +222,7 @@ map V invert-below
 map mf mkfile
 map md mkdir
 map S push :new_permission<space>
+map <a-p> paste_link
 map mu %dmenuumount "$fx"
 
 map ae $ext $f
