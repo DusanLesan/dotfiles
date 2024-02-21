@@ -23,6 +23,6 @@ export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
 export CUDA_CACHE_PATH="$XDG_CACHE_HOME"/nv
 
 # Other program settings:
-export SSH_AUTH_SOCK=/tmp/ssh_auth_sock
+export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/gcr/ssh
 export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.

@@ -24,7 +24,7 @@ def parseConfig():
 		print('Please enter missing values in userConfig.json file!')
 		quit()
 
-def executeCommand(params, input = ''):
+def executeCommand(params, input=''):
 	process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
 	out = process.communicate(input=input.encode())[0].decode('utf-8').strip()
 	if process.returncode != 0:
@@ -46,7 +46,7 @@ def setBase():
 		for line in worktree:
 			recent = line + '\n' + recent
 
-	recent = re.sub('^'+branch+'*\n', '', recent, flags=re.M)
+	recent = re.sub('^' + branch + '*\n', '', recent, flags=re.M)
 	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 
 def setTitleAndDescription():
@@ -89,7 +89,7 @@ def setReviewers():
 	global reviewers
 	file = open(teamListsPath + 'team_dev', 'r')
 	reviewers = file.read()
-	if not devOnlyLabel in labels:
+	if devOnlyLabel not in labels:
 		if dteLabel in labels:
 			qa = '*dte'
 		else:
@@ -146,7 +146,7 @@ parseConfig()
 branch = executeCommand(['git', 'branch', '--show-current'])
 ticketNumbers = re.findall(r'(?<=' + projectCode + '-)\\d+', branch)
 ticketName = re.findall(r'([^\/]+$)', branch)[0]
-ticketName = ticketName.replace('-', ' ').replace('_' , ' ')
+ticketName = ticketName.replace('-', ' ').replace('_', ' ')
 ticketName = ticketName[0].upper() + ticketName[1:]
 title = base = reviewers = labels = milestone = body = ''
 labelList = milestoneList = ''

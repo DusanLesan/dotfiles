@@ -115,6 +115,18 @@ local server_opts = {
 				}
 			}
 		}
+	},
+	["pylsp"] = {
+		settings = {
+			pylsp = {
+				plugins = {
+					pycodestyle = {
+						maxLineLength = 160,
+						ignore = { "W191", "E302", "E305" },
+					}
+				}
+			}
+		}
 	}
 }
 
