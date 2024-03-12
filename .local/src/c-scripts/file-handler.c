@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <dbus/dbus.h>
 
-static void show_items(DBusMessageIter *iter) {
+static void show_items(DBusMessage *message) {
 	const char *term = getenv("TERMINAL");
+	DBusMessageIter iter;
+	dbus_message_iter_init(message, &iter);
 	DBusMessageIter array;
-	dbus_message_iter_recurse(iter, &array);
+	dbus_message_iter_recurse(&iter, &array);
 	while (dbus_message_iter_get_arg_type(&array) != DBUS_TYPE_INVALID) {
 		const char *item;
 		dbus_message_iter_get_basic(&array, &item);
@@ -20,12 +22,9 @@ static void show_items(DBusMessageIter *iter) {
 
 static DBusHandlerResult message_handler(DBusConnection *connection, DBusMessage *message, void *user_data) {
 	if (dbus_message_is_method_call(message, "org.freedesktop.FileManager1", "ShowItems")) {
-		DBusMessageIter iter;
-		dbus_message_iter_init(message, &iter);
-
 		DBusMessage *reply = dbus_message_new_method_return(message);
 		if (reply != NULL) {
-			show_items(&iter);
+			show_items(message);
 			dbus_connection_send(connection, reply, NULL);
 			dbus_message_unref(reply);
 		} else {

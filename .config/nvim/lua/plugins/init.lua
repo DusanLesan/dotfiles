@@ -44,19 +44,6 @@ require("lazy").setup({
 	},
 
 	{
-		"nvimtools/none-ls.nvim",
-		event = "InsertEnter",
-		config = function ()
-			local null_ls = require("null-ls")
-			null_ls.setup({
-				sources = {
-					null_ls.builtins.diagnostics.typos,
-				}
-			})
-		end
-	},
-
-	{
 		"Mofiqul/vscode.nvim",
 		priority = 1000,
 		lazy = false,

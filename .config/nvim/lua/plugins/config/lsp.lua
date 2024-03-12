@@ -4,7 +4,8 @@ local servers = {
 	"jdtls",
 	"lua_ls",
 	"bright_script",
-	"pylsp"
+	"pylsp",
+	"typos_lsp",
 }
 
 local M = {
@@ -130,6 +131,7 @@ local server_opts = {
 	}
 }
 
+
 function M.config()
 	local lspconfig = require("lspconfig")
 	for _, server in ipairs(servers) do
@@ -145,6 +147,7 @@ function M.config()
 		lspconfig[server].setup(opts)
 	end
 	vim.cmd(":LspStart")
+	vim.cmd(":LspStart typos_lsp")
 end
 
 return M
