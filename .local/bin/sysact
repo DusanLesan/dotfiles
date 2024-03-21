@@ -14,7 +14,7 @@ actions=(
 
 action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" &&
 case "$action" in
-	'dunst') dunst_config ;;
+	'dunst') dunst-config ;;
 	'display') displayselect ;;
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;

@@ -60,14 +60,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	char output[24] = "";
-	if (e == 1)
-		strcat(output, " 󰈀");
-	if (h == 1)
-		strcat(output, " 󰀃");
-	if (w == 1)
-		strcat(output, " 󰖩");
-	if (v == 1)
-		strcat(output, " 󰻌");
+	if (e == 1) strcat(output, " 󰈀");
+	if (h == 1) strcat(output, " 󰀃");
+	if (w == 1) strcat(output, " 󰖩");
+	if (v == 1) strcat(output, " 󰻌");
+	if (strlen(output) <= 0) strcat(output, " ");
 
 	printf("%s\n", &output[1]);
 

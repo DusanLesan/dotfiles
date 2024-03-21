@@ -23,6 +23,7 @@ if [ 6 -gt "$D" ] && [ 10 -lt "$H" ] && [ "$H" -lt 20 ]; then
 	
 	pgrep -x "slack" > /dev/null || slack > /dev/null 2>&1 &
 
-	sleep 10
+	sleep 3
 	wifi-hotspot > /dev/null 2>&1
+	capture
 fi
