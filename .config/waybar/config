@@ -1,7 +1,6 @@
 [{
 	"height": 11,
-	"width": 1910,
-	"margin-top": 2,
+	"margin-top": 0,
 	"output": "DP-1",
 	"gtk-layer-shell": false,
 	"modules-left": [
@@ -25,12 +24,14 @@
 	"custom/cpubars": {
 		"format": "{}",
 		"exec": "cpubars",
-		"interval": 2
+		"interval": 2,
+		"on-click": "BLOCK_BUTTON=1 cpubars"
 	},
 	"custom/memory": {
 		"format": "{}",
 		"exec": "memory",
-		"interval": 2
+		"interval": 2,
+		"on-click": "BLOCK_BUTTON=1 memory"
 	},
 	"custom/internet": {
 		"format": "{}",
@@ -53,19 +54,5 @@
 	"tray": {
 		"icon-size": 16,
 		"spacing": 6
-	}
-},
-{
-	"height": 16,
-	"width": 1910,
-	"margin-top": 2,
-	"output": "!DP-1",
-	"gtk-layer-shell": false,
-	"modules-left": [
-		"hyprland/workspaces"
-	],
-	"hyprland/workspaces": {
-		"sort-by-name": true,
-		"on-click": "activate"
 	}
 }]

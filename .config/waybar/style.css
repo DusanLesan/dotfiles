@@ -5,7 +5,6 @@
 
 * {
 	border: none;
-	border-radius: 8px;
 	font-family: "JetBrainsMono", "Roboto Mono Medium", Helvetica, Arial, sans-serif;
 	font-size: 12px;
 	min-height: 0;
@@ -18,7 +17,6 @@ window#waybar {
 	color: @fgcolor;
 	transition-property: background-color;
 	transition-duration: .5s;
-	border-radius: 5px;
 }
 
 window#waybar.hidden {
@@ -26,10 +24,9 @@ window#waybar.hidden {
 }
 
 #workspaces button {
-	padding: 0 0 0 0;
-	margin: 0 0 0 0;
 	background-color: transparent;
 	color: @fgcolor;
+	border-radius: 8px;
 	min-width: 25px;
 }
 
