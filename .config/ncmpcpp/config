@@ -1,8 +1,6 @@
-# vim: filetype=conf
-
 ncmpcpp_directory = "~/.config/ncmpcpp"
 lyrics_directory = "~/.local/share/lyrics"
-mpd_music_dir = "~/Music"
+mpd_music_dir = "~/hdd_1/Music"
 message_delay_time = "1"
 visualizer_type = "spectrum"
 song_list_format = {$4%a - }{%t}|{$8%f$9}$R{$3(%l)$9}
@@ -20,7 +18,7 @@ progressbar_look = ->
 media_library_primary_tag = album_artist
 media_library_albums_split_by_date = no
 startup_screen = "media_library"
-display_volume_level = no
+display_volume_level = yes
 ignore_leading_the = yes
 external_editor = nvim
 use_console_editor = yes

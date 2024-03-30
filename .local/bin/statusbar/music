@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case $BLOCK_BUTTON in
+	1) mpc toggle ;;
+	2) $TERMINAL ncmpcpp ;;
+	3) mpdup ;;
+	4) mpc next || mpc play ;;
+	5) mpc prev ;;
+esac
+
+status="$(mpc status %state%)" || status=""
+if [ "$status" = "playing" ]; then
+	mpc current --format="%artist% - %title%"
+else
+	echo "$status"
+fi

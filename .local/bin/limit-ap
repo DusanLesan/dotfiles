@@ -11,7 +11,7 @@ getInfo() {
 	OPTION="$(prompt 'Values:' "Default values($bandwidth$unit @ $interface)"$'\nChange values')" || exit 1
 	if [ "$OPTION" = "Change values" ]; then
 		interface="$(prompt 'Select interface:' "$(ip -br -4 addr | awk '$2 == "UP" {print $1}')")" || exit 1
-		bandwidth=$(prompt "Bandwith in $unit" "$bandwidth") || exit 1
+		bandwidth=$(prompt "Bandwidth in $unit" "$bandwidth") || exit 1
 	fi
 }
 
@@ -34,7 +34,7 @@ while getopts 'acdi:b:u:' OPTION; do
 		a) ACTION="Add rule" ;;
 		c) ACTION="Change rule" ;;
 		d) ACTION="Delete rule" ;;
-		?) help; kill $$ ;;
+		*) help ;;
 	esac
 done
 

@@ -61,7 +61,7 @@ local opts = {
 			name = "Buffers",
 			n = "Move Next",
 			p = "Move Previous",
-			c = "close"
+			z = "close"
 		},
 		f = {
 			name = "+Find",

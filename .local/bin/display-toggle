@@ -11,12 +11,12 @@ active_displays=($(xrandr --listmonitors | awk '{print $4}'))
 
 for ((i=0; i<${#connected_displays[@]}; i++)); do
 	if [ "$1" -eq "$((i))" ]; then
-		if [[ " ${active_displays[@]} " =~ " ${connected_displays[i]} " ]]; then
+		if [[ " ${active_displays[*]} " =~ " ${connected_displays[i]} " ]]; then
 			cmd="$cmd --output ${connected_displays[i]} --off"
 		else
 			setCmd ${connected_displays[i]}
 		fi
-	elif [[ " ${active_displays[@]} " =~ " ${connected_displays[i]} " ]]; then
+	elif [[ " ${active_displays[*]} " =~ " ${connected_displays[i]} " ]]; then
 		setCmd ${connected_displays[i]}
 	fi
 done

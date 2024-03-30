@@ -6,6 +6,7 @@ map('n', '<A-k>', ':m .-2<CR>', default_opts)
 map('n', '<A-j>', ':m .+1<CR>', default_opts)
 
 map('i', '<C-BS>', '<C-w>', default_opts)
+map('i', '<C-Delete>', '<C-o>dw', default_opts)
 
 -- Toggle spelling
 map('n', '<F10>', ':set spell!<CR>', default_opts)
@@ -30,10 +31,10 @@ map('n', '<S-Right>', ':vertical resize +2<CR>', default_opts)
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', default_opts)
 map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', default_opts)
-map('n', '<S-x>', ':bdelete<CR>', default_opts)
+map('n', '<A-z>', ':bdelete<CR>', default_opts)
 map('n', '<leader>bn', ':BufferLineMoveNext<CR>', default_opts)
 map('n', '<leader>bp', ':BufferLineMovePrev<CR>', default_opts)
-map('n', '<leader>bc', ':Bdelete<CR>', default_opts)
+map('n', '<leader>bz', ':bdelete<CR>', default_opts)
 
 map('n', '<leader>e', ":Oil<CR>", default_opts)
 map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
