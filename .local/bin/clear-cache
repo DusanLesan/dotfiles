@@ -31,7 +31,7 @@ cleanCache() {
 	rm -rf $list
 
 	find .config/BraveSoftware/Brave-Browser/* -not \( -path '*Default*' -or -name 'First Run' -or -name 'Local State' -or -name 'chrome_shutdown_ms.txt' \) -delete
-	find .config/code-oss/user-data/* -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -delete
+	find .config/code-oss/user-data/* -depth -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -exec rm -r {} +
 }
 
 cleanShellHistory() {

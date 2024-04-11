@@ -89,6 +89,7 @@ cmd delete ${{
 			rm -rf "$x" || sudo -A rm -rf "$x"
 		done
 	fi
+	echo
 }}
 
 # compress current file or selected files with tar and gunzip

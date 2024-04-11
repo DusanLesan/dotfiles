@@ -5,7 +5,7 @@ openTree() {
 	remote=$(git remote)
 	[ $(wc -l <<< $remote) -gt 1 ] && remote=$(prompt "Pick remote:" "$remote")
 	url=$(git remote get-url $remote)
-	url=$(sed 's#^git@\(.*\):\(.*\)\.git$#https://\1/\2#' <<< $url)
+	url=$(sed -E 's#^(ssh://)?git@([^:/]+)[:/](.+).git#https://\2/\3#' <<< $url)
 	[[ $url == *"github.com"* ]] && [ -n "$branch" ] && url+=/tree/$branch
 	$BROWSER $url
 }
