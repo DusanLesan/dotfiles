@@ -27,20 +27,20 @@ getpass() {
 }
 
 getfilename() {
-	name="$1"
+	filename="$1"
 	dir="$2"
 	if [ -e "$dir$name" ]; then
-		name="${1%.*}"
-		ext="${1#"$name"}"
-		[ -z "$name" ] && [ -n "$ext" ] && name="$ext" && ext=""
+		[[ "$filename" == .* ]] && { dot="."; filename="${filename#.}"; }
+		name="${filename%%.*}"
+		ext="${filename#"$name"}"
 		i="${name##*[!0-9]}"
 		[ -z "$i" ] && i=1 || name="${name%%$i*}"
-		while [ -e "$dir$name$i$ext" ]; do
+		while [ -e "$dir$dot$name$i$ext" ]; do
 			((i++))
 		done
-		name="$name$i$ext"
+		filename="$dot$name$i$ext"
 	fi
-	echo "$name"
+	echo "$filename"
 }
 
 wait() {

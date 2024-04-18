@@ -229,6 +229,7 @@ map mu %dmenuumount "$fx"
 map ae $ext $f
 map at tar
 map az zip
+map ai &arc $fx
 map am mount_archive
 
 map R reload

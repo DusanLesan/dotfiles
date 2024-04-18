@@ -8,6 +8,18 @@ setDefaultVideoPath() {
 	video_path="/dev/v4l/by-id/$device_id"
 }
 
+setAudioDevice() {
+	case "$1" in
+		"c") audio="MS2109" ;;
+		"i") declare -A devices
+			while read -r index description; do
+				devices["$description"]=$index
+			done < <(awk -F '[:\\[\\]]' '$1 ~ /^\s[0-9]/ {print $2,$4}' /proc/asound/cards)
+			audio=${devices["$(prompt "Select audio device:" "$(printf '%s\n' "${!devices[@]}")")"]} || exit 1 ;;
+		*) audio="$1" ;;
+	esac
+}
+
 optionPicker() {
 	declare -A array
 	video_path="/dev/v4l/by-id/$(prompt "Choose device" "$(ls /dev/v4l/by-id)")" || exit 1
@@ -21,7 +33,7 @@ optionPicker() {
 			format="${BASH_REMATCH[2]}"
 			formats+=($format)
 		fi
-	done <<< "$(v4l2-ctl --device=$video_path --list-formats-ext)"
+	done < <(v4l2-ctl --device=$video_path --list-formats-ext)
 
 	video_format=$(prompt "Video format:" "$(printf '%s\n' "${formats[@]}")") || exit 1
 	video_size=$(prompt "Video size:" "$(printf '%s\n' "${array[$video_format]:1}")") || exit 1
@@ -30,7 +42,7 @@ optionPicker() {
 }
 
 display() {
-	[ -n "$audio" ] && ffplay -f alsa -i hw:${audio//c/$defaultAudio} -nodisp &
+	[ -n "$audio" ] && ffplay -f alsa -i hw:$audio -nodisp &
 
 	ffmpeg \
 		-f v4l2 \
@@ -92,13 +104,12 @@ file_name="$(getfilename "output.mkv" "$PWD/")"
 video_size=1280x720
 video_format="mjpeg"
 framerate=30
-defaultAudio=MS2109
 
 while getopts "rsia:v:d:f:" opt; do
 	case "$opt" in
 		r) mode=record ;;
 		s) mode=sound ;;
-		a) audio="$OPTARG" ;;
+		a) setAudioDevice "$OPTARG" ;;
 		v) video_path="$OPTARG" ;;
 		d) video_size="$OPTARG" ;;
 		f) framerate="$OPTARG" ;;
