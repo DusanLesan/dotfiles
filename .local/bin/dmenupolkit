@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. utils
+
 if test "$1" != '_CALLED_INTERNALLY'; then
 	exec cmd-polkit-agent -s -c "$0 _CALLED_INTERNALLY"
 else
@@ -14,7 +16,7 @@ else
 			message="$(printf '%s' "$msg" | jq -rc '.message // "No message given!"')"
 
 			# Request a password prompt from dmenu
-			response=$(printf $message | dmenu -nb "#A54242" -P -p "$message: $prompt")
+			response=$(getpass "$message. $prompt")
 
 			# Cancel authentication if no password was given, otherwise respond with given password
 			if test -z "$response"; then

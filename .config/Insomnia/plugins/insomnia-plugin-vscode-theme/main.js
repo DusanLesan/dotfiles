@@ -7,7 +7,7 @@ module.exports.themes = [{
 				grid-template: "Header Header" 0px
 					"Banner Banner" 0px
 					"Navbar Content" 1fr
-					"Statusbar Statusbar" 1px [row-end] / 0px 1fr;
+					"Statusbar Statusbar" 0px [row-end] / 0px 1fr;
 			}
 			.notice.error {
 				border-style: unset;
