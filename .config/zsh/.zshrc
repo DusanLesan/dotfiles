@@ -1,6 +1,6 @@
 # Use lf to switch directories and bind it to ctrl-o
 function lfcd () {
-	cd "$(lfrun -print-last-dir "$@")"
+	tmux new-session 'cd "$(lfrun -print-last-dir "$@")"' > /dev/null
 }
 
 if [ "$_START_LFCD" ]; then
