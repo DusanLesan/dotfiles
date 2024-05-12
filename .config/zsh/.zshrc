@@ -3,7 +3,7 @@ function lfcd () {
 	if [[ $# -eq 0 ]]; then
 		tmp="$(mktemp -uq)"
 		trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
-		tmux new-session "lfrun -last-dir-path=\"$tmp\"" > /dev/null
+		lfrun -last-dir-path="$tmp"
 		if [ -f "$tmp" ]; then
 			dir="$(cat "$tmp")"
 			[ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"

@@ -3,7 +3,6 @@
 . utils
 divider='---------'
 goback='Back'
-exit='Exit'
 
 power_on() {
 	if bluetoothctl show | grep -F -q 'Powered: yes'; then
@@ -96,7 +95,8 @@ device_connected() {
 
 toggle_state() {
 	[[ $2 == *" yes" ]] && action="$3" || action="$4"
-	bluetoothctl "$action" "$1"
+	bluetoothctl "$action" "$1" 1>/dev/null 2>&1
+	sleep 1
 }
 
 device_menu() {
@@ -107,15 +107,14 @@ device_menu() {
 		esac
 	done < <(bluetoothctl info "$1")
 
-	options="$Connected\n$Paired\n$Trusted\n$divider\n$goback\n$exit"
+	options="$Connected\n$Paired\n$Trusted\n$divider\n$goback"
 	chosen="$(prompt "$2" "$(printf "%b" "$options")")"
 
 	case $chosen in
-		"" | "$divider") echo 'No option chosen.' ;;
 		"$Connected") toggle_state "$1" "$chosen" 'disconnect' 'connect' ;;
 		"$Paired") toggle_state "$1" "$chosen" 'remove' 'pair' ;;
 		"$Trusted") toggle_state "$1" "$chosen" 'untrust' 'trust' ;;
-		"$goback") show_menu ;;
+		"*") show_menu ;;
 	esac
 }
 
@@ -135,16 +134,15 @@ show_menu() {
 		pairable="$(pairable_on)"
 		discoverable="$(discoverable_on)"
 
-		options="$(printf "%s\n" "${!devices[@]}")\n$divider\n$power\n$scan\n$pairable\n$discoverable\n$exit"
+		options="$(printf "%s\n" "${!devices[@]}")\n$divider\n$power\n$scan\n$pairable\n$discoverable"
 	else
 		power='Power: off'
-		options="$power\n$exit"
+		options="$power"
 	fi
 
-	chosen="$(prompt 'Bluetooth' "$(printf "%b" "$options")")"
+	chosen="$(prompt 'Bluetooth' "$(printf "%b" "$options")")" || return 0
 
 	case $chosen in
-		"" | "$divider") echo 'No option chosen.' ;;
 		"$power") toggle_power ;;
 		"$scan") toggle_scan ;;
 		"$discoverable") toggle_discoverable ;;
@@ -172,14 +170,21 @@ print_status() {
 		mapfile -t connected_devices < <(bluetoothctl devices Connected | grep -F Device | cut -d ' ' -f 2)
 		devices=''
 		for device in "${connected_devices[@]}"; do
-			device_alias="$(bluetoothctl info "$device" | grep -F 'Alias' | cut -d ' ' -f 2-)"
-			devices="${devices} $device_alias"
+			while IFS=':' read -r key value; do
+				key=${key##$'\t'}
+				case $key in
+					'Alias') alias=$value ;;
+					'Battery Percentage') [[ $value =~ \(([^\)]+)\) ]] && battery="${BASH_REMATCH[1]}" ;;
+				esac
+			done < <(bluetoothctl info "$device")
+			devices="${devices}$alias $battery"
 		done
-		printf ' %s\n' "$devices"
+		printf '%s\n' "$devices"
 	else
 		echo ''
 	fi
 }
 
-show_menu
+[[ $BLOCK_BUTTON == 1 ]] && show_menu
+
 print_status
