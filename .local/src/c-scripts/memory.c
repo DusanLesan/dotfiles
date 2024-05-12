@@ -15,7 +15,7 @@ void displayhogs(void) {
 	fread(buffer, size, 1, fp);
 	buffer[size] = '\0';
 
-	char *args[] = {"/bin/notify-send", "Memmory hogs:", buffer, NULL};
+	char *args[] = {"/bin/notify-send", "Memory hogs:", buffer, NULL};
 	execv(args[0], args);
 	pclose(fp);
 }

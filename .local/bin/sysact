@@ -3,6 +3,7 @@
 . utils
 
 actions=(
+	'bluetooth'
 	'dunst'
 	'display'
 	'lock'
@@ -15,6 +16,7 @@ actions=(
 action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" &&
 case "$action" in
 	'dunst') dunst-config ;;
+	'bluetooth') dmenu-bluetooth ;;
 	'display') display-select ;;
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;

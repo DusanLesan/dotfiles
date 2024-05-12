@@ -226,6 +226,7 @@ map Y yank_path
 map <a-y> yank_image
 map r :rename; reload
 map R open-drawer "nvim -c Oil && lf -remote \"send $id reload\""
+map T open-drawer zsh
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
