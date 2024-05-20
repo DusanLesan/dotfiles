@@ -15,7 +15,6 @@ power_on() {
 toggle_power() {
 	if power_on; then
 		bluetoothctl power off
-		show_menu
 	else
 		if rfkill list bluetooth | grep -F -q 'blocked: yes'; then
 			rfkill unblock bluetooth && sleep 3
@@ -42,7 +41,7 @@ toggle_scan() {
 		show_menu
 	else
 		bluetoothctl scan on &
-		echo 'Scanning...'
+		notify 'Scanning...'
 		sleep 5
 		show_menu
 	fi
@@ -114,7 +113,7 @@ device_menu() {
 		"$Connected") toggle_state "$1" "$chosen" 'disconnect' 'connect' ;;
 		"$Paired") toggle_state "$1" "$chosen" 'remove' 'pair' ;;
 		"$Trusted") toggle_state "$1" "$chosen" 'untrust' 'trust' ;;
-		"*") show_menu ;;
+		*) show_menu ;;
 	esac
 }
 

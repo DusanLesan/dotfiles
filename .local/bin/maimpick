@@ -1,16 +1,13 @@
 #!/bin/sh
 
+. utils
 path="$HOME/hdd_1/Pictures/screenshot"
 args=""
 type=""
 declare -A display_mode
+modes=( 'Select' 'Fullscreen' 'Timer' )
 
 getType() {
-	modes=(
-		"Select"
-		"Fullscreen"
-	)
-
 	displays=$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
 	IFS=$'\n'
 	for i in $displays; do
@@ -19,55 +16,46 @@ getType() {
 	done
 	unset IFS
 
-	target=$(printf '%s\n' "${modes[@]}" | dmenu -p 'Screenshot:') || exit 1
+	type="$(prompt 'Screenshot:' "$(printf '%s\n' "${modes[@]}")")" || exit 1
+	if [ "$type" = 'Timer' ]; then
+		time="$(prompt 'Time in seconds:')" || exit 1
+		modes[0]='Window'
+		getType
+	fi
 }
 
 getDestination() {
-	destination=( "Clipboard" "File" "Both" )
-	dest=$(printf '%s\n' "${destination[@]}" | dmenu -p 'Destination:') || exit 1
+	dest="$(prompt 'Destination:' $'Clipboard\nFile\nBoth')" || exit 1
 }
 
-case "$1" in
-	"-a")
-		target="Window"
-		dest="File"
+if [ "$1" = '-a' ]; then
+	type='Active'
+	dest="File"
+else
+	getType
+	getDestination
+fi
+
+case "$type" in
+	'Fullscreen') args="-window root" ;;
+	'Select') pkill xbanish ;;
+	'Active'|'Window')
+		if [ "$type" = 'Window' ]; then
+			id="-window $(xdotool selectwindow)"
+		else
+			id="$(xprop -root _NET_ACTIVE_WINDOW)"
+			args="-window $((${id##*# }))"
+		fi
 	;;
-	*)
-		getType
-		getDestination
-	;;
+	*) args="-window root -crop ${display_mode[$type]}" ;;
 esac
 
-case "$target" in
-	'Fullscreen')
-		args="-window root"
-		type="full"
-	;;
-	'Select')
-		type="select"
-		pkill xbanish
-	;;
-	'Window')
-		id="$(xprop -root _NET_ACTIVE_WINDOW)"
-		args="-window $((${id##*# }))"
-		type="active"
-	;;
-	*)
-		args="-window root -crop ${display_mode[$target]}"
-		type="$target"
-	;;
-esac
+[ -n "$time" ] && sleep "$time"
 
 case "$dest" in
-	'Clipboard')
-		import $args png:- | xclip -sel c -t image/png
-	;;
-	'Both')
-		import $args png:- | tee "$path/$type-$(date '+%Y%m%d-%H%M%S').png" | xclip -sel c -t image/png
-	;;
-	*)
-		import $args "$path/$type-$(date '+%Y%m%d-%H%M%S').png"
-	;;
+	'Clipboard') import $args png:- | xclip -sel c -t image/png ;;
+	'Both') import $args png:- | tee "$path/${type,,}-$(date '+%Y%m%d-%H%M%S').png" | xclip -sel c -t image/png ;;
+	*) import $args "$path/${type,,}-$(date '+%Y%m%d-%H%M%S').png" ;;
 esac
 
-[ "$target" = "Select" ] && exec xbanish -t 5
+[ "$type" = 'Select' ] && exec xbanish -t 5 &
