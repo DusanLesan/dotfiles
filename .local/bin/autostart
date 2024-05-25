@@ -4,7 +4,7 @@
 H=$(date +%H)
 D=$(date +%u)
 
-if [ 6 -gt "$D" ] && [ 10 -lt "$H" ] && [ "$H" -lt 20 ]; then
+if [ "$D" -lt 6 ] && [ "$H" -gt 10 ] && [ "$H" -lt 20 ]; then
 	xrandr \
 		--output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal \
 		--output DP-0 --primary --mode 1920x1080 --pos 1920x0 --rotate normal \

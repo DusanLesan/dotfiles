@@ -50,10 +50,8 @@ cmd open_new ${{
 	esac
 }}
 
-cmd mkdir ${{
-	printf "Directory Name: "
-	read ans
-	mkdir $ans
+cmd mkdir :{{
+	open-drawer 'printf "Directory Name: "&& read ans && mkdir $ans' 1
 }}
 
 cmd mkfile ${{
@@ -101,7 +99,7 @@ cmd delete ${{
 }}
 
 cmd open-drawer &{{
-	tmux split-window -l 25% "$1"
+	tmux split-window -l $2 "$1 && lf -remote \"send $id load\""
 }}
 
 # compress current file or selected files with tar and gunzip
@@ -227,8 +225,8 @@ map x cut
 map Y yank_path
 map <a-y> yank_image
 map r :rename; reload
-map R open-drawer "nvim -c Oil && lf -remote \"send $id reload\""
-map T open-drawer zsh
+map R open-drawer "nvim -c Oil" 25%
+map T open-drawer zsh 25%
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
