@@ -3,6 +3,7 @@
 . utils
 
 actions=(
+	''
 	'bluetooth'
 	'dunst'
 	'display'

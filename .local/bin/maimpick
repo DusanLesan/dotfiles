@@ -41,7 +41,7 @@ case "$type" in
 	'Select') pkill xbanish ;;
 	'Active'|'Window')
 		if [ "$type" = 'Window' ]; then
-			id="-window $(xdotool selectwindow)"
+			args="-window $(selx -f '%i')"
 		else
 			id="$(xprop -root _NET_ACTIVE_WINDOW)"
 			args="-window $((${id##*# }))"

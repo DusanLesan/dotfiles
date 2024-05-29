@@ -1,8 +1,15 @@
 #!/bin/sh
 
 . utils
-
 declare -A params
+modes=(range)
+
+setGeometry() {
+	IFS=, read -r x y w h < <(selx)
+	params[range,size]="${w}x${h}"
+	params[range,offset]="${x},${y}"
+}
+
 while read key size offset; do
 	modes[${#modes[@]}]="$key"
 	params[$key,size]="$size"
@@ -10,6 +17,8 @@ while read key size offset; do
 done <<< "$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1, $2"x"$4, $6","$7}')"
 
 target=$(prompt 'Record:' "$(printf '%s\n' "${modes[@]}")") || exit 1
+[ $target = 'range' ] && setGeometry
+
 ffmpeg \
 	-f x11grab \
 	-draw_mouse 1 \
