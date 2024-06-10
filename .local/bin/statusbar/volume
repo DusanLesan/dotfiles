@@ -1,20 +1,21 @@
 #!/bin/sh
 
 setVolume() {
-	pactl "$@"
+	wpctl "$@"
 	kill -39 $(pidof dwmblocks)
 }
 
 case $BLOCK_BUTTON in
 	1) alacritty --class "floating" -e "pulsemixer" ;;
-	3) setVolume set-sink-mute 0 toggle ;;
-	4) setVolume set-sink-volume 0 +5% ;;
-	5) setVolume set-sink-volume 0 -5% ;;
+	3) setVolume set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+	4) setVolume set-volume @DEFAULT_AUDIO_SINK@ 5%+ ;;
+	5) setVolume set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+	9) sleep 3 && kill -39 $(pidof dwmblocks) ;;
 esac
 
-[ "$(pacmd list-sinks | awk '/muted/ { print $2 }')" = "yes" ] && echo  && exit
+vol="$(wpctl get-volume @DEFAULT_AUDIO_SINK@)"
+[ -z "$vol" ] && BLOCK_BUTTON=9 volume && exit
+[ "$vol" != "${vol%\[MUTED\]}" ] && echo   && exit
+vol="${vol#Volume: }"
 
-icon="󰕾 "
-vol="$(pactl get-sink-volume 0 | awk -F  "/" '{gsub(" ", "", $2); print $2}')"
-
-echo "$icon$vol"
+printf "󰕾 %.0f%%" "${vol/./}"

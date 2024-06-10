@@ -23,7 +23,7 @@ while getopts "c:a:n:" opt; do
 	esac
 done
 
-if [ -z "$commands" ] || [ -z "$args" ]; then
+if [ -z "$commands" ]; then
 	echo "Missing mandatory options" && exit 1
 fi
 

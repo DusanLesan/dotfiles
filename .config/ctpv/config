@@ -5,3 +5,15 @@ preview any_text text/* {{
 preview zip */zip {{
 	unzip -l "${f}"
 }}
+
+preview pdf */pdf {{
+	if [ ! -f "$cache_f" ]; then
+		cache_path="$HOME/.cache/ctpv"
+		libreoffice \
+			--headless \
+			--convert-to jpg \
+			--outdir "$cache_path" \
+			"$f" && mv -- "$cache_path/$(basename "$f" .pdf).jpg" "$cache_f"
+	fi
+	convert_and_show_image
+}}
