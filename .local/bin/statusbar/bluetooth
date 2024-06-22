@@ -8,6 +8,8 @@ if bluetoothctl show | grep -F -q 'Powered: yes'; then
 	mapfile -t connected_devices < <(bluetoothctl devices Connected | grep -F Device | cut -d ' ' -f 2)
 	devices=''
 	for device in "${connected_devices[@]}"; do
+		battery=''
+		alias=''
 		while IFS=':' read -r key value; do
 			key=${key##$'\t'}
 			case $key in

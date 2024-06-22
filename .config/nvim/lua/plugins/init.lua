@@ -14,6 +14,8 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	{ import = "plugins.config" },
 
+	"mg979/vim-visual-multi",
+
 	{
 		"max397574/better-escape.nvim",
 		event = "InsertEnter",

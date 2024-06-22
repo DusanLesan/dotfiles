@@ -31,10 +31,10 @@ map('n', '<S-Right>', ':vertical resize +2<CR>', default_opts)
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', default_opts)
 map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', default_opts)
-map('n', '<A-z>', ':bdelete<CR>', default_opts)
 map('n', '<leader>bn', ':BufferLineMoveNext<CR>', default_opts)
 map('n', '<leader>bp', ':BufferLineMovePrev<CR>', default_opts)
-map('n', '<leader>bz', ':bdelete<CR>', default_opts)
+map('n', '<leader>z', ':bdelete<CR>', default_opts)
+map('n', '<A-z>', ':bdelete!<CR>', default_opts)
 
 map('n', '<leader>e', ":Oil<CR>", default_opts)
 map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
