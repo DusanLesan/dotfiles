@@ -20,12 +20,7 @@ int read_fields(char buffer[], unsigned long long int *fields) {
 		&fields[0], &fields[1], &fields[2], &fields[3], &fields[4], &fields[5], &fields[6], &fields[7], &fields[8], &fields[9]);
 }
 
-int main(void) {
-	char* button = getenv("BLOCK_BUTTON");
-	if(button != NULL)
-		if (atoi(button) == 1)
-			sysact();
-
+int parse_cpu(void) {
 	FILE *statFile, *cacheFile;
 	unsigned long long int fields[10], total_tick[MAX_CPU], total_tick_old[MAX_CPU], idle[MAX_CPU], idle_old[MAX_CPU], del_total_tick[MAX_CPU], del_idle[MAX_CPU];
 	int i, cpus = 0;
@@ -34,21 +29,27 @@ int main(void) {
 	char * bars[] = {"▁","▂","▃","▄","▅","▆","▇","█"};
 
 	statFile = fopen("/proc/stat", "r");
-	cacheFile = fopen("/tmp/cpubarscache", "r");
-	if (statFile == NULL)
+	if (statFile == NULL) {
 		perror("Error");
-
-	if (cacheFile != NULL) {
-		while (fgets(buffer, sizeof(buffer), cacheFile) != NULL) {
-			read_fields(buffer, fields);
-			idle_old[cpus] = fields[1];
-			total_tick_old[cpus] = fields[0];
-			cpus++;
-		}
+		return 1;
 	}
 
+	cacheFile = fopen("/tmp/cpubarscache", "r+");
+	if (cacheFile == NULL) {
+		perror("Error");
+		fclose(statFile);
+		return 1;
+	}
+
+	while (fgets(buffer, sizeof(buffer), cacheFile) != NULL) {
+		read_fields(buffer, fields);
+		idle_old[cpus] = fields[1];
+		total_tick_old[cpus] = fields[0];
+		cpus++;
+	}
+
+	fseek(cacheFile, 0, SEEK_SET);
 	cpus = 0;
-	cacheFile = fopen("/tmp/cpubarscache", "w");
 	while (fgets(buffer, sizeof(buffer), statFile) != NULL && read_fields(buffer, fields) == 10) {
 		for (i=0, total_tick[cpus] = 0; i<10; i++) {
 			total_tick[cpus] += fields[i];
@@ -73,4 +74,13 @@ int main(void) {
 	fclose(cacheFile);
 	fclose(statFile);
 	return 0;
+}
+
+int main(void) {
+	char* button = getenv("BLOCK_BUTTON");
+	if(button != NULL)
+		if (atoi(button) == 1)
+			sysact();
+
+	parse_cpu();
 }

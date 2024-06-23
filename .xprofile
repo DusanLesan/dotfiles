@@ -1,5 +1,6 @@
 #!/bin/sh
 
+xcompmgr &
 solid-bg '#181818' &
 export $(gnome-keyring-daemon --start)
 dwmblocks > /dev/null 2>&1 &
