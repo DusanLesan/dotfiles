@@ -17,7 +17,8 @@ void sysact(void) {
 
 int read_fields(char buffer[], unsigned long long int *fields) {
 	return sscanf(buffer, "c%*s %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-		&fields[0], &fields[1], &fields[2], &fields[3], &fields[4], &fields[5], &fields[6], &fields[7], &fields[8], &fields[9]);
+			&fields[0], &fields[1], &fields[2], &fields[3], &fields[4],
+			&fields[5], &fields[6], &fields[7], &fields[8], &fields[9]);
 }
 
 int parse_cpu(void) {
@@ -26,7 +27,7 @@ int parse_cpu(void) {
 	int i, cpus = 0;
 	double percent_usage;
 	char buffer[BUF_MAX];
-	char * bars[] = {"▁","▂","▃","▄","▅","▆","▇","█"};
+	char *bars[] = {"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
 
 	statFile = fopen("/proc/stat", "r");
 	if (statFile == NULL) {
@@ -36,22 +37,24 @@ int parse_cpu(void) {
 
 	cacheFile = fopen("/tmp/cpubarscache", "r+");
 	if (cacheFile == NULL) {
-		perror("Error");
-		fclose(statFile);
-		return 1;
+		cacheFile = fopen("/tmp/cpubarscache", "w+");
+		if (cacheFile == NULL) {
+			perror("Error opening file");
+			return 1;
+		}
+	} else {
+		while (fgets(buffer, sizeof(buffer), cacheFile) != NULL) {
+			read_fields(buffer, fields);
+			idle_old[cpus] = fields[1];
+			total_tick_old[cpus] = fields[0];
+			cpus++;
+		}
+		fseek(cacheFile, 0, SEEK_SET);
+		cpus = 0;
 	}
 
-	while (fgets(buffer, sizeof(buffer), cacheFile) != NULL) {
-		read_fields(buffer, fields);
-		idle_old[cpus] = fields[1];
-		total_tick_old[cpus] = fields[0];
-		cpus++;
-	}
-
-	fseek(cacheFile, 0, SEEK_SET);
-	cpus = 0;
 	while (fgets(buffer, sizeof(buffer), statFile) != NULL && read_fields(buffer, fields) == 10) {
-		for (i=0, total_tick[cpus] = 0; i<10; i++) {
+		for (i = 0, total_tick[cpus] = 0; i < 10; i++) {
 			total_tick[cpus] += fields[i];
 		}
 		idle[cpus] = fields[3];
@@ -62,11 +65,11 @@ int parse_cpu(void) {
 
 		del_total_tick[cpus] = total_tick[cpus] - total_tick_old[cpus];
 		del_idle[cpus] = idle[cpus] - idle_old[cpus];
-		percent_usage = ((del_total_tick[cpus] - del_idle[cpus]) / (double) del_total_tick[cpus]) * 100;
+		percent_usage = ((del_total_tick[cpus] - del_idle[cpus]) / (double)del_total_tick[cpus]) * 100;
 		i = percent_usage / 12.6;
-		if (cpus != 0 && i < 8 && i > -1) {
+		if (cpus != 0 && i < 8 && i > -1)
 			printf("%s", bars[i]);
-		}
+
 		cpus++;
 	}
 	printf("\n");
@@ -77,8 +80,8 @@ int parse_cpu(void) {
 }
 
 int main(void) {
-	char* button = getenv("BLOCK_BUTTON");
-	if(button != NULL)
+	char *button = getenv("BLOCK_BUTTON");
+	if (button != NULL)
 		if (atoi(button) == 1)
 			sysact();
 

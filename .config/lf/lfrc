@@ -4,7 +4,7 @@ set ifs "\n"
 set autoquit true
 set wrapscroll true
 set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
-set dupfilefmt "%b%n%e"
+set dupfilefmt "%b.%n%e"
 
 set previewer ctpv
 set cleaner ctpvclear
@@ -283,3 +283,9 @@ map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
 map gr &open-remote
+
+cmap <backspace2> cmd-delete-back
+cmap <backspace> cmd-delete-word-back
+cmap <c-delete> cmd-delete-word
+cmap <c-left> cmd-word-back
+cmap <c-right> cmd-word
