@@ -1,6 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dbus/dbus.h>
+#include <string.h>
+
+static char *url_decode(const char *str) {
+	char *decoded = malloc(strlen(str) + 1);
+	char *p = decoded;
+	while (*str) {
+		if (*str == '%') {
+			if (str[1] && str[2]) {
+				int value;
+				sscanf(str + 1, "%2x", &value);
+				*p++ = (char)value;
+				str += 2;
+			}
+		} else if (*str == '+') {
+			*p++ = ' ';
+		} else {
+			*p++ = *str;
+		}
+		str++;
+	}
+	*p = '\0';
+
+	return decoded;
+}
 
 static void show_items(DBusMessage *message) {
 	const char *term = getenv("TERMINAL");
@@ -9,13 +33,17 @@ static void show_items(DBusMessage *message) {
 	DBusMessageIter array;
 	dbus_message_iter_recurse(&iter, &array);
 	while (dbus_message_iter_get_arg_type(&array) != DBUS_TYPE_INVALID) {
-		const char *item;
+		char *item;
 		dbus_message_iter_get_basic(&array, &item);
 		item += 7;
+		item = url_decode(item);
+
 		char *cmd;
 		asprintf(&cmd, "%s lf '%s' &", term, item);
 		system(cmd);
 		free(cmd);
+		free(item);
+
 		dbus_message_iter_next(&array);
 	}
 }

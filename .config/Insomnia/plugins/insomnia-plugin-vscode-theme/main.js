@@ -31,7 +31,7 @@ module.exports.themes = [{
 			}
 		`,
 		background: {
-			default: '#1E1E1E',
+			default: '#181818',
 			success: '#50fa7b',
 			notice: '#f1fa8c',
 			warning: '#ffb86c',
@@ -54,7 +54,7 @@ module.exports.themes = [{
 		styles: {
 			sidebar: {
 				background: {
-					default: '#1E1E1E'
+					default: '#181818',
 				},
 				highlight: {
 					default: '#cccccc',
