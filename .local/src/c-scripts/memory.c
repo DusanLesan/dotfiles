@@ -25,7 +25,7 @@ void openhtop(void) {
 	execv(args[0], args);
 }
 
-void runbackground(void f()) {
+void runbackground(void(*f)()) {
 	pid_t child_pid = fork();
 	if (child_pid == 0)
 		f();

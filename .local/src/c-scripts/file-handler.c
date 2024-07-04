@@ -4,7 +4,7 @@
 #include <string.h>
 
 static char *url_decode(const char *str) {
-	char *decoded = malloc(strlen(str) + 1);
+	char *decoded = strdup(str);
 	char *p = decoded;
 	while (*str) {
 		if (*str == '%') {
@@ -48,20 +48,45 @@ static void show_items(DBusMessage *message) {
 	}
 }
 
-static DBusHandlerResult message_handler(DBusConnection *connection, DBusMessage *message, void *user_data) {
-	if (dbus_message_is_method_call(message, "org.freedesktop.FileManager1", "ShowItems")) {
-		DBusMessage *reply = dbus_message_new_method_return(message);
-		if (reply != NULL) {
-			show_items(message);
-			dbus_connection_send(connection, reply, NULL);
-			dbus_message_unref(reply);
-		} else {
-			fprintf(stderr, "Error creating reply message\n");
-			return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-		}
+static DBusHandlerResult send_response(DBusConnection *connection, DBusMessage *message) {
+	DBusMessage *reply = dbus_message_new_method_return(message);
+	if (!reply) {
+		fprintf(stderr, "Error creating reply message\n");
+		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 	}
 
+	dbus_connection_send(connection, reply, NULL);
+	dbus_message_unref(reply);
+
 	return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static DBusHandlerResult handle_get_all(DBusMessage *message, DBusConnection *connection) {
+	DBusMessageIter iter;
+	dbus_message_iter_init(message, &iter);
+	const char *path = NULL;
+	while (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_INVALID) {
+		if (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_STRING) {
+			dbus_message_iter_get_basic(&iter, &path);
+			if (path && strcmp(path, "org.freedesktop.FileManager1") == 0) {
+				return send_response(connection, message);
+			}
+		}
+		dbus_message_iter_next(&iter);
+	}
+
+	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+static DBusHandlerResult message_handler(DBusConnection *connection, DBusMessage *message, void *user_data) {
+	if (dbus_message_is_method_call(message, "org.freedesktop.FileManager1", "ShowItems")) {
+		show_items(message);
+		return send_response(connection, message);
+	} else if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Properties", "GetAll")) {
+		return handle_get_all(message, connection);
+	} else {
+		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+	}
 }
 
 int main() {
