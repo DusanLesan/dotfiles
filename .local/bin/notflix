@@ -14,7 +14,7 @@ die() {
 
 searchcontent() {
 	baseurl="https://1337x.to/"
-	searchEnpoint="sort-search/"
+	searchEndpoint="sort-search/"
 	urlParams="/seeders/desc/1/"
 
 	# make input queryable
@@ -22,7 +22,7 @@ searchcontent() {
 
 	# cache result
 	mkdir -p "$cachedir" || die "Failed to create cache directory"
-	curl -s "$baseurl$searchEnpoint$query$urlParams" -o "$cachedir/tmp.html"
+	curl -s "$baseurl$searchEndpoint$query$urlParams" -o "$cachedir/tmp.html"
 
 	# get search result titles (grep exit code will be non-zero if no match is found)
 	grep -Po '<a href="/torrent/.*>\K.*(?=</a>)' "$cachedir/tmp.html" > "$cachedir/titles.bw" || die 'No results found. Try again'

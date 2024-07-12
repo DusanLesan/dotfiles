@@ -27,4 +27,4 @@ ffmpeg \
 	-c:v libx264 \
 	-crf 28 \
 	-qp 0 \
-	"$(getfilename "${target}_recording.mkv" "$PWD/")"
+	"$(getfilename "${target}_recording.mp4" "$PWD/")"

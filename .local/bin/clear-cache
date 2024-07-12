@@ -10,7 +10,7 @@ pruneVscodeWorkspaces() {
 
 cleanCache() {
 	list="
-	$HOME/.cache/*
+	$HOME/.cache/*/
 	$HOME/.config/*/Cache/*
 	$HOME/.config/*/Code*Cache/*
 	$HOME/.config/*/DawnCache/*
@@ -47,4 +47,3 @@ deduplicate "$HOME/.cache/.bluetoothctl_history"
 
 sudo journalctl --vacuum-time=1s
 sudo pacman -Scq
-
