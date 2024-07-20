@@ -17,3 +17,11 @@ preview pdf */pdf {{
 	fi
 	convert_and_show_image
 }}
+
+preview audio audio/* {{
+	if exists ffmpeg; then
+		meta="$(ffmpeg -hide_banner -i "$f" 2>&1)"
+		printf '%s\n' "$meta"
+		y=$((y + $(printf '%s\n' "$meta" | wc -l)))
+	fi
+}}

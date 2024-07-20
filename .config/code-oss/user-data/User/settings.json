@@ -26,6 +26,7 @@
 		"cicd/automation": true
 	},
 	"npm.packageManager": "npm",
+	"githubPullRequests.pullBranch": "never",
 	"git.autofetch": true,
 	"git.openRepositoryInParentFolders": "never",
 	"gitlens.hovers.currentLine.over": "line",

@@ -17,12 +17,15 @@ require("lazy").setup({
 	"mg979/vim-visual-multi",
 
 	{
+		"folke/which-key.nvim",
+		event = "VeryLazy"
+	},
+
+	{
 		"max397574/better-escape.nvim",
 		event = "InsertEnter",
 		opts = {
-			mapping = "jk",
-			timeout = vim.o.timeoutlen,
-			keys = "<Esc>"
+			timeout = vim.o.timeoutlen
 		}
 	},
 
