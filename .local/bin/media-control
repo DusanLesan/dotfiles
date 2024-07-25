@@ -1,0 +1,34 @@
+#!/bin/sh
+
+isServiceActive() {
+	pid=$(dbus-send --session --print-reply --dest=org.freedesktop.DBus / \
+		org.freedesktop.DBus.GetConnectionUnixProcessID string:${service} \
+		| grep -oP '(?<=uint32\s)\d+')
+
+	if echo $activeSinks | grep -q $pid; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+sendDBUsEvent() {
+	services=$(dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply \
+		--reply-timeout=2000 / org.freedesktop.DBus.ListNames | \
+		grep -o 'org.mpris.MediaPlayer2.[^"]*')
+
+	for service in $services; do
+		if isServiceActive; then
+			echo "Sending $1 to active service: $service"
+			dbus-send --print-reply --dest="$service" /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player."${1}"
+		fi
+	done
+}
+
+activeSinks=$(pactl list sink-inputs | grep -E '(application\.process\.id|application\.name)')
+
+if [ -z "$activeSinks" ] || echo "$activeSinks" | grep -q "Music Player Daemon"; then
+	mpdup &
+else
+	sendDBUsEvent "$1"
+fi
