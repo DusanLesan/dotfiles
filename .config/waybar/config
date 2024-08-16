@@ -1,7 +1,6 @@
 [{
 	"height": 11,
 	"margin-top": 0,
-	"output": "DP-1",
 	"gtk-layer-shell": false,
 	"modules-left": [
 		"hyprland/workspaces"
@@ -12,6 +11,8 @@
 		"custom/memory",
 		"custom/separator",
 		"custom/internet",
+		"custom/separator",
+		"custom/battery",
 		"custom/separator",
 		"clock",
 		"custom/separator",
@@ -38,6 +39,11 @@
 		"exec": "internet",
 		"interval": 5,
 		"on-click":"BLOCK_BUTTON=1 internet"
+	},
+	"custom/battery": {
+		"format": "{}",
+		"exec": "battery",
+		"interval": 60
 	},
 	"custom/separator": {
 		"format": " | ",
