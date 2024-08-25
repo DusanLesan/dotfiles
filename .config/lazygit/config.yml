@@ -15,7 +15,7 @@ customCommands:
     description: 'Create PR'
     context: 'localBranches'
   - key: 'G'
-    command: 'open-remote "{{.SelectedLocalBranch.Name}}" {{index .PromptResponses 0}}'
+    command: 'open-remote -b "{{.SelectedLocalBranch.Name}}" -m {{index .PromptResponses 0}}'
     description: 'Open remote branch'
     context: 'localBranches'
     prompts:
