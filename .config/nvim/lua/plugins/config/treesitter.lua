@@ -1,10 +1,9 @@
 local M = 	{
 	"nvim-treesitter/nvim-treesitter",
-	event = "VeryLazy",
-	cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" }
+	event = "VeryLazy"
 }
 
-M.opts = {
+local opts = {
 	use_languagetree = true,
 	ensure_installed = {
 	},
@@ -24,7 +23,20 @@ M.opts = {
 	context_commentstring = {
 		enable = true,
 		enable_autocmd = true
+	},
+	incremental_selection = {
+		enable = true,
+		keymaps = {
+			init_selection = "<leader>ss",
+			node_incremental = "<leader>si",
+			scope_incremental = "<leader>sc",
+			node_decremental = "<leader>sd"
+		}
 	}
 }
+
+function M.config()
+	require("nvim-treesitter.configs").setup(opts)
+end
 
 return M

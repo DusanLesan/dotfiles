@@ -1,0 +1,31 @@
+#!/bin/sh
+
+. utils
+
+formats=(
+	"zip (.zip)"
+	"7zip (.7z)"
+	"targ (.tar.gz)"
+	"tarx (.tar.xz)"
+	"tarz (.tar.zst)"
+)
+
+choice="$(prompt "Select compression format:" "$(printf '%s\n' "${formats[@]}")")" || exit 1
+read -r type extension < <(awk -F '[()]' '{print $1,$2}' <<< "$choice")
+archive_name="$(prompt "Enter the name for the $extension archive: ")" || exit 1
+
+unique_filename="$PWD/$(getfilename "$archive_name$extension" "$PWD/")"
+temp_dir=$(mktemp -d)
+mkdir "$temp_dir/$archive_name"
+cp -r "$@" "$temp_dir/$archive_name"
+cd "$temp_dir/$archive_name"
+
+case $type in
+	"tarx") tar -Jcvf "$unique_filename" . ;;
+	"targ") tar -czf "$unique_filename" . ;;
+	"tarz") env ZSTD="-6" tar --zstd -cf "$unique_filename" . ;;
+	"7zip") 7z a "$unique_filename" . ;;
+	"zip") zip -r "$unique_filename" . ;;
+esac
+[ $? -ne 0 ] && echo "Compression failed!" || echo "Compression successful! Archive created: $unique_filename$extension"
+rm -rf "$temp_dir"

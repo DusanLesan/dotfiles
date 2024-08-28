@@ -3,13 +3,13 @@ set hidden true
 set ifs "\n"
 set autoquit true
 set wrapscroll true
-set anchorfind false
-set incsearch true
-set findlen 0
 set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
+set dupfilefmt "%b.%n%e"
 
-set previewer ~/.config/lf/preview
-set cleaner ~/.config/lf/cleaner
+set previewer ctpv
+set cleaner ctpvclear
+&ctpv -s $id
+&ctpvquit $id
 
 cmd open ${{
 	case $(file --mime-type "$f" -b) in
@@ -51,10 +51,8 @@ cmd open_new ${{
 	esac
 }}
 
-cmd mkdir ${{
-	printf "Directory Name: "
-	read ans
-	mkdir $ans
+cmd mkdir :{{
+	open-drawer 'printf "Directory Name: "&& read ans && mkdir $ans' 1
 }}
 
 cmd mkfile ${{
@@ -71,8 +69,10 @@ cmd new_permission &{{
 	lf -remote "send $id reload"
 }}
 
-cmd yank_path ${{
-	echo "$fx" | xclip -i -selection clipboard
+cmd paste_link &{{
+	for file in $fx; do
+		ln -s "$file" .
+	done
 }}
 
 cmd yank_path $echo "$fx" | xclip -i -selection clipboard
@@ -215,6 +215,8 @@ map x cut
 map Y yank_path
 map <a-y> yank_image
 map r :rename; reload
+map R open-drawer "nvim -c Oil" 25%
+map T open-drawer zsh 25%
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
@@ -223,14 +225,15 @@ map V invert-below
 map mf mkfile
 map md mkdir
 map S push :new_permission<space>
+map <a-p> paste_link
 map mu %dmenuumount "$fx"
 
 map ae $ext $f
 map at tar
 map az zip
+map ai &arc $fx
 map am mount_archive
 
-map R reload
 map C clear
 map U unselect
 map c :clear; unselect
@@ -268,4 +271,10 @@ map gpr cd ~/git/5.0_roku/pluto-tv-roku/
 map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
-map gr &open-remote
+map gr &open-remote -f "$f"
+
+cmap <backspace2> cmd-delete-back
+cmap <backspace> cmd-delete-word-back
+cmap <c-delete> cmd-delete-word
+cmap <c-left> cmd-word-back
+cmap <c-right> cmd-word

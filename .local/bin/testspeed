@@ -1,0 +1,32 @@
+#!/bin/sh
+
+testCommandSpeed() {
+	local start=$(date +%s%N)
+
+	for ((i = 0; i < $num; i++)); do
+		$1 $args >/dev/null 2>&1
+	done
+
+	local end=$(date +%s%N)
+	local time=$((($end - $start) / 1000000))
+	echo "Time for $num * $1: $time milliseconds"
+}
+
+num=100
+
+while getopts "c:a:n:" opt; do
+	case $opt in
+		c) commands="$OPTARG";;
+		a) args="$OPTARG";;
+		n) num="$OPTARG";;
+		\?) echo "Invalid option: -$OPTARG" >&2; exit 1;;
+	esac
+done
+
+if [ -z "$commands" ]; then
+	echo "Missing mandatory options" && exit 1
+fi
+
+for command in $commands; do
+	testCommandSpeed "$command"
+done

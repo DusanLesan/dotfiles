@@ -7,7 +7,7 @@ import re
 
 output = errors = ''
 
-def executeCommand(params, failQuit = True):
+def executeCommand(params, failQuit=True):
 	try:
 		process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
 		out = process.communicate()[0].decode('utf-8')
@@ -58,7 +58,7 @@ def validateFile(file):
 
 	if spellcheck:
 		f.close()
-		data = executeCommand([ 'typos', '--format', 'json', '--color', 'never', temp.name ], False)
+		data = executeCommand(['typos', '--format', 'json', '--color', 'never', temp.name], False)
 		temp.close()
 		for typo in data.splitlines():
 			typo = json.loads(typo)

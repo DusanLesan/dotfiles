@@ -1,43 +1,42 @@
 local map = vim.api.nvim_set_keymap
 local default_opts = {noremap = true, silent = true}
 
--- Escape by using jk
-map('i', 'jk', '<Esc>', {silent = true})
-
 -- Move lines up and down with alt-up/down
-map('n', '<A-k>', ':m .-2<CR>', {silent = true})
-map('n', '<A-j>', ':m .+1<CR>', {silent = true})
+map('n', '<A-k>', ':m .-2<CR>', default_opts)
+map('n', '<A-j>', ':m .+1<CR>', default_opts)
+
+map('i', '<C-BS>', '<C-w>', default_opts)
+map('i', '<C-Delete>', '<C-o>dw', default_opts)
 
 -- Toggle spelling
-map('n', '<F10>', ':set spell!<CR>', {silent = true})
+map('n', '<F10>', ':set spell!<CR>', default_opts)
 
 -- Window controls
-map('n', '<A-Up>', '<C-w>k', {silent = true})
-map('n', '<A-Down>', '<C-w>j', {silent = true})
-map('n', '<A-Left>', '<C-w>h', {silent = true})
-map('n', '<A-Right>', '<C-w>l', {silent = true})
+map('n', '<A-Up>', '<C-w>k', default_opts)
+map('n', '<A-Down>', '<C-w>j', default_opts)
+map('n', '<A-Left>', '<C-w>h', default_opts)
+map('n', '<A-Right>', '<C-w>l', default_opts)
 
-map('t', '<A-Up>', '<C-\\><C-N><C-w>k', {silent = true})
-map('t', '<A-Down>', '<C-\\><C-N><C-w>j', {silent = true})
-map('t', '<A-Left>', '<C-\\><C-N><C-w>h', {silent = true})
-map('t', '<A-Right>', '<C-\\><C-N><C-w>l', {silent = true})
+map('t', '<A-Up>', '<C-\\><C-N><C-w>k', default_opts)
+map('t', '<A-Down>', '<C-\\><C-N><C-w>j', default_opts)
+map('t', '<A-Left>', '<C-\\><C-N><C-w>h', default_opts)
+map('t', '<A-Right>', '<C-\\><C-N><C-w>l', default_opts)
 
 -- Window resizing
-map('n', '<S-Up>', ':resize -2<CR>', {silent = true})
-map('n', '<S-Down>', ':resize +2<CR>', {silent = true})
-map('n', '<S-Left>', ':vertical resize -2<CR>', {silent = true})
-map('n', '<S-Right>', ':vertical resize +2<CR>', {silent = true})
+map('n', '<S-Up>', ':resize -2<CR>', default_opts)
+map('n', '<S-Down>', ':resize +2<CR>', default_opts)
+map('n', '<S-Left>', ':vertical resize -2<CR>', default_opts)
+map('n', '<S-Right>', ':vertical resize +2<CR>', default_opts)
 
 -- Buffers
-map('n', '<TAB>', ':BufferLineCycleNext<CR>', { noremap = true, silent = true })
-map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', { noremap = true, silent = true })
-map('n', '<S-x>', ':Bdelete this<CR>', { noremap = true, silent = true })
-map('n', '<leader>bn', ':BufferLineMoveNext<CR>', { noremap = true, silent = true })
-map('n', '<leader>bp', ':BufferLineMovePrev<CR>', { noremap = true, silent = true })
-map('n', '<leader>bc', ':Bdelete this<CR>', { noremap = true, silent = true })
+map('n', '<TAB>', ':BufferLineCycleNext<CR>', default_opts)
+map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', default_opts)
+map('n', '<leader>bn', ':BufferLineMoveNext<CR>', default_opts)
+map('n', '<leader>bp', ':BufferLineMovePrev<CR>', default_opts)
+map('n', '<leader>z', ':bdelete<CR>', default_opts)
+map('n', '<A-z>', ':bdelete!<CR>', default_opts)
 
-map('n', '<leader>e', ":Oil --float<CR>", default_opts)
-map('n', '<A-f>', ':NvimTreeFocus<CR>', default_opts)
+map('n', '<leader>e', ":Oil<CR>", default_opts)
 map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
 
 -- Write
@@ -57,14 +56,18 @@ map('n', '<leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>', default_opts)
 map('n', '<leader>lr', '<cmd>lua vim.lsp.buf.rename()<CR>', default_opts)
 map('n', '<leader>lI', ':LspInstallInfo<CR>', default_opts)
 map('n', '<leader>li', ':LspInfo<CR>', default_opts)
-map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
-map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', default_opts)
-map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', default_opts)
-map('n', '<leader>ff', ':Telescope find_files<CR>', default_opts)
-map('n', '<leader>fh', ':Telescope oldfiles<CR>', default_opts)
 map('n', '<leader>lj', ':Lspsaga diagnostic_jump_next<CR>', default_opts)
 map('n', '<leader>lk', ':Lspsaga diagnostic_jump_prev<CR>', default_opts)
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', default_opts)
+
+map('n', '<leader>lD', ':Telescope lsp_document_diagnostics<CR>', default_opts)
+map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', default_opts)
+map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', default_opts)
+map('n', '<leader><leader>', ':Telescope git_files<CR>', default_opts)
+map('n', '<leader>fh', ':Telescope oldfiles<CR>', default_opts)
+map('n', '<leader>fw', ':Telescope live_grep<CR>', default_opts)
+map('n', '<leader>fb', ':Telescope buffers<CR>', default_opts)
+map('n', '<leader>fz', ':Telescope current_buffer_fuzzy_find<CR>', default_opts)
 
 -- Git
 map('n', '<leader>gr', ":Gitsigns reset_hunk<CR>", default_opts)

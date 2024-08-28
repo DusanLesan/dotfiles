@@ -1,4 +1,5 @@
-require("plugins")
 require("core.init")
-require("colors")
-require("mappings.init")
+if not vim.g.vscode then
+	require("plugins")
+	require("mappings.init")
+end

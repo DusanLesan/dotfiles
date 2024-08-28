@@ -1,0 +1,167 @@
+#!/bin/sh
+
+. utils
+divider='---------'
+goback='Back'
+
+power_on() {
+	if bluetoothctl show | grep -F -q 'Powered: yes'; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+toggle_power() {
+	if power_on; then
+		bluetoothctl power off
+	else
+		if rfkill list bluetooth | grep -F -q 'blocked: yes'; then
+			rfkill unblock bluetooth && sleep 3
+		fi
+		bluetoothctl power on
+		show_menu
+	fi
+}
+
+scan_on() {
+	if bluetoothctl show | grep -F -q 'Discovering: yes'; then
+		echo 'Scan: on'
+		return 0
+	else
+		echo 'Scan: off'
+		return 1
+	fi
+}
+
+toggle_scan() {
+	if scan_on; then
+		kill "$(pgrep -f 'bluetoothctl scan on')"
+		bluetoothctl scan off
+		show_menu
+	else
+		bluetoothctl scan on &
+		notify 'Scanning...'
+		sleep 5
+		show_menu
+	fi
+}
+
+pairable_on() {
+	if bluetoothctl show | grep -F -q 'Pairable: yes'; then
+		echo 'Pairable: on'
+		return 0
+	else
+		echo 'Pairable: off'
+		return 1
+	fi
+}
+
+toggle_pairable() {
+	if pairable_on; then
+		bluetoothctl pairable off
+		show_menu
+	else
+		bluetoothctl pairable on
+		show_menu
+	fi
+}
+
+discoverable_on() {
+	if bluetoothctl show | grep -F -q 'Discoverable: yes'; then
+		echo 'Discoverable: on'
+		return 0
+	else
+		echo 'Discoverable: off'
+		return 1
+	fi
+}
+
+toggle_discoverable() {
+	if discoverable_on; then
+		bluetoothctl discoverable off
+		show_menu
+	else
+		bluetoothctl discoverable on
+		show_menu
+	fi
+}
+
+device_connected() {
+	bluetoothctl info "$1" | grep -F -q 'Connected: yes'
+	return $?
+}
+
+toggle_state() {
+	[[ $2 == *" yes" ]] && action="$3" || action="$4"
+	bluetoothctl "$action" "$1" 1>/dev/null 2>&1
+	sleep 1
+}
+
+device_menu() {
+	while IFS=':' read -r key value; do
+		key=${key##$'\t'}
+		case $key in
+			'Connected'|'Trusted'|'Paired') declare "$key"="$key:$value" ;;
+		esac
+	done < <(bluetoothctl info "$1")
+
+	options="$Connected\n$Paired\n$Trusted\n$divider\n$goback"
+	chosen="$(prompt "$2" "$(printf "%b" "$options")")"
+
+	case $chosen in
+		"$Connected") toggle_state "$1" "$chosen" 'disconnect' 'connect' ;;
+		"$Paired") toggle_state "$1" "$chosen" 'remove' 'pair' ;;
+		"$Trusted") toggle_state "$1" "$chosen" 'untrust' 'trust' ;;
+		*) show_menu ;;
+	esac
+}
+
+show_menu() {
+	if power_on; then
+		power='Power: on'
+
+		declare -A devices
+		while read -r device; do
+			device_name="$(echo "$device" | cut -d ' ' -f 3-)"
+			mac="$(echo "$device" | cut -d ' ' -f 2)"
+			device_connected "$mac" && icon='' || icon='X'
+			devices["$device_name $icon"]="$mac"
+		done < <(bluetoothctl devices)
+
+		scan="$(scan_on)"
+		pairable="$(pairable_on)"
+		discoverable="$(discoverable_on)"
+
+		options="$(printf "%s\n" "${!devices[@]}")\n$divider\n$power\n$scan\n$pairable\n$discoverable"
+	else
+		power='Power: off'
+		options="$power"
+	fi
+
+	chosen="$(prompt 'Bluetooth' "$(printf "%b" "$options")")" || return 0
+
+	case $chosen in
+		"$power") toggle_power ;;
+		"$scan") toggle_scan ;;
+		"$discoverable") toggle_discoverable ;;
+		"$pairable") toggle_pairable ;;
+		*)
+			device="${devices[$chosen]}"
+			[[ -n "$device" ]] && device_menu "$device" "$chosen" ;;
+	esac
+}
+
+systemctl is-active --quiet bluetooth
+case $? in
+	3)
+		notify 'Bluetooth daemon is not running'
+		systemctl start bluetooth || exit 3
+		;;
+	4)
+		notify 'Bluetooth daemon is not present'
+		exit 4
+		;;
+esac
+
+show_menu

@@ -12,18 +12,22 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-	require("plugins/config/lsp"),
-	require("plugins/config/telescope"),
-	require("plugins/config/harpoon"),
-	require("plugins/config/cmp"),
-	require("plugins/config/whichkey"),
-	require("plugins/config/treesitter"),
-	require("plugins/config/git"),
-	require("plugins/config/colorizer"),
-	require("plugins/config/bufferline"),
-	require("plugins/config/statusline"),
-	require("plugins/config/oil"),
-	require("plugins/config/terminal"),
+	{ import = "plugins.config" },
+
+	"mg979/vim-visual-multi",
+
+	{
+		"folke/which-key.nvim",
+		event = "VeryLazy"
+	},
+
+	{
+		"max397574/better-escape.nvim",
+		event = "InsertEnter",
+		opts = {
+			timeout = vim.o.timeoutlen
+		}
+	},
 
 	{
 		"numToStr/Comment.nvim",
@@ -42,24 +46,6 @@ require("lazy").setup({
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		opts = {}
-	},
-
-	{
-		"entrez/roku.vim",
-		ft = "brs"
-	},
-
-	{
-		"nvimtools/none-ls.nvim",
-		event = "InsertEnter",
-		config = function ()
-			local null_ls = require("null-ls")
-			null_ls.setup({
-				sources = {
-					null_ls.builtins.diagnostics.typos,
-				}
-			})
-		end
 	},
 
 	{
