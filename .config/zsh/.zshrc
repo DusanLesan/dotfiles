@@ -128,8 +128,8 @@ preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
 
 ## FZF
 export FZF_COMPLETION_TRIGGER='aa'
-source /usr/share/fzf/completion.zsh
-source /usr/share/fzf/key-bindings.zsh
+source ../usr/share/fzf/completion.zsh
+source ../usr/share/fzf/key-bindings.zsh
 
 ## Vim mode config
 # Activate vim mode
