@@ -7,7 +7,7 @@ import re
 
 output = errors = ''
 
-def executeCommand(params, failQuit=True):
+def executeCommand(params, failQuit = True):
 	try:
 		process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
 		out = process.communicate()[0].decode('utf-8')
@@ -25,6 +25,11 @@ def validateFile(file):
 	global errors
 	global output
 	global additionalGitArgs
+	global blacklist
+
+	if file.endswith(blacklist):
+		return
+
 	spellcheck = False
 	errors = typos = ''
 	lineNum = 0
@@ -32,8 +37,7 @@ def validateFile(file):
 	changes = executeCommand(['git', 'diff', "-U0"] + additionalGitArgs + ["--"] + [file])
 
 	if executeCommand(['typos', '--version']):
-		temp = tempfile.NamedTemporaryFile(mode='w')
-		f = open(temp.name, mode='a')
+		temp = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8')
 		spellcheck = True
 
 	for line in changes.splitlines():
@@ -46,7 +50,7 @@ def validateFile(file):
 			line = line[1:]
 
 			if spellcheck:
-				f.write(f'{line}\n')
+				temp.write(f'{line}\n')
 
 			validateAll(line, lineNum)
 			if file.endswith('.brs'):
@@ -57,8 +61,7 @@ def validateFile(file):
 			lineNum += 1
 
 	if spellcheck:
-		f.close()
-		data = executeCommand(['typos', '--format', 'json', '--color', 'never', temp.name], False)
+		data = executeCommand([ 'typos', '--format', 'json', '--color', 'never', temp.name ], False)
 		temp.close()
 		for typo in data.splitlines():
 			typo = json.loads(typo)
@@ -91,19 +94,21 @@ def validateBRS(line, lineNum):
 def validateXML(line, lineNum):
 	validateLine(line, r"( =|= )", lineNum, 'Bad spacing around = ')
 
-def check(base, branch):
+def check(base, branch, blacklist):
 	global output
-	main([base, branch])
+	main([base, branch], blacklist)
 	return output
 
-def main(args):
+def main(args, blacklistString):
 	global additionalGitArgs
 	additionalGitArgs = args
+	global blacklist
+	blacklist = tuple(blacklistString.split(",")) if blacklistString else ()
 	changedFiles = executeCommand(['git', 'diff', "--name-only"] + additionalGitArgs)
 	processFiles(changedFiles)
 
 if __name__ == '__main__':
-	main(['--cached'])
+	main(['--cached'], '')
 	if output:
 		print(output)
 		exit(1)

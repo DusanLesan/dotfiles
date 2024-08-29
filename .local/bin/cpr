@@ -24,7 +24,7 @@ def parseConfig():
 		print('Please enter missing values in userConfig.json file!')
 		quit()
 
-def executeCommand(params, input=''):
+def executeCommand(params, input = ''):
 	process = Popen(params, stdout=PIPE, stdin=PIPE, stderr=None)
 	out = process.communicate(input=input.encode())[0].decode('utf-8').strip()
 	if process.returncode != 0:
@@ -46,7 +46,7 @@ def setBase():
 		for line in worktree:
 			recent = line + '\n' + recent
 
-	recent = re.sub('^' + branch + '*\n', '', recent, flags=re.M)
+	recent = re.sub('^'+branch+'*\n', '', recent, flags=re.M)
 	base = executeCommand(['fzf', '--bind=ctrl-space:print-query', '--prompt', 'Base branch: '], recent)
 
 def setTitleAndDescription():
@@ -89,7 +89,7 @@ def setReviewers():
 	global reviewers
 	file = open(teamListsPath + 'team_dev', 'r')
 	reviewers = file.read()
-	if devOnlyLabel not in labels:
+	if not devOnlyLabel in labels:
 		if dteLabel in labels:
 			qa = '*dte'
 		else:
@@ -97,6 +97,10 @@ def setReviewers():
 
 		for path in glob(teamListsPath + 'team*' + team + qa):
 			file = open(path, 'r')
+			reviewers += file.read()
+
+		if accessibilityLabel in labels:
+			file = open(teamListsPath + 'team_acc', 'r')
 			reviewers += file.read()
 
 	reviewers = re.sub('^' + assignee + '*\n', '', reviewers, flags=re.M)
@@ -111,13 +115,19 @@ def startStylingCheck():
 	global blockLinter
 	if not blockLinter:
 		global errors
-		errors = check(base, branch)
+		errors = check(base, branch, blacklist)
 
 def checkStyling():
 	global errors
 	if errors:
-		errors = errors.replace('\n', '\\n').replace("'", "\\'").replace('"', '\\"')
-		confirmed = executeCommand(['fzf', '--header', 'Ignore errors? ', '--preview', 'python -c "print(\'' + errors + '\')"', '--preview-window', '80%'], 'no\nyes')
+		if len(errors) < 100000:
+			errors = errors.replace('\n', '\\n').replace("'", "\\'").replace('"', '\\"')
+			confirmed = executeCommand(['fzf', '--header', 'Ignore errors? ', '--preview', 'python -c "print(\'' + errors + '\')"', '--preview-window', '80%'], 'no\nyes')
+		else:
+			print(errors)
+			shouldIgnore = input("\nIgnore errors?\n- yes\n* no (default)\n")
+			confirmed = shouldIgnore if shouldIgnore == 'yes' else "no"
+
 		errors = ''
 		if confirmed == 'no':
 			quit()
@@ -132,21 +142,20 @@ def verify():
 	if confirmed != 'yes':
 		quit()
 
-executeCommand(['git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'])
-
 t1 = Thread(target=setList, args=('labelList', 'listLabels'))
 t2 = Thread(target=setList, args=('milestoneList', 'listMilestones'))
 t3 = Thread(target=startStylingCheck)
 t1.start()
 t2.start()
 
-assignee = team = projectCode = dteLabel = devOnlyLabel = ticketUrl = teamListsPath = blockLinter = errors = ''
+assignee = team = projectCode = ticketUrl = teamListsPath = errors = blockLinter = blacklist = ''
+dteLabel = devOnlyLabel = accessibilityLabel = "not set"
 parseConfig()
 
 branch = executeCommand(['git', 'branch', '--show-current'])
 ticketNumbers = re.findall(r'(?<=' + projectCode + '-)\\d+', branch)
 ticketName = re.findall(r'([^\/]+$)', branch)[0]
-ticketName = ticketName.replace('-', ' ').replace('_', ' ')
+ticketName = ticketName.replace('-', ' ').replace('_' , ' ')
 ticketName = ticketName[0].upper() + ticketName[1:]
 title = base = reviewers = labels = milestone = body = ''
 labelList = milestoneList = ''

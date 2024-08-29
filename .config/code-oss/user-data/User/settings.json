@@ -9,6 +9,9 @@
 	"editor.fontLigatures": true,
 	"explorer.confirmDelete": false,
 	"files.enableTrash": false,
+	"files.insertFinalNewline": true,
+	"files.trimTrailingWhitespace": true,
+	"files.trimFinalNewlines": true,
 	"terminal.integrated.enablePersistentSessions": false,
 	"terminal.integrated.persistentSessionReviveProcess": "never",
 	"terminal.integrated.scrollback": 100000,
@@ -26,6 +29,7 @@
 		"cicd/automation": true
 	},
 	"npm.packageManager": "npm",
+	"diffEditor.ignoreTrimWhitespace": false,
 	"githubPullRequests.pullBranch": "never",
 	"git.autofetch": true,
 	"git.openRepositoryInParentFolders": "never",
@@ -42,5 +46,8 @@
 	"vscode-neovim.neovimInitVimPaths.linux": "/home/dusan/.config/nvim/init.lua",
 	"extensions.experimental.affinity": {
 		"asvetliakov.vscode-neovim": 1
-	}
+	},
+	"vscode-neovim.ctrlKeysForNormalMode": [
+		"a", "b", "c", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "v", "w", "x", "y", "z", "]", "right", "left", "up", "down", "backspace", "delete"
+	]
 }
