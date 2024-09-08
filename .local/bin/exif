@@ -1,0 +1,41 @@
+#!/bin/sh
+
+. utils
+
+actions=(
+	'Print'
+	'Strip metadata'
+	'Description'
+	'Subject'
+	'Keywords'
+)
+
+apply() {
+	IFS="\n"
+	for file in "$1"; do
+		if file --mime-type "$file" | grep -q 'image/'; then
+			if [ "$action" = 'Strip metadata' ]; then
+				exiftool -all= -overwrite_original "$file"
+			elif [ "$action" = 'Print' ]; then
+				notify "$1" "$(exiftool -s -s -s -Keywords -Description -Subject "$1")"
+			else
+				if [ "$action" = 'Keywords' ] || [ "$action" = 'Subject' ]; then
+					current_keywords=$(exiftool -s -s -s -$action "$1")
+					if ! echo "$current_keywords" | grep -qw "$tag"; then
+						exiftool -q -overwrite_original -"$action"+="$tag" "$1"
+					fi
+				else
+					exiftool -q -overwrite_original -"$action"="$tag" "$1"
+				fi
+			fi
+		fi
+	done
+}
+
+action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" || exit 0
+
+if [ "$action" != 'Print' ] && [ "$action" != 'Strip metadata' ]; then
+	tag="$(prompt 'Tag:')" || exit 0
+fi
+
+apply "$1"

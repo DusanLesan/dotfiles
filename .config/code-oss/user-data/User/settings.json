@@ -48,6 +48,6 @@
 		"asvetliakov.vscode-neovim": 1
 	},
 	"vscode-neovim.ctrlKeysForNormalMode": [
-		"a", "b", "c", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "v", "w", "x", "y", "z", "]", "right", "left", "up", "down", "backspace", "delete"
+		"a", "b", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "w", "y", "z", "]", "right", "left", "up", "down", "backspace", "delete"
 	]
 }

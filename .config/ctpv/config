@@ -1,4 +1,4 @@
-preview any_text text/* {{
+preview any_text text/* .lua {{
 	bat -p --color=always "${f}" --theme 'Visual Studio Dark+' --tabs 2
 }}
 
