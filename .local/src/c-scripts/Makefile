@@ -1,4 +1,4 @@
-LIBS = -lX11 -lImlib2 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -ldbus-1
+LIBS = -lX11 -lcurl -lImlib2 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -ldbus-1
 INSTALL_DIR = /usr/local/bin
 
 SOURCES = $(wildcard *.c)

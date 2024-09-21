@@ -1,25 +1,37 @@
 {
-	"window.title": "${dirty}${activeEditorShort}",
-	"window.menuBarVisibility": "toggle",
-	"window.density.editorTabHeight": "compact",
-	"editor.fontFamily": "'monospace', monospace",
-	"editor.snippetSuggestions": "top",
-	"editor.renderWhitespace": "all",
-	"editor.minimap.enabled": false,
-	"editor.fontLigatures": true,
-	"explorer.confirmDelete": false,
-	"files.enableTrash": false,
-	"files.insertFinalNewline": true,
-	"files.trimTrailingWhitespace": true,
-	"files.trimFinalNewlines": true,
-	"terminal.integrated.enablePersistentSessions": false,
-	"terminal.integrated.persistentSessionReviveProcess": "never",
-	"terminal.integrated.scrollback": 100000,
-	"workbench.startupEditor": "none",
-	"workbench.colorCustomizations": {
-		"sideBar.background": "#1e1e1e",
-		"editor.background": "#181818"
+	"window": {
+		"title": "${dirty}${activeEditorShort}",
+		"menuBarVisibility": "toggle",
+		"density.editorTabHeight": "compact"
 	},
+	"workbench": {
+		"startupEditor": "none",
+		"colorCustomizations": {
+			"sideBar.background": "#1e1e1e",
+			"editor.background": "#181818"
+		}
+	},
+	"editor": {
+		"fontFamily": "'monospace', monospace",
+		"snippetSuggestions": "top",
+		"renderWhitespace": "all",
+		"minimap.enabled": false,
+		"fontLigatures": true
+	},
+	"files": {
+		"enableTrash": false,
+		"insertFinalNewline": true,
+		"trimTrailingWhitespace": true,
+		"trimFinalNewlines": true
+	},
+	"terminal": {
+		"integrated": {
+			"enablePersistentSessions": false,
+			"persistentSessionReviveProcess": "never",
+			"scrollback": 100000
+		}
+	},
+	"explorer.confirmDelete": false,
 	"search.exclude": {
 		"**/components/AviaLibrary": true,
 		"**/components/kochava": true,
@@ -43,11 +55,19 @@
 	"redhat.telemetry.enabled": false,
 	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",
 	"java.configuration.maven.userSettings": "/home/dusan/.config/maven/settings.xml",
-	"vscode-neovim.neovimInitVimPaths.linux": "/home/dusan/.config/nvim/init.lua",
 	"extensions.experimental.affinity": {
 		"asvetliakov.vscode-neovim": 1
 	},
-	"vscode-neovim.ctrlKeysForNormalMode": [
-		"a", "b", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "w", "y", "z", "]", "right", "left", "up", "down", "backspace", "delete"
-	]
+	"vscode-neovim": {
+		"neovimInitVimPaths.linux": "/home/dusan/.config/nvim/init.lua",
+		"ctrlKeysForNormalMode": [
+			"a", "b", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "w", "y", "z",
+			"]", "right", "left", "up", "down", "backspace", "delete"
+		],
+		"compositeKeys": {
+			"jk": {
+				"command": "vscode-neovim.escape",
+			}
+		}
+	}
 }

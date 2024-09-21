@@ -1,144 +1,210 @@
 [
-    {
-        "key": "alt+q",
-        "command": "workbench.action.closeActiveEditor"
-    },
-    {
-        "key": "alt+d",
-        "command": "workbench.action.quickOpen"
-    },
-    {
-        "key": "alt+s",
-        "command": "workbench.action.gotoSymbol",
-        "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
-    },
-    {
-        "key": "alt+shift+s",
-        "command": "workbench.action.showAllSymbols"
-    },
-    {
-        "key": "f6",
-        "command": "workbench.action.focusNextPart",
-        "when": "!textCompareEditorVisible"
-    },
-    {
-        "key": "f6",
-        "command": "-workbench.action.focusNextPart"
-    },
-    {
-        "key": "f6",
-        "command": "workbench.action.compareEditor.nextChange",
-        "when": "textCompareEditorVisible"
-    },
-    {
-        "key": "alt+left",
-        "command": "workbench.action.previousEditor"
-    },
-    {
-        "key": "ctrl+pageup",
-        "command": "-workbench.action.previousEditor"
-    },
-    {
-        "key": "alt+right",
-        "command": "workbench.action.nextEditor"
-    },
-    {
-        "key": "ctrl+pagedown",
-        "command": "-workbench.action.nextEditor"
-    },
-    {
-        "key": "alt+b",
-        "command": "workbench.action.toggleSidebarVisibility"
-    },
-    {
-        "key": "alt+t p",
-        "command": "workbench.action.togglePanel"
-    },
-    {
-        "key": "alt+t a",
-        "command": "workbench.action.toggleActivityBarVisibility"
-    },
-    {
-        "key": "alt+t e",
-        "command": "workbench.action.showMultipleEditorTabs",
-        "when": "!editorTabsVisible"
-    },
-    {
-        "key": "alt+t e",
-        "command": "workbench.action.hideEditorTabs",
-        "when": "editorTabsVisible"
-    },
-    {
-        "key": "ctrl+r",
-        "command": "workbench.action.openRecent"
-    },
-    {
-        "key": "alt+f",
-        "command": "workbench.action.focusActiveEditorGroup",
-        "when": "!editorTextFocus"
-    },
-    {
-        "key": "space space",
-        "command": "workbench.action.quickOpen",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space t",
-        "command": "workbench.action.terminal.focus",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space p",
-        "command": "workbench.action.togglePanel",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space n",
-        "command": "npm.focus",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space w",
-        "command": "workbench.action.files.save",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space e",
-        "command": "workbench.files.action.focusFilesExplorer",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space e",
-        "command": "workbench.action.toggleSidebarVisibility",
-        "when": "explorerViewletFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space s",
-        "command": "workbench.action.gotoSymbol",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space shift+s",
-        "command": "workbench.action.showAllSymbols",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "space q",
-        "command": "workbench.action.closeActiveEditor",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "tab",
-        "command": "workbench.action.nextEditor",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "shift+tab",
-        "command": "workbench.action.previousEditor",
-        "when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
-    },
-    {
-        "key": "ctrl+shift+c",
-        "command": "editor.action.clipboardCopyAction"
-    }
+	{
+		"key": "alt+q",
+		"command": "workbench.action.closeActiveEditor"
+	},
+	{
+		"key": "alt+d",
+		"command": "workbench.action.quickOpen"
+	},
+	{
+		"key": "alt+s",
+		"command": "workbench.action.gotoSymbol",
+		"when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+	},
+	{
+		"key": "alt+shift+s",
+		"command": "workbench.action.showAllSymbols"
+	},
+	{
+		"key": "f6",
+		"command": "workbench.action.focusNextPart",
+		"when": "!textCompareEditorVisible"
+	},
+	{
+		"key": "f6",
+		"command": "-workbench.action.focusNextPart"
+	},
+	{
+		"key": "f6",
+		"command": "workbench.action.compareEditor.nextChange",
+		"when": "textCompareEditorVisible"
+	},
+	{
+		"key": "alt+left",
+		"command": "workbench.action.previousEditor"
+	},
+	{
+		"key": "ctrl+pageup",
+		"command": "-workbench.action.previousEditor"
+	},
+	{
+		"key": "alt+right",
+		"command": "workbench.action.nextEditor"
+	},
+	{
+		"key": "ctrl+pagedown",
+		"command": "-workbench.action.nextEditor"
+	},
+	{
+		"key": "alt+b",
+		"command": "workbench.action.toggleSidebarVisibility"
+	},
+	{
+		"key": "alt+t p",
+		"command": "workbench.action.togglePanel"
+	},
+	{
+		"key": "alt+t a",
+		"command": "workbench.action.toggleActivityBarVisibility"
+	},
+	{
+		"key": "alt+t e",
+		"command": "workbench.action.showMultipleEditorTabs",
+		"when": "!editorTabsVisible"
+	},
+	{
+		"key": "alt+t e",
+		"command": "workbench.action.hideEditorTabs",
+		"when": "editorTabsVisible"
+	},
+	{
+		"key": "ctrl+r",
+		"command": "workbench.action.openRecent"
+	},
+	{
+		"key": "alt+f",
+		"command": "workbench.action.focusActiveEditorGroup",
+		"when": "!editorTextFocus"
+	},
+	{
+		"key": "space space",
+		"command": "workbench.action.quickOpen",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space t",
+		"command": "workbench.action.terminal.focus",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space p",
+		"command": "workbench.action.togglePanel",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space n",
+		"command": "npm.focus",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "alt+t r",
+		"command": "workbench.action.tasks.runTask"
+	},
+	{
+		"key": "space w",
+		"command": "workbench.action.files.save",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "space e",
+		"command": "workbench.files.action.focusFilesExplorer",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "space e",
+		"command": "workbench.action.toggleSidebarVisibility",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space s",
+		"command": "workbench.action.gotoSymbol",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space shift+s",
+		"command": "workbench.action.showAllSymbols",
+		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space q",
+		"command": "workbench.action.closeActiveEditor",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "tab",
+		"command": "workbench.action.nextEditor",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "shift+tab",
+		"command": "workbench.action.previousEditor",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "ctrl+shift+c",
+		"command": "editor.action.clipboardCopyAction"
+	},
+	{
+		"key": "ctrl+shift+v",
+		"command": "editor.action.clipboardPasteAction"
+	},
+	{
+		"key": "g d",
+		"command": "editor.action.revealDefinition",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "g r",
+		"command": "editor.action.goToReferences",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "r",
+		"command": "renameFile",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "y",
+		"command": "filesExplorer.copy",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "p",
+		"command": "filesExplorer.paste",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "x",
+		"command": "filesExplorer.cut",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "d",
+		"command": "deleteFile",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "m f",
+		"command": "explorer.newFile",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "m d",
+		"command": "explorer.newFolder",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+	},
+	{
+		"key": "o",
+		"command": "runCommands",
+		"when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus",
+		"args": {
+			"commands": [
+				{
+					"command": "workbench.action.tasks.runTask",
+					"args": "file-handler"
+				},
+			]
+		}
+	}
 ]
