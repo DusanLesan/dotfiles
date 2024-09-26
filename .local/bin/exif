@@ -2,14 +2,6 @@
 
 . utils
 
-actions=(
-	'Print'
-	'Strip metadata'
-	'Description'
-	'Subject'
-	'Keywords'
-)
-
 apply() {
 	IFS="\n"
 	for file in "$1"; do
@@ -32,10 +24,50 @@ apply() {
 	done
 }
 
-action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" || exit 0
+setImageDB() {
+	local dir="$1"
 
-if [ "$action" != 'Print' ] && [ "$action" != 'Strip metadata' ]; then
-	tag="$(prompt 'Tag:')" || exit 0
+	while [ "$dir" != "/" ]; do
+		if [ -e "$dir/.image.db" ]; then
+			database="$dir/.image.db"
+			return 0
+		fi
+		dir=$(dirname "$dir")
+	done
+}
+
+searchFiles() {
+	setImageDB "$PWD"
+	if [ -n "$database" ]; then
+		image-tag-handler -d "$database" -s "$1"
+	fi
+}
+
+if [ "$#" -lt 1 ]; then
+	actions=(
+		'Print'
+		'Strip metadata'
+		'Description'
+		'Subject'
+		'Keywords'
+	)
+
+	action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" || exit 0
+
+	if [ "$action" != 'Print' ] && [ "$action" != 'Strip metadata' ]; then
+		tag="$(prompt 'Tag:')" || exit 0
+	fi
+
+	apply "$1"
+else
+	while getopts "s:l" opt; do
+		case "$opt" in
+			s) search=$OPTARG ;;
+			l) lf=$OPTARG ;;
+		esac
+
+		if [ "$search" != '' ]; then
+			searchFiles "$search"
+		fi
+	done
 fi
-
-apply "$1"
