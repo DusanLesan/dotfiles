@@ -43,7 +43,7 @@ searchFiles() {
 	fi
 }
 
-if [ "$#" -lt 1 ]; then
+if [ -z "$2" ]; then
 	actions=(
 		'Print'
 		'Strip metadata'
@@ -65,9 +65,10 @@ else
 			s) search=$OPTARG ;;
 			l) lf=$OPTARG ;;
 		esac
-
-		if [ "$search" != '' ]; then
-			searchFiles "$search"
-		fi
 	done
+
+	if [ "$search" != '' ]; then
+		echo "start searching for $search"
+		searchFiles "$search"
+	fi
 fi

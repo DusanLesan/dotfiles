@@ -251,7 +251,9 @@ map at tar
 map az zip
 map ai &arc $fx
 map am mount_archive
-map it %exif "$fx"
+map ii %image-tag-handler -fpi "$f"
+map id %image-tag-handler -dpi "$f"
+map is %image-tag-handler -sl "$id"
 
 map C clear
 map U unselect

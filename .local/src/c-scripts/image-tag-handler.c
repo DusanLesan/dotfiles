@@ -3,6 +3,35 @@
 #include <sqlite3.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
+#include <sys/stat.h>
+
+char* get_db_path() {
+	static char filepath[PATH_MAX];
+	char cwd[PATH_MAX];
+
+	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		perror("getcwd() error");
+		return NULL;
+	}
+
+	struct stat buffer;
+	while (1) {
+		snprintf(filepath, sizeof(filepath), "%s/%s", cwd, ".image.db");
+
+		if (stat(filepath, &buffer) == 0)
+			return filepath;
+
+		if (strcmp(cwd, "/") == 0)
+			break;
+
+		char *last_slash = strrchr(cwd, '/');
+		if (last_slash != NULL)
+			*last_slash = '\0';
+	}
+
+	return NULL;
+}
 
 sqlite3* open_db(const char *db_path) {
 	sqlite3 *db;
@@ -86,24 +115,31 @@ void remove_old_tags(sqlite3 *db, int image_id, const char *tags_csv) {
 	}
 }
 
-void sync_tags_from_image(sqlite3 *db, const char *image_path) {
+char* get_tags_from_image(const char *image_path) {
 	char command[1024];
 	snprintf(command, sizeof(command), "exiftool -s -s -s -Keywords '%s'", image_path);
 	FILE *fp = popen(command, "r");
 	if (fp == NULL) {
 		fprintf(stderr, "Failed to run command\n");
-		return;
+		return NULL;
 	}
 
 	char tags_csv[1024];
 	if (fgets(tags_csv, sizeof(tags_csv), fp) == NULL) {
 		pclose(fp);
 		fprintf(stderr, "No tags found or failed to read output\n");
-		return;
+		return NULL;
 	}
 	pclose(fp);
 
 	tags_csv[strcspn(tags_csv, "\n")] = '\0'; // Replace newline with null
+	
+	return strdup(tags_csv);
+}
+
+void sync_tags_from_image(sqlite3 *db, const char *image_path) {
+	char* tags_csv = get_tags_from_image(image_path);
+	if (tags_csv[0] == '\0') return;
 
 	int image_id = get_image_id(db, image_path);
 	if (!image_id) {
@@ -123,15 +159,26 @@ void sync_tags_from_image(sqlite3 *db, const char *image_path) {
 	remove_old_tags(db, image_id, tags_csv);
 }
 
-void sync_tags_to_image(sqlite3 *db, const char *image_path) {
+void print_tags_from_image(const char *image_path) {
+	char* tags_csv = get_tags_from_image(image_path);
+	if (tags_csv[0] == '\0') return;
+
+	char command[1024];
+	snprintf(command, sizeof(command), "notify-send 'Keywords:\n' '%s'", tags_csv);
+	system(command);
+}
+
+char* get_tags_from_db(sqlite3 *db, const char *image_path) {
 	int image_id = get_image_id(db, image_path);
+
 	if (image_id > 0) {
+		char db_tags[1024] = {0};
+
 		char *sql = sqlite3_mprintf(
 			"SELECT GROUP_CONCAT(tag, ',') FROM tags INNER JOIN image_tags ON tags.id = image_tags.tag_id "
 			"WHERE image_tags.image_id = %d;", image_id);
 
 		sqlite3_stmt *stmt;
-		char db_tags[1024] = {0};
 
 		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
 			if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -144,12 +191,30 @@ void sync_tags_to_image(sqlite3 *db, const char *image_path) {
 		sqlite3_finalize(stmt);
 		sqlite3_free(sql);
 
-		char command[1024];
-		snprintf(command, sizeof(command), "exiftool -overwrite_original -Keywords=\"%s\" \"%s\"", db_tags, image_path);
-		system(command);
+		return strdup(db_tags);
 	} else {
 		fprintf(stderr, "Image not found in database.\n");
+		return NULL;
 	}
+}
+
+void sync_tags_to_image(sqlite3 *db, const char *image_path) {
+	char* db_tags = get_tags_from_db(db, image_path);
+	if (db_tags[0] == '\0') return;
+
+	char command[1024];
+	snprintf(command, sizeof(command), "exiftool -overwrite_original -Keywords=\"%s\" \"%s\"", db_tags, image_path);
+	system(command);
+
+}
+
+void print_tags_from_db(sqlite3 *db, const char *image_path) {
+	char* db_tags = get_tags_from_db(db, image_path);
+	if (db_tags[0] == '\0') return;
+
+	char command[1024];
+	snprintf(command, sizeof(command), "notify-send 'Keywords:\n' '%s'", db_tags);
+	system(command);
 }
 
 void add_keywords(sqlite3 *db, const char *image_path, const char *keywords) {
@@ -178,7 +243,14 @@ void remove_keywords(sqlite3 *db, const char *image_path, const char *keywords) 
 	}
 }
 
-void search_for_paths(sqlite3 *db, const char *query) {
+void toggle_files(const char *lf_id, const char *image_path) {
+	if (!lf_id) return;
+	char command[1024];
+	snprintf(command, sizeof(command), "lf -remote 'send %s toggle %s'", lf_id, image_path);
+	system(command);
+}
+
+void search_for_paths(sqlite3 *db, const char *query, const char *lf_id) {
 	char *sql = sqlite3_mprintf(
 		"SELECT i.path FROM images AS i "
 		"JOIN image_tags AS it ON i.id = it.image_id "
@@ -187,47 +259,89 @@ void search_for_paths(sqlite3 *db, const char *query) {
 
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+		char paths[1024] = {0};
+		char* path;
+
 		while (sqlite3_step(stmt) == SQLITE_ROW) {
-			printf("%s\n", sqlite3_column_text(stmt, 0));
+			if (lf_id != NULL) {
+				path = (char *)sqlite3_column_text(stmt, 0);
+				snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
+			} else {
+				printf("%s\n", sqlite3_column_text(stmt, 0));
+			}
+		}
+
+		if (paths[0] != '\0') {
+			toggle_files(lf_id, paths);
 		}
 	}
+
 	sqlite3_finalize(stmt);
 	sqlite3_free(sql);
 }
 
-int main(int argc, char **argv) {
-	char *db_path, *image_path, *add_tags, *remove_tags, *search_query = NULL;
-	int sync_from_image = 0, sync_to_image = 0, opt;
+void read_user_input(char *input, size_t size) {
+	if (fgets(input, size, stdin) != NULL) {
+		size_t len = strlen(input);
+		if (len > 0 && input[len - 1] == '\n') {
+			input[len - 1] = '\0';
+		}
+	} else {
+		printf("Error reading input.\n");
+	}
+}
 
-	while ((opt = getopt(argc, argv, "d:p:a:r:s:ft")) != -1) {
+int main(int argc, char **argv) {
+	char *db_path, *image_path, *add_tags, *remove_tags, *lf_id = NULL;
+	int sync_from_image, sync_to_image, print_tags, update_tags, opt, search = 0;
+
+	while ((opt = getopt(argc, argv, "D:i:a:r:l:spufd")) != -1) {
 		switch (opt) {
-			case 'd': db_path = optarg; break;
-			case 'p': image_path = optarg; break;
+			case 'D': db_path = optarg; break;
+			case 'i': image_path = optarg; break;
 			case 'a': add_tags = optarg; break;
 			case 'r': remove_tags = optarg; break;
-			case 's': search_query = optarg; break;
+			case 's': search = 1; break;
+			case 'l': lf_id = optarg; break;
+			case 'p': print_tags = 1; break;
+			case 'u': update_tags = 1; break;
 			case 'f': sync_from_image = 1; break;
-			case 't': sync_to_image = 1; break;
-			default: fprintf(stderr, "Usage: %s -d DB path -p image path -a -r tag csv -f from -t to]\n", argv[0]); return 1;
+			case 'd': sync_to_image = 1; break;
+			default: fprintf(stderr, "Invalid option.\n"); return 1;
 		}
 	}
 
 	if (!db_path) {
-		fprintf(stderr, "Database path is required.\n");
-		return 1;
+		db_path = get_db_path();
+		if (!db_path) {
+			fprintf(stderr, "Database path is not found.\n");
+			return 1;
+		}
 	}
 
 	sqlite3 *db = open_db(db_path);
 	if (!db)
 		return 1;
 
-	if (search_query) {
-		search_for_paths(db, search_query);
+	if (search) {
+		char search_query[1024];
+		read_user_input(search_query, sizeof(search_query));
+		search_for_paths(db, search_query, lf_id);
 	} else if (image_path) {
-		if (sync_from_image) {
-			sync_tags_from_image(db, image_path);
-		} else if (sync_to_image) {
-			sync_tags_to_image(db, image_path);
+		if (update_tags) {
+			if (sync_from_image) {
+				sync_tags_from_image(db, image_path);
+			} else if (sync_to_image) {
+				sync_tags_to_image(db, image_path);
+			}
+		}
+
+		if (print_tags) {
+			if (sync_from_image) {
+				print_tags_from_image(image_path);
+			} else if (sync_to_image) {
+				print_tags_from_db(db, image_path);
+			}
 		}
 
 		if (add_tags)
