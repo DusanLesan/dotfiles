@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <curl/curl.h>
 
 const char *roku_ip = "192.168.56.77";
@@ -62,7 +63,14 @@ int send_roku_request(KeySym keysym, const char *action) {
 	return success;
 }
 
-int main() {
+int main(int argc, char **argv) {
+	int opt;
+	while ((opt = getopt(argc, argv, "i:")) != -1) {
+		switch (opt) {
+			case 'i': roku_ip = optarg; break;
+		}
+	}
+
 	Display *display = XOpenDisplay(NULL);
 	if (!display) {
 		fprintf(stderr, "Cannot open display\n");

@@ -5,6 +5,16 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <libnotify/notify.h>
+
+void notify_send(const char *header, const char *message) {
+	printf("%s %s\n", header, message);
+	notify_init("Notification");
+	NotifyNotification *n = notify_notification_new(header, message, NULL);
+	notify_notification_show(n, NULL);
+	g_object_unref(G_OBJECT(n));
+	notify_uninit();
+}
 
 char* get_db_path() {
 	static char filepath[PATH_MAX];
@@ -64,16 +74,17 @@ void insert_image(sqlite3 *db, const char *image_path) {
 	sqlite3_free(sql);
 }
 
-void insert_tag(sqlite3 *db, const char *tag) {
-	char *sql = sqlite3_mprintf("INSERT OR IGNORE INTO tags (tag) VALUES (TRIM('%q'));", tag);
+void insert_tag(sqlite3 *db, const char *tags_table, const char *tag_value) {
+	char *sql = sqlite3_mprintf("INSERT OR IGNORE INTO %q (tag) VALUES (TRIM('%q'));", tags_table, tag_value);
 	sqlite3_exec(db, sql, 0, 0, 0);
 	sqlite3_free(sql);
 }
 
-void associate_tag(sqlite3 *db, int image_id, const char *tag) {
+void associate_tag(sqlite3 *db, int image_id, const char *tags_table, const char *tag_value) {
 	char *sql = sqlite3_mprintf(
-		"INSERT OR IGNORE INTO image_tags (image_id, tag_id) "
-		"SELECT %d, id FROM tags WHERE tag = TRIM('%q');", image_id, tag);
+		"INSERT OR IGNORE INTO image_%q (image_id, tag_id) "
+		"SELECT %d, id FROM %q WHERE tag = TRIM('%q');", tags_table, image_id, tags_table, tag_value);
+
 	sqlite3_exec(db, sql, 0, 0, 0);
 	sqlite3_free(sql);
 }
@@ -150,8 +161,8 @@ void sync_tags_from_image(sqlite3 *db, const char *image_path) {
 	char *token = strtok(tags_csv, ",");
 	while (token) {
 		if (*token) {
-			insert_tag(db, token);
-			associate_tag(db, image_id, token);
+			insert_tag(db, "keywords", token);
+			associate_tag(db, image_id, "keywords", token);
 		}
 		token = strtok(NULL, ",");
 	}
@@ -161,25 +172,21 @@ void sync_tags_from_image(sqlite3 *db, const char *image_path) {
 
 void print_tags_from_image(const char *image_path) {
 	char* tags_csv = get_tags_from_image(image_path);
-	if (tags_csv[0] == '\0') return;
-
-	char command[1024];
-	snprintf(command, sizeof(command), "notify-send 'Keywords:\n' '%s'", tags_csv);
-	system(command);
+	if (tags_csv == NULL) return;
+	notify_send("Keywords", tags_csv);
 }
 
-char* get_tags_from_db(sqlite3 *db, const char *image_path) {
+char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
 	int image_id = get_image_id(db, image_path);
 
 	if (image_id > 0) {
 		char db_tags[1024] = {0};
 
 		char *sql = sqlite3_mprintf(
-			"SELECT GROUP_CONCAT(tag, ',') FROM tags INNER JOIN image_tags ON tags.id = image_tags.tag_id "
-			"WHERE image_tags.image_id = %d;", image_id);
+			"SELECT GROUP_CONCAT(tag, ',') FROM %q AS t INNER JOIN image_%q AS it ON t.id = it.tag_id "
+			"WHERE it.image_id = %d;", tag_name, tag_name, image_id);
 
 		sqlite3_stmt *stmt;
-
 		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
 			if (sqlite3_step(stmt) == SQLITE_ROW) {
 				const char *tags = (const char *)sqlite3_column_text(stmt, 0);
@@ -198,8 +205,8 @@ char* get_tags_from_db(sqlite3 *db, const char *image_path) {
 	}
 }
 
-void sync_tags_to_image(sqlite3 *db, const char *image_path) {
-	char* db_tags = get_tags_from_db(db, image_path);
+void sync_tags_to_image(sqlite3 *db, const char *image_path, const char *tag_name) {
+	char* db_tags = get_tags_from_db(db, image_path, tag_name);
 	if (db_tags[0] == '\0') return;
 
 	char command[1024];
@@ -208,27 +215,25 @@ void sync_tags_to_image(sqlite3 *db, const char *image_path) {
 
 }
 
-void print_tags_from_db(sqlite3 *db, const char *image_path) {
-	char* db_tags = get_tags_from_db(db, image_path);
-	if (db_tags[0] == '\0') return;
-
-	char command[1024];
-	snprintf(command, sizeof(command), "notify-send 'Keywords:\n' '%s'", db_tags);
-	system(command);
+void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
+	char* db_tags = get_tags_from_db(db, image_path, tag_name);
+	if (db_tags == NULL) return;
+	notify_send(tag_name, db_tags);
 }
 
-void add_keywords(sqlite3 *db, const char *image_path, const char *keywords) {
+void add_tags(sqlite3 *db, const char *image_path, const char *tag_name, const char *tag_value_csv) {
 	int image_id = get_image_id(db, image_path);
 	if (!image_id) {
 		insert_image(db, image_path);
 		image_id = get_image_id(db, image_path);
 	}
 
-	char *token = strtok((char *)keywords, ",");
-	while (token != NULL) {
-		insert_tag(db, token);
-		associate_tag(db, image_id, token);
-		token = strtok(NULL, ",");
+	char *tag_value, *saveptr;
+	tag_value = strtok_r((char *)tag_value_csv, ",", &saveptr);
+	while (tag_value != NULL) {
+		insert_tag(db, tag_name, tag_value);
+		associate_tag(db, image_id, tag_name, tag_value);
+		tag_value = strtok_r(NULL, ",", &saveptr);
 	}
 }
 
@@ -250,28 +255,33 @@ void toggle_files(const char *lf_id, const char *image_path) {
 	system(command);
 }
 
-void search_for_paths(sqlite3 *db, const char *query, const char *lf_id) {
+void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, const char *lf_id) {
 	char *sql = sqlite3_mprintf(
 		"SELECT i.path FROM images AS i "
-		"JOIN image_tags AS it ON i.id = it.image_id "
-		"JOIN tags AS t ON t.id = it.tag_id "
-		"WHERE t.tag = TRIM('%q');", query);
+		"JOIN image_%q AS it ON i.id = it.image_id "
+		"JOIN %q AS t ON t.id = it.tag_id "
+		"WHERE t.tag = TRIM('%q');", tag_name, tag_name, query);
 
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-		char paths[1024] = {0};
-		char* path;
+		char paths[990] = {0};
+		char *path;
 
 		while (sqlite3_step(stmt) == SQLITE_ROW) {
 			if (lf_id != NULL) {
 				path = (char *)sqlite3_column_text(stmt, 0);
+				if (strlen(paths) + strlen(path) + 3 >= sizeof(paths)) {
+					toggle_files(lf_id, paths);
+					memset(paths, 0, sizeof(paths));
+				}
+
 				snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
 			} else {
 				printf("%s\n", sqlite3_column_text(stmt, 0));
 			}
 		}
 
-		if (paths[0] != '\0') {
+		if (strlen(paths) > 0) {
 			toggle_files(lf_id, paths);
 		}
 	}
@@ -280,8 +290,11 @@ void search_for_paths(sqlite3 *db, const char *query, const char *lf_id) {
 	sqlite3_free(sql);
 }
 
-void read_user_input(char *input, size_t size) {
-	if (fgets(input, size, stdin) != NULL) {
+char* read_user_input() {
+	char input[32];
+	fflush(stdout);
+
+	if (fgets(input, sizeof(input), stdin) != NULL) {
 		size_t len = strlen(input);
 		if (len > 0 && input[len - 1] == '\n') {
 			input[len - 1] = '\0';
@@ -289,24 +302,26 @@ void read_user_input(char *input, size_t size) {
 	} else {
 		printf("Error reading input.\n");
 	}
+	return strdup(input);
 }
 
 int main(int argc, char **argv) {
-	char *db_path, *image_path, *add_tags, *remove_tags, *lf_id = NULL;
-	int sync_from_image, sync_to_image, print_tags, update_tags, opt, search = 0;
+	char *db_path = NULL, *image_paths = NULL, *lf_id = NULL , *tag_name = "keywords", *tag_value = NULL;
+	int opt, target_file = 0, target_db = 0, print = 0, update = 0, should_add_tags = 0, should_remove_tags = 0, search = 0;
 
-	while ((opt = getopt(argc, argv, "D:i:a:r:l:spufd")) != -1) {
+	while ((opt = getopt(argc, argv, "D:i:t:l:spufdar")) != -1) {
 		switch (opt) {
 			case 'D': db_path = optarg; break;
-			case 'i': image_path = optarg; break;
-			case 'a': add_tags = optarg; break;
-			case 'r': remove_tags = optarg; break;
-			case 's': search = 1; break;
+			case 'i': image_paths = optarg; break;
+			case 't': tag_name = optarg; break;
 			case 'l': lf_id = optarg; break;
-			case 'p': print_tags = 1; break;
-			case 'u': update_tags = 1; break;
-			case 'f': sync_from_image = 1; break;
-			case 'd': sync_to_image = 1; break;
+			case 's': search = 1; break;
+			case 'p': print = 1; break;
+			case 'u': update = 1; break;
+			case 'f': target_file = 1; break;
+			case 'd': target_db = 1; break;
+			case 'a': should_add_tags = 1; break;
+			case 'r': should_remove_tags = 1; break;
 			default: fprintf(stderr, "Invalid option.\n"); return 1;
 		}
 	}
@@ -324,30 +339,38 @@ int main(int argc, char **argv) {
 		return 1;
 
 	if (search) {
-		char search_query[1024];
-		read_user_input(search_query, sizeof(search_query));
-		search_for_paths(db, search_query, lf_id);
-	} else if (image_path) {
-		if (update_tags) {
-			if (sync_from_image) {
-				sync_tags_from_image(db, image_path);
-			} else if (sync_to_image) {
-				sync_tags_to_image(db, image_path);
-			}
-		}
+		search_for_paths(db, tag_name, read_user_input(), lf_id);
+	} else if (image_paths) {
+		if (should_add_tags || should_remove_tags)
+			tag_value = read_user_input();
 
-		if (print_tags) {
-			if (sync_from_image) {
-				print_tags_from_image(image_path);
-			} else if (sync_to_image) {
-				print_tags_from_db(db, image_path);
+		char *image_path, *saveptr;
+		image_path = strtok_r(image_paths, "\n", &saveptr);
+		while (image_path != NULL) {
+			if (update) {
+				if (target_db) {
+					sync_tags_from_image(db, image_path);
+				} else if (target_file) {
+					sync_tags_to_image(db, image_path, tag_name);
+				}
 			}
-		}
 
-		if (add_tags)
-			add_keywords(db, image_path, add_tags);
-		if (remove_tags)
-			remove_keywords(db, image_path, remove_tags);
+			if (print) {
+				if (target_file) {
+					print_tags_from_image(image_path);
+				} else if (target_db) {
+					print_tags_from_db(db, image_path, tag_name);
+				}
+			}
+
+			if (should_add_tags) {
+				add_tags(db, image_path, tag_name, tag_value);
+			} else if (should_remove_tags) {
+				remove_keywords(db, image_path, tag_value);
+			}
+
+			image_path = strtok_r(NULL, "\n", &saveptr);
+		}
 	}
 
 	sqlite3_close(db);
