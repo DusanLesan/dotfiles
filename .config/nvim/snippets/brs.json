@@ -2,7 +2,7 @@
 	"CreateObject": {
 		"prefix": "createObject",
 		"body": [
-			"${2:variableName} = CreateObject(\"${1:objectType}\")"
+			"${2:variableName} = createObject(\"${1:objectType}\")"
 		],
 		"description": "Simple CreateObject"
 	},
@@ -17,24 +17,54 @@
 		"description": "For Each item in a collection"
 	},
 
+	"For I": {
+		"prefix": "for-i",
+		"body": [
+			"for ${1:i} = ${2:n} to ${3:j}",
+			"\t$0",
+			"end for"
+		],
+		"description": "For Each item in a collection"
+	},
+
 	"Function": {
 		"prefix": "function",
 		"body": [
-			"function ${1:functionName}(${2:params})",
-			"\t$0",
-			"end function"
-		],
-		"description": "Minimal function"
-	},
-
-	"Function With Return Type": {
-		"prefix": "function-as",
-		"body": [
-			"function ${1:functionName}(${2:params}) as ${3|boolean,integer,longInteger,float,double,string,object,function,interface,dynamic|}",
+			"function ${1:functionName}() as ${3|boolean,integer,string,object,dynamic|}",
 			"\t$0",
 			"end function"
 		],
 		"description": "Function with return type"
+	},
+
+	"Function With Params": {
+		"prefix": "function-with-params",
+		"body": [
+			"function ${1:functionName}(${2:params} as ${3|boolean,integer,string,object,dynamic|}) as ${4|boolean,integer,string,object,dynamic|}",
+			"\t$0",
+			"end function"
+		],
+		"description": "Function with params"
+	},
+
+	"Sub": {
+		"prefix": "sub",
+		"body": [
+			"sub ${1:subName}()",
+			"\t$0",
+			"end sub"
+		],
+		"description": "Sub with no params"
+	},
+
+	"Sub": {
+		"prefix": "sub-with-params",
+		"body": [
+			"sub ${1:subName}(${2:params as } ${3|boolean,integer,string,object,dynamic|})",
+			"\t$0",
+			"end sub"
+		],
+		"description": "Sub with params"
 	},
 
 	"If": {
@@ -44,7 +74,7 @@
 			"\t$0",
 			"end if"
 		],
-		"description": "Simple if statement"
+		"description": "If statement"
 	},
 
 	"If Else": {
@@ -56,17 +86,7 @@
 			"\t$0",
 			"end if"
 		],
-		"description": "Simple if/else statement"
-	},
-
-	"Sub": {
-		"prefix": "sub",
-		"body": [
-			"sub ${1:subName}(${2:params})",
-			"\t$0",
-			"end sub"
-		],
-		"description": "Minimal sub"
+		"description": "If/else statement"
 	},
 
 	"Ternary": {
@@ -75,5 +95,13 @@
 			"ternaryIf(${1:condition}, ${2:trueResult}, ${3:falseResult})"
 		],
 		"description": "Ternary if function"
+	},
+
+	"Print": {
+		"prefix": ["print", "?"],
+		"body": [
+			"? \"######################################################### ${1:text} \" ${2}"
+		],
+		"description": "Print statement"
 	}
 }

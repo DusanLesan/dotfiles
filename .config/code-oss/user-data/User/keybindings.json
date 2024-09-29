@@ -203,7 +203,7 @@
 				{
 					"command": "workbench.action.tasks.runTask",
 					"args": "file-handler"
-				},
+				}
 			]
 		}
 	}

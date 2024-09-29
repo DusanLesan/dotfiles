@@ -13,19 +13,16 @@ local opts = {
 		"css",
 		"java",
 		"json",
-		"yaml"
+		"yaml",
+		"brightscript"
 	},
 	highlight = {
 		enable = true,
 		matchup = {
 			enable = true
 		},
-		disable = function(lang, buf)
-			local max_filesize = 100 * 1024 -- 100 KB
-			local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-			if ok and stats and stats.size > max_filesize then
-				return true
-			end
+		disable = function(_, bufnr)
+			return vim.api.nvim_buf_line_count(bufnr) > 10000
 		end,
 	},
 	context_commentstring = {
@@ -35,15 +32,25 @@ local opts = {
 	incremental_selection = {
 		enable = true,
 		keymaps = {
-			init_selection = "<leader>ss",
-			node_incremental = "<leader>si",
-			scope_incremental = "<leader>sc",
-			node_decremental = "<leader>sd"
+			init_selection = "<CR>",
+			node_incremental = "<CR>",
+			scope_incremental = "<leader>gi",
+			node_decremental = "<BS>"
 		}
 	}
 }
 
 function M.config()
+	local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+	parser_config.brightscript = {
+		install_info = {
+			url = "https://github.com/ajdelcimmuto/tree-sitter-brightscript",
+			files = {"src/parser.c"},
+			branch = "developer"
+		},
+		filetype = "brs"
+	}
+
 	require("nvim-treesitter.configs").setup(opts)
 end
 

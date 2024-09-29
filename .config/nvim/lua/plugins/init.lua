@@ -57,6 +57,7 @@ require("lazy").setup({
 		"Mofiqul/vscode.nvim",
 		priority = 1000,
 		lazy = false,
+		cond = vim.g.vscode == nil,
 		config = function()
 			vim.cmd[[
 				colorscheme vscode

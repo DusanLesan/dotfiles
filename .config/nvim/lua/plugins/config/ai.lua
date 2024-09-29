@@ -1,6 +1,7 @@
 local M = {
 	'Exafunction/codeium.vim',
 	event = 'BufEnter',
+	cond = vim.g.vscode == nil
 }
 
 function M.config()

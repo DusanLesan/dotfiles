@@ -24,7 +24,6 @@ function M.config()
 	cmp.setup {
 		snippet = {
 			expand = function(args)
-				-- require("luasnip").lsp_expand(args.body)
 				vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
 			end
 		},
@@ -59,6 +58,8 @@ function M.config()
 			["<Tab>"] = cmp.mapping(function(fallback)
 				if cmp.visible() then
 					cmp.select_next_item()
+				elseif vim.fn["vsnip#available"](1) == 1 then
+					feedkey("<Plug>(vsnip-expand-or-jump)", "")
 				else
 					fallback() -- The fallback function sends a already mapped key. In this case, it's probably `<Tab>`.
 				end
@@ -72,8 +73,8 @@ function M.config()
 			end, {"i", "s"})
 		},
 		sources = {
-			{ name = "nvim_lsp" },
 			{ name = "vsnip" },
+			{ name = "nvim_lsp" },
 			{ name = "buffer" },
 			{ name = "nvim_lua" },
 			{ name = "path" }
