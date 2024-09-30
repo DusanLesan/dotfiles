@@ -22,6 +22,56 @@ void die(const char *error_header, const char *error) {
 	exit(EXIT_FAILURE);
 }
 
+char* dmenu_prompt(const char* dmenu_prompt, const char* options_newline) {
+	char cmd[64];
+	FILE *fp;
+	char *output = NULL;
+	size_t output_len = 0;
+
+	const char *options = options_newline ? options_newline : "";
+
+	if (options_newline)
+		snprintf(cmd, sizeof(cmd), "dmenu -p \"%s\" <<< \"%s\"", dmenu_prompt, options_newline);
+	else
+		snprintf(cmd, sizeof(cmd), "dmenu -p \"%s\" <<< ''", dmenu_prompt);
+
+	fp = popen(cmd, "r");
+	if (fp == NULL)
+		die("Error", "Failed to run command");
+
+	ssize_t nread = getline(&output, &output_len, fp);
+	if (nread == -1)
+		die(NULL, "Failed to read output from dmenu");
+
+	output[nread - 1] = '\0'; // Replace newline with null
+	pclose(fp);
+
+	return output;
+}
+
+char* read_user_input(char *prompt) {
+	char input[32];
+	fflush(stdout);
+	printf("%s", prompt);
+
+	if (fgets(input, sizeof(input), stdin) != NULL) {
+		size_t len = strlen(input);
+		if (len > 0 && input[len - 1] == '\n') {
+			input[len - 1] = '\0';
+		}
+	} else {
+		printf("Error reading input.\n");
+	}
+	return strdup(input);
+}
+
+char* get_user_input(char *lf_id, char *prompt, char *options_newline) {
+	if (lf_id)
+		return dmenu_prompt(prompt, options_newline);
+	else
+		return read_user_input(prompt);
+}
+
 void trimArray(char* array) {
 	while (array[strlen(array) - 1] == '\n' || array[strlen(array) - 1] == ',') {
 		array[strlen(array) - 1] = '\0';
@@ -374,23 +424,8 @@ void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, cons
 	sqlite3_free(sql);
 }
 
-char* read_user_input() {
-	char input[32];
-	fflush(stdout);
-
-	if (fgets(input, sizeof(input), stdin) != NULL) {
-		size_t len = strlen(input);
-		if (len > 0 && input[len - 1] == '\n') {
-			input[len - 1] = '\0';
-		}
-	} else {
-		printf("Error reading input.\n");
-	}
-	return strdup(input);
-}
-
 int main(int argc, char **argv) {
-	char *db_path = NULL, *image_paths = NULL, *lf_id = NULL , *tag_name = "keywords", *tag_values = NULL;
+	char *db_path = NULL, *image_paths = NULL, *lf_id = NULL , *tag_name = NULL, *tag_values = NULL;
 	int opt, target_file = 0, target_db = 0, print = 0, update = 0, should_add_tags = 0, should_remove_tags = 0, search = 0;
 
 	while ((opt = getopt(argc, argv, "D:i:t:l:spufdar")) != -1) {
@@ -417,11 +452,13 @@ int main(int argc, char **argv) {
 	if (!db)
 		die(NULL, "Failed to open database");
 
+	tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
+
 	if (search) {
-		search_for_paths(db, tag_name, read_user_input(), lf_id);
+		search_for_paths(db, tag_name, get_user_input(lf_id, "Query: ", NULL), lf_id);
 	} else if (image_paths) {
 		if (should_add_tags || should_remove_tags) {
-			tag_values = read_user_input();
+			tag_values = get_user_input(lf_id, "Tag values: ", NULL);
 
 			if (should_add_tags) {
 				insert_images(db, image_paths);

@@ -251,11 +251,11 @@ map at tar
 map az zip
 map ai &arc $fx
 map am mount_archive
-map ipf %image-tag-handler -fpi "$f"
-map ipd %image-tag-handler -dpi "$f"
 map is %image-tag-handler -sl "$id"
-map iik %image-tag-handler -a -i "$fx"
-map iis %image-tag-handler -a -i "$fx" -t 'subjects'
+map if %image-tag-handler -fpi "$f"
+map id %image-tag-handler -dpi "$f"
+map it %image-tag-handler -ai "$fx"
+map ir %image-tag-handler -ri "$fx"
 
 map C clear
 map U unselect
@@ -268,7 +268,7 @@ map spe set preview
 map sr1 set ratios 1
 map sr2 set ratios 1:2
 map sr3 set ratios 1:2:3
-map n setNumber
+map N setNumber
 map - resize -
 map + resize +
 
