@@ -12,7 +12,6 @@ vim.opt.timeoutlen = 500
 vim.opt.completeopt = "menuone,noselect"
 
 vim.opt.wrap = true
-vim.opt.showmode = false
 vim.opt.backup = false
 vim.opt.swapfile = false
 vim.opt.termguicolors = true

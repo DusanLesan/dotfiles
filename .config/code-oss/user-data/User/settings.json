@@ -15,7 +15,7 @@
 		"fontFamily": "'monospace', monospace",
 		"snippetSuggestions": "top",
 		"renderWhitespace": "all",
-		"minimap.enabled": false,
+		"minimap": { "enabled": false },
 		"fontLigatures": true
 	},
 	"files": {
@@ -66,8 +66,12 @@
 		],
 		"compositeKeys": {
 			"jk": {
-				"command": "vscode-neovim.escape",
+				"command": "vscode-neovim.escape"
 			}
-		}
+		},
+		"afterInitConfig": [
+			"lua vim.diagnostic.config({virtual_text=false})",
+			"set ve=onemore"
+		]
 	}
 }
