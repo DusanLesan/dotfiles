@@ -15,6 +15,7 @@
 		"fontFamily": "'monospace', monospace",
 		"snippetSuggestions": "top",
 		"renderWhitespace": "all",
+		"lineNumbers": "relative",
 		"minimap": { "enabled": false },
 		"fontLigatures": true
 	},
@@ -61,7 +62,7 @@
 	"vscode-neovim": {
 		"neovimInitVimPaths.linux": "/home/dusan/.config/nvim/init.lua",
 		"ctrlKeysForNormalMode": [
-			"a", "b", "d", "e", "h", "i", "j", "k", "l", "m", "o", "r", "t", "u", "w", "y", "z",
+			"a", "b", "d", "e", "h", "i", "j", "k", "l", "m", "n", "o", "r", "t", "u", "w", "y", "z",
 			"]", "right", "left", "up", "down", "backspace", "delete"
 		],
 		"compositeKeys": {

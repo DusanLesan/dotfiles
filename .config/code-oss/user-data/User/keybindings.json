@@ -22,6 +22,10 @@
 		"when": "!textCompareEditorVisible"
 	},
 	{
+		"key": "alt+e",
+		"command": "workbench.files.action.focusFilesExplorer"
+	},
+	{
 		"key": "f6",
 		"command": "-workbench.action.focusNextPart"
 	},
@@ -35,16 +39,8 @@
 		"command": "workbench.action.previousEditor"
 	},
 	{
-		"key": "ctrl+pageup",
-		"command": "-workbench.action.previousEditor"
-	},
-	{
 		"key": "alt+right",
 		"command": "workbench.action.nextEditor"
-	},
-	{
-		"key": "ctrl+pagedown",
-		"command": "-workbench.action.nextEditor"
 	},
 	{
 		"key": "alt+b",
@@ -80,17 +76,17 @@
 	{
 		"key": "space space",
 		"command": "workbench.action.quickOpen",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
 	},
 	{
 		"key": "space t",
 		"command": "workbench.action.terminal.focus",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
 	},
 	{
 		"key": "space p",
 		"command": "workbench.action.togglePanel",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
 	},
 	{
 		"key": "space n",
@@ -114,17 +110,27 @@
 	{
 		"key": "space e",
 		"command": "workbench.action.toggleSidebarVisibility",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+	},
+	{
+		"key": "space b",
+		"command": "workbench.debug.action.focusBreakpointsView",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "space b",
+		"command": "workbench.action.toggleSidebarVisibility",
+		"when": "sideBarFocus && !inputFocus"
 	},
 	{
 		"key": "space s",
 		"command": "workbench.action.gotoSymbol",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
 	},
 	{
 		"key": "space shift+s",
 		"command": "workbench.action.showAllSymbols",
-		"when": "filesExplorerFocus || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
+		"when": "(filesExplorerFocus && !inputFocus) || (editorTextFocus && neovim.init && neovim.mode == 'normal')"
 	},
 	{
 		"key": "space q",
@@ -157,6 +163,11 @@
 	{
 		"key": "g r",
 		"command": "editor.action.goToReferences",
+		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
+	},
+	{
+		"key": "g a",
+		"command": "editor.action.quickFix",
 		"when": "editorTextFocus && neovim.init && neovim.mode == 'normal'"
 	},
 	{

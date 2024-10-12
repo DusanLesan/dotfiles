@@ -34,11 +34,11 @@ getfilename() {
 		name="${filename%%.*}"
 		ext="${filename#"$name"}"
 		i="${name##*[!0-9]}"
-		[ -z "$i" ] && i=1 || name="${name%_$i}"
-		while [ -e "$dir$dot${name}_$i$ext" ]; do
+		[ -z "$i" ] && i=1 || name="${name%$i}"
+		while [ -e "$dir$dot${name}$i$ext" ]; do
 			((i++))
 		done
-		filename="$dot${name}_$i$ext"
+		filename="$dot${name}$i$ext"
 	fi
 	echo "$filename"
 }

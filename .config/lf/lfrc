@@ -254,8 +254,8 @@ map am mount_archive
 map is %image-tag-handler -sl "$id"
 map if %image-tag-handler -fpi "$f"
 map id %image-tag-handler -dpi "$f"
-map it %image-tag-handler -ai "$fx"
-map ir %image-tag-handler -ri "$fx"
+map it %image-tag-handler -ai "$fx" -l "$id"
+map ir %image-tag-handler -ri "$fx" -l "$id"
 
 map C clear
 map U unselect

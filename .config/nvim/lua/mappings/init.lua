@@ -13,6 +13,9 @@ map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
 
 map('n', '<F10>', ':set spell!<CR>', desc('Toggle spell check'))
 
+map('v', '<', '<gv', default_opts)
+map('v', '>', '>gv', default_opts)
+
 -- Window controls
 map('n', '<A-Up>', '<C-w>k', default_opts)
 map('n', '<A-Down>', '<C-w>j', default_opts)
@@ -46,9 +49,7 @@ map('n', '<leader>x', ':wqa!<CR>', desc('Save and quit'))
 
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', default_opts)
 
--- Sessions
-map('n', '<leader>ss', ':SessionSave<CR>', default_opts)
-map('n', '<leader>sl', ':SessionLoad<CR>', default_opts)
+map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))
 
 -- Lsp
 map('n', '<leader>K', '<cmd>lua vim.lsp.buf.hover()<CR>', desc('Hover'))

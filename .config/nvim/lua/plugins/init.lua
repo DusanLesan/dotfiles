@@ -14,7 +14,10 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	{ import = "plugins.config" },
 
-	"mg979/vim-visual-multi",
+	{
+		"mg979/vim-visual-multi",
+		event = "VeryLazy"
+	},
 
 	{
 		"folke/which-key.nvim",
