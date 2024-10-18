@@ -51,8 +51,8 @@ cmd open_new ${{
 	esac
 }}
 
-cmd mkdir :{{
-	open-drawer 'printf "Directory Name: "&& read ans && mkdir $ans' 1
+cmd mkdir ${{
+	printf "Directory Name: "&& read ans && mkdir $ans
 }}
 
 cmd mkfile ${{
@@ -78,35 +78,21 @@ cmd paste_link &{{
 cmd yank_path $echo "$fx" | xclip -i -selection clipboard
 
 cmd yank_image ${{
-	[ $(mimetype -Mb "$f") = "image/png" ] && \
-	xclip -sel c -t "image/png" "$f" || \
-	convert "$f" png:- | xclip -select  clipboard -t "image/png"
+	if [ $(mimetype -Mb "$f") = "image/png" ]; then
+		xclip -sel c -t "image/png" "$f" >/dev/null 2>&1 &
+	else
+		convert "$f" png:- | xclip -sel c -t "image/png" &
+	fi
 }}
 
 cmd delete ${{
-	split_height=$(( $(echo "$fx" | wc -l) + 2 ))
-	[ $split_height -gt $lf_height ] && split_height=$lf_height
-	tmux split-window -l $split_height '
-		stty -icanon -echo
-		echo -n "'"$fx"'\n\nDelete files? [y/n] "
-		key=$(dd bs=1 count=1 2>/dev/null)
-		if [[ "$key" == "y" ]]; then
-			while IFS= read -r file; do
-				rm -rf "$file" || sudo -A rm -rf "$file"
-			done <<< "'"$fx"'"
-			lf -remote "send '$id' load"
-		fi
-	'
-}}
-
-cmd open-drawer &{{
-	if [ $2 = "ls" ]; then
-		split_height=$(( $(ls -a | wc -l) + 1 ))
-		[ $split_height -gt $lf_height ] && split_height=$lf_height
-	else
-		split_height=$2
+	printf "$fx\ndelete?[y/n]"
+	if read -d '' -s -n 1 && [ $REPLY == 'y' ]; then
+		for x in $fx; do
+			rm -rf "$x" || sudo -A rm -rf "$x"
+		done
 	fi
-	tmux split-window -l $split_height "$1 && lf -remote \"send $id load\""
+	echo
 }}
 
 # compress current file or selected files with tar and gunzip
@@ -217,31 +203,35 @@ cmd on-redraw &{{
 	fi
 }}
 
+cmd set_tmux_conf ${{
+	[ -n "$TMUX" ] && lf -remote "send $id source $XDG_CONFIG_HOME/lf/tmux_conf"
+}}
+
 # Remove some defaults
 map m
-map o
 map d
 map i
+
+map md mkdir
+map DD delete
+
+set_tmux_conf
 
 # Basic Functions
 map <a-f>j :fzf_jump
 map <a-f>f :fzf_find_file
 map <a-f>l :fzf_find_line
 map . set hidden!
-map DD delete
 map x cut
 map Y yank_path
 map <a-y> yank_image
 map r :rename; reload
-map R open-drawer 'nvim -c Oil' 'ls'
-map T open-drawer zsh 25%
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
 map V invert-below
 
 map mf mkfile
-map md mkdir
 map S push :new_permission<space>
 map <a-p> paste_link
 map mu %dmenuumount "$fx"
@@ -276,8 +266,7 @@ map + resize +
 map <enter> shell
 
 # dedicated keys for file opener actions
-map o &xdg-open "$f"
-map O $mimeopen --ask "$f"
+map o $mimeopen --ask "$f"
 map <c-o> open_new
 map <a-o> $sh "$f" &
 

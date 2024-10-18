@@ -7,7 +7,11 @@ getchoice() {
 		{ [ -n "$2" ] && grep -Ev "$2" || cat; } | grep "$1" | sed "s/ /:/g" | \
 		awk -F ':' '$4!="" && $5=="" {printf "%s (%s)\n", $1, $2}')"
 	chosen="$(prompt 'Mount which drive?' "$drives" )" || exit 1
-	chosen="${chosen%% *}"
+	if [ -z "$chosen" ]; then
+		getchoice "$1" "$2"
+	else
+		chosen="${chosen%% *}"
+	fi
 }
 
 getmount() {

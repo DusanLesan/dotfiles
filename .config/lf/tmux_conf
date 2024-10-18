@@ -1,0 +1,34 @@
+cmd mkdir :{{
+	open-drawer 'printf "Directory Name: "&& read ans && mkdir $ans' 1
+}}
+
+cmd delete ${{
+	split_height=$(( $(echo "$fx" | wc -l) + 2 ))
+	[ $split_height -gt $lf_height ] && split_height=$lf_height
+	tmux split-window -l $split_height '
+		stty -icanon -echo
+		echo -n "'"$fx"'\n\nDelete files? [y/n] "
+		key=$(dd bs=1 count=1 2>/dev/null)
+		if [[ "$key" == "y" ]]; then
+			while IFS= read -r file; do
+				rm -rf "$file" || sudo -A rm -rf "$file"
+			done <<< "'"$fx"'"
+			lf -remote "send '$id' load"
+		fi
+	'
+}}
+
+cmd open-drawer &{{
+	if [ $2 = "ls" ]; then
+		split_height=$(( $(ls -a | wc -l) + 1 ))
+		[ $split_height -gt $lf_height ] && split_height=$lf_height
+	else
+		split_height=$2
+	fi
+	tmux split-window -l $split_height "$1 && lf -remote \"send $id load\""
+}}
+
+map md mkdir
+map DD delete
+map R open-drawer 'nvim -c Oil' 'ls'
+map T open-drawer zsh 25%

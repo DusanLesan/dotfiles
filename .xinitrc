@@ -1,3 +1,5 @@
 #!/bin/sh
 
-dwm >/dev/null 2>&1
+while true; do
+	dwm >/dev/null 2>&1
+done
