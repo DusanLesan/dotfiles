@@ -4,7 +4,6 @@ local function desc(description)
 	return { noremap = true, silent = true, desc = description }
 end
 
-
 map('n', '<A-k>', ':m .-2<CR>', desc('Move line up'))
 map('n', '<A-j>', ':m .+1<CR>', desc('Move line down'))
 
