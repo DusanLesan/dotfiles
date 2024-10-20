@@ -1,8 +1,22 @@
-local map = vim.api.nvim_set_keymap
-local default_opts = {noremap = true, silent = true}
+local map = vim.keymap.set
+local function mmap(mode, lhs, rhs, opts)
+	for _, keys in ipairs(lhs) do
+		map(mode, keys, rhs, opts)
+	end
+end
+
 local function desc(description)
 	return { noremap = true, silent = true, desc = description }
 end
+
+vim.api.nvim_create_autocmd('FileType', {
+	pattern = 'qf',
+	callback = function()
+		map('n', '<CR>', '<CR>:cclose<CR>', { buffer = true, silent = true })
+		mmap('n', {'j', '<Down>'}, 'j<CR><c-w>p', { buffer = true, silent = true })
+		mmap('n', {'k', '<Up>'}, 'k<CR><c-w>p', { buffer = true, silent = true })
+	end
+})
 
 map('n', '<A-k>', ':m .-2<CR>', desc('Move line up'))
 map('n', '<A-j>', ':m .+1<CR>', desc('Move line down'))
@@ -12,41 +26,45 @@ map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
 
 map('n', '<F10>', ':set spell!<CR>', desc('Toggle spell check'))
 
-map('v', '<', '<gv', default_opts)
-map('v', '>', '>gv', default_opts)
+map('v', '<', '<gv', desc('Indent left'))
+map('v', '>', '>gv', desc('Indent right'))
+
+map({'n', 'v'}, '<A-d>', '"_d', desc('Delete into black hole'))
+map({'n', 'v'}, '<leader>d', '"Ad', desc('Delete into "a" register'))
+map({'n', 'v'}, '<leader>y', '"Ay', desc('Yank into "a" register'))
+map({'n', 'v'}, '<leader>p', '"ap', desc('Paste from "a" register'))
+map('n', '<leader>c', ':let @a=""<CR>', desc('Clear "a" register'))
 
 -- Window controls
-map('n', '<A-Up>', '<C-w>k', default_opts)
-map('n', '<A-Down>', '<C-w>j', default_opts)
-map('n', '<A-Left>', '<C-w>h', default_opts)
-map('n', '<A-Right>', '<C-w>l', default_opts)
+map('n', '<A-Up>', '<C-w>k', desc('Focus window above'))
+map('n', '<A-Down>', '<C-w>j', desc('Focus window below'))
+map('n', '<A-Left>', '<C-w>h', desc('Focus window left'))
+map('n', '<A-Right>', '<C-w>l', desc('Focus window right'))
 
-map('t', '<A-Up>', '<C-\\><C-N><C-w>k', default_opts)
-map('t', '<A-Down>', '<C-\\><C-N><C-w>j', default_opts)
-map('t', '<A-Left>', '<C-\\><C-N><C-w>h', default_opts)
-map('t', '<A-Right>', '<C-\\><C-N><C-w>l', default_opts)
+map('t', '<A-Up>', '<C-\\><C-N><C-w>k', desc('Focus window above'))
+map('t', '<A-Down>', '<C-\\><C-N><C-w>j', desc('Focus window below'))
+map('t', '<A-Left>', '<C-\\><C-N><C-w>h', desc('Focus window left'))
+map('t', '<A-Right>', '<C-\\><C-N><C-w>l', desc('Focus window right'))
 
 -- Window resizing
-map('n', '<S-Up>', ':resize -2<CR>', default_opts)
-map('n', '<S-Down>', ':resize +2<CR>', default_opts)
-map('n', '<S-Left>', ':vertical resize -2<CR>', default_opts)
-map('n', '<S-Right>', ':vertical resize +2<CR>', default_opts)
+map('n', '<S-Up>', ':resize -2<CR>', desc('Resize window up'))
+map('n', '<S-Down>', ':resize +2<CR>', desc('Resize window down'))
+map('n', '<S-Left>', ':vertical resize -2<CR>', desc('Resize window left'))
+map('n', '<S-Right>', ':vertical resize +2<CR>', desc('Resize window right'))
 
 -- Buffers
-map('n', '<TAB>', ':BufferLineCycleNext<CR>', default_opts)
-map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', default_opts)
-map('n', '<leader>bn', ':BufferLineMoveNext<CR>', default_opts)
-map('n', '<leader>bp', ':BufferLineMovePrev<CR>', default_opts)
-map('n', '<leader>z', ':bdelete<CR>', default_opts)
-map('n', '<A-z>', ':bdelete!<CR>', default_opts)
+map('n', '<TAB>', ':BufferLineCycleNext<CR>', desc('Next buffer'))
+map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', desc('Previous buffer'))
+map('n', '<leader>z', ':bdelete<CR>', desc('Close buffer'))
+map('n', '<A-z>', ':bdelete!<CR>', desc('Force close buffer'))
 
-map('n', '<leader>e', ":Oil<CR>", default_opts)
-map('n', '<A-t>', ':ToggleTerm<CR>', default_opts)
+map('n', '<leader>e', ":Oil<CR>", desc('Open file manager'))
+map('n', '<A-t>', ':ToggleTerm<CR>', desc('Toggle terminal'))
 
 map('n', '<leader>w', ':w<CR>', desc('Save file'))
 map('n', '<leader>x', ':wqa!<CR>', desc('Save and quit'))
 
-map('n', '<leader>fc', ':Telescope colorscheme<CR>', default_opts)
+map('n', '<leader>fc', ':Telescope colorscheme<CR>', desc('Select colorscheme'))
 
 map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))
 
@@ -68,15 +86,6 @@ map('n', '<leader>lq', '<cmd>lua vim.diagnostic.setloclist()<CR>', desc('Set loc
 map('n', '<leader>lx', '<cmd>lua vim.diagnostic.reset()<CR>', desc('Clear diagnostics'))
 map('n', '<leader>lt', '<cmd>lua vim.diagnostic.config({ virtual_text = not vim.diagnostic.config().virtual_text })<CR>', desc('Toggle virtual text'))
 
-vim.api.nvim_create_autocmd('FileType', {
-	pattern = 'qf',
-	callback = function()
-		vim.keymap.set('n', '<CR>', '<CR>:cclose<CR>', { buffer = true, silent = true })
-	end
-})
-
-map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
-
 map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', desc('List symbols'))
 map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', desc('List workspace symbols'))
 map('n', '<leader><leader>', ':Telescope git_files<CR>', desc('Find files'))
@@ -97,3 +106,5 @@ map('n', '<leader>gk', ":Gitsigns prev_hunk<CR>", desc('Previous hunk'))
 map('n', '<leader>gg', ":Gitsigns toggle_signs<CR>", desc('Toggle signs'))
 map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
+
+map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
