@@ -25,7 +25,7 @@ int main(void) {
 	char cap[4];
 	fscanf(fc, "%[^\n]", cap);
 	fclose(fc);
-	
+
 	FILE *fs = fopen("/sys/class/power_supply/BAT1/status", "r");
 	char stat[16];
 	fscanf(fs, "%[^\n]", stat);

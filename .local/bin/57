@@ -40,7 +40,7 @@ case "$ACTION" in
 		fi
 
 		ssh -Y $HOST "$HOME/bin2/suspend.sh" ;;
-	
+
 	"barrier")
 		printf "%s\n" \
 		'section: screens' \

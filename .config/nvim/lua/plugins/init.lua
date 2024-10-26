@@ -67,6 +67,7 @@ require("lazy").setup({
 				highlight Normal guibg=NONE ctermbg=NONE
 				highlight EndOfBuffer guibg=NONE ctermbg=NONE
 				highlight nonText guibg=NONE ctermbg=NONE
+				highlight CursorLine guibg=#1e1e1e
 			]]
 		end
 	}

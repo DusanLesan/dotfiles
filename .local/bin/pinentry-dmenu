@@ -20,6 +20,6 @@ for counter in {1..300}; do
 			prompt="${command#* }"
 		;;
 	esac
-	
+
 	echo "OK"
 done

@@ -20,7 +20,7 @@ if [ "$D" -lt 6 ] && [ "$H" -gt 10 ] && [ "$H" -lt 20 ]; then
 			--new-window "https://web.skype.com" \
 			</dev/null >/dev/null 2>&1 &
 	fi
-	
+
 	pgrep -x "slack" > /dev/null || slack > /dev/null 2>&1 &
 
 	sleep 3

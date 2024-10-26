@@ -14,7 +14,8 @@ actions=(
 	'shutdown'
 )
 
-action="$(prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" &&
+opts="--preview temps --preview-window=50%,top"
+action="$(FZF_DEFAULT_OPTS="$opts" prompt 'Action:' "$(printf '%s\n' "${actions[@]}")")" &&
 case "$action" in
 	'dunst') dunst-config ;;
 	'bluetooth') dmenu-bluetooth ;;

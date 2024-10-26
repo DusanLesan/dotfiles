@@ -56,4 +56,3 @@ else
 	mount | grep -q "$chosen" || exit 1
 	unmountdrive
 fi
-

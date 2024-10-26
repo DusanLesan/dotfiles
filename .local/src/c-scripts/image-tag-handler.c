@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <libnotify/notify.h>
+#include <openssl/evp.h>
 
 void notify_send(const char *header, const char *message) {
 	printf("%s %s\n", header, message);
@@ -259,7 +260,7 @@ char* get_tags_from_image(const char *image_path) {
 	pclose(fp);
 
 	tags_csv[strcspn(tags_csv, "\n")] = '\0'; // Replace newline with null
-	
+
 	return strdup(tags_csv);
 }
 
@@ -424,11 +425,189 @@ void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, cons
 	sqlite3_free(sql);
 }
 
+char *calculate_sha256(const char *filename) {
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	char *output_buffer = malloc(2 * EVP_MAX_MD_SIZE + 1);
+	if (!output_buffer) return NULL;
+
+	FILE *file = fopen(filename, "rb");
+	if (!file) {
+		free(output_buffer);
+		return NULL;
+	}
+
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+	if (!mdctx || EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) {
+		EVP_MD_CTX_free(mdctx);
+		fclose(file);
+		free(output_buffer);
+		return NULL;
+	}
+
+	unsigned char buffer[32768];
+	int bytes_read;
+	while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+		EVP_DigestUpdate(mdctx, buffer, bytes_read);
+	}
+	fclose(file);
+
+	if (EVP_DigestFinal_ex(mdctx, hash, NULL) != 1) {
+		EVP_MD_CTX_free(mdctx);
+		free(output_buffer);
+		return NULL;
+	}
+
+	EVP_MD_CTX_free(mdctx);
+
+	for (int i = 0; i < 32; i++) {
+		sprintf(output_buffer + (i * 2), "%02x", hash[i]);
+	}
+	output_buffer[2 * EVP_MAX_MD_SIZE] = '\0';
+
+	return output_buffer;
+}
+
+int prepare_insert_statement(sqlite3 *db, sqlite3_stmt **stmt) {
+	const char *upsert_query =
+		"INSERT OR REPLACE INTO images (id, path, sha256sum) "
+		"VALUES ((SELECT id FROM images WHERE sha256sum = ?), ?, ?)";
+	return sqlite3_prepare_v2(db, upsert_query, -1, stmt, NULL);
+}
+
+int update_image_table(sqlite3 *db, sqlite3_stmt *stmt, const char *sha256sum_value, const char *path_value) {
+	int rc;
+
+	sqlite3_bind_text(stmt, 1, sha256sum_value, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 2, path_value, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 3, sha256sum_value, -1, SQLITE_STATIC);
+
+	rc = sqlite3_step(stmt);
+	if (rc != SQLITE_DONE)
+		fprintf(stderr, "Failed to execute insert statement: %s\n", sqlite3_errmsg(db));
+
+	sqlite3_reset(stmt);
+	return rc == SQLITE_DONE ? SQLITE_OK : rc;
+}
+
+int batch_sync(sqlite3 *db, const char *directory_path) {
+	int rc;
+	sqlite3_stmt *stmt;
+	DIR *dir;
+	struct dirent *entry;
+
+	rc = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	if (rc != SQLITE_OK)
+		die("Failed to begin transaction", sqlite3_errmsg(db));
+
+	rc = prepare_insert_statement(db, &stmt);
+	if (rc != SQLITE_OK)
+		die("Failed to prepare upsert statement", sqlite3_errmsg(db));
+
+	dir = opendir(directory_path);
+	if (!dir)
+		die("Failed to open directory", "Directory error");
+
+	while ((entry = readdir(dir)) != NULL) {
+		if (entry->d_type == DT_DIR)
+			continue;
+
+		char file_path[PATH_MAX];
+		snprintf(file_path, PATH_MAX, "%s/%s", directory_path, entry->d_name);
+
+		char *file_sha256 = calculate_sha256(file_path);
+		if (!file_sha256) {
+			fprintf(stderr, "Failed to calculate SHA-256 for file: %s\n", file_path);
+			continue;
+		}
+
+		rc = update_image_table(db, stmt, file_sha256, file_path);
+
+		if (rc != SQLITE_OK) {
+			fprintf(stderr, "Failed to insert image for file: %s\n", file_path);
+			break;
+		}
+	}
+
+	closedir(dir);
+	sqlite3_finalize(stmt);
+
+	if (rc == SQLITE_OK) {
+		rc = sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL);
+		if (rc != SQLITE_OK) {
+			fprintf(stderr, "Failed to commit transaction: %s\n", sqlite3_errmsg(db));
+		}
+	} else {
+		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+	}
+
+	return rc;
+}
+
+int file_exists(const char *filename) {
+	struct stat buffer;
+	return (stat(filename, &buffer) == 0);
+}
+
+void set_column_where_id(sqlite3 *db, const char *table, const char *column, const char *value, int id) {
+	sqlite3_stmt *stmt;
+	char *query = sqlite3_mprintf("UPDATE %q SET %q = TRIM(?) WHERE id = ?;", table, column);
+
+	if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) == SQLITE_OK) {
+		sqlite3_bind_text(stmt, 1, value, -1, SQLITE_STATIC);
+		sqlite3_bind_int(stmt, 2, id);
+
+		if (sqlite3_step(stmt) != SQLITE_DONE) {
+			fprintf(stderr, "Failed to set sha256sum: %s\n", sqlite3_errmsg(db));
+		}
+		sqlite3_finalize(stmt);
+	} else {
+		fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+	}
+
+	sqlite3_free(query);
+}
+
+void update_sha256sum(sqlite3 *db) {
+	sqlite3_stmt *stmt;
+	const char *query = "SELECT id, path, sha256sum FROM images";
+
+	if (sqlite3_prepare_v2(db, query, -1, &stmt, NULL) != SQLITE_OK)
+		die("Failed to prepare SELECT statement", sqlite3_errmsg(db));
+
+	sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, NULL);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		int id = sqlite3_column_int(stmt, 0);
+		const char *path = (const char *)sqlite3_column_text(stmt, 1);
+		const char *current_sha256 = (const char *)sqlite3_column_text(stmt, 2);
+
+		if (file_exists(path)) {
+			char *sha256sum = calculate_sha256(path);
+			if (sha256sum) {
+				if (!current_sha256 || strcmp(current_sha256, sha256sum) != 0) {
+					set_column_where_id(db, "images", "sha256sum", sha256sum, id);
+				}
+				free(sha256sum);
+			}
+		} else {
+			if (current_sha256) {
+				set_column_where_id(db, "images", "sha256sum", "NULL", id);
+			}
+		}
+	}
+
+	sqlite3_exec(db, "END TRANSACTION", NULL, NULL, NULL);
+	sqlite3_finalize(stmt);
+}
+
 int main(int argc, char **argv) {
 	char *db_path = NULL, *image_paths = NULL, *lf_id = NULL , *tag_name = NULL, *tag_values = NULL;
 	int opt, target_file = 0, target_db = 0, print = 0, update = 0, should_add_tags = 0, should_remove_tags = 0, search = 0;
 
-	while ((opt = getopt(argc, argv, "D:i:t:l:spufdar")) != -1) {
+	char *sync_path = NULL;
+	int sync = 0;
+
+	while ((opt = getopt(argc, argv, "D:i:t:l:S:spufdarU")) != -1) {
 		switch (opt) {
 			case 'D': db_path = optarg; break;
 			case 'i': image_paths = optarg; break;
@@ -441,6 +620,8 @@ int main(int argc, char **argv) {
 			case 'd': target_db = 1; break;
 			case 'a': should_add_tags = 1; break;
 			case 'r': should_remove_tags = 1; break;
+			case 'S': sync_path = optarg; break;
+			case 'U': sync = 1; break;
 			default: fprintf(stderr, "Invalid option.\n"); return 1;
 		}
 	}
@@ -452,12 +633,15 @@ int main(int argc, char **argv) {
 	if (!db)
 		die(NULL, "Failed to open database");
 
-	tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
-
-	if (search) {
-		search_for_paths(db, tag_name, get_user_input(lf_id, "Query: ", NULL), lf_id);
+	if (sync_path) {
+		batch_sync(db, sync_path);
+	} else if (sync) {
+		update_sha256sum(db);
+	} else if (search) {
+		search_for_paths(db, tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects"), get_user_input(lf_id, "Query: ", NULL), lf_id);
 	} else if (image_paths) {
 		if (should_add_tags || should_remove_tags) {
+			tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
 			tag_values = get_user_input(lf_id, "Tag values: ", NULL);
 
 			if (should_add_tags) {

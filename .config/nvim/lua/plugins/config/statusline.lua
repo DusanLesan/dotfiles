@@ -76,8 +76,8 @@ ins_left({
 	color = { fg = colors.magenta, gui = 'bold' }
 })
 
-ins_right({ 'location' })
-
+ins_right({ 'selectioncount' })
+ins_right({ 'searchcount' })
 ins_right({ 'progress', color = { fg = colors.fg, gui = 'bold' } })
 
 ins_right({

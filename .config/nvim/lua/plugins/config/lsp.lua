@@ -52,12 +52,7 @@ local config = {
 	update_in_insert = false,
 	underline = true,
 	severity_sort = true,
-	float = {
-		focusable = false,
-		source = "always",
-		header = "",
-		prefix = ""
-	}
+	signs = false
 }
 
 vim.diagnostic.config(config)
@@ -132,7 +127,6 @@ local server_opts = {
 		}
 	}
 }
-
 
 function M.config()
 	local lspconfig = require("lspconfig")

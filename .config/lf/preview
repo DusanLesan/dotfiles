@@ -43,4 +43,3 @@ case "$(file --dereference --brief --mime-type -- "$1")" in
 		bat -p --color=always "$1" --theme 'Visual Studio Dark+' --tabs 2 ;;
 esac
 exit 0
-

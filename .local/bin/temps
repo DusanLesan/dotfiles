@@ -1,0 +1,10 @@
+#!/bin/sh
+
+for d in /sys/class/hwmon/hwmon*; do
+	n=$(<"$d/name")
+	v=$(awk '{printf "%.1f, ", $1/1000}' "$d"/temp*_input 2>/dev/null)
+	echo "$n: ${v%, }"
+done
+
+nvidia-smi --query-gpu=name,temperature.gpu,power.draw,power.limit,memory.used,memory.total,utilization.gpu --format=csv,noheader,nounits | \
+awk -F ',' '{printf "\n\nGPU: %s\nTemp: %s°C\nPower: %sW / %sW\nMemory: %sMiB / %sMiB\nGPU Load: %s%%\n", $1, $2, $3, $4, $5, $6, $7}'

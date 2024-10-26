@@ -10,4 +10,3 @@ for file in $(find . -type f); do
 		echo "File $dest$file does not exist"
 	fi
 done
-
