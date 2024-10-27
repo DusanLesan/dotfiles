@@ -19,3 +19,5 @@ text/x-java=nvim.desktop;
 x-scheme-handler/mailto=brave-browser.desktop
 x-scheme-handler/magnet=torrent.desktop;
 application/x-bittorrent=torrent.desktop;
+application/javascript=nvim.desktop
+text/x-lua=nvim.desktop

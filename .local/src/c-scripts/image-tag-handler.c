@@ -24,15 +24,13 @@ void die(const char *error_header, const char *error) {
 }
 
 char* dmenu_prompt(const char* dmenu_prompt, const char* options_newline) {
-	char cmd[64];
+	char cmd[strlen(dmenu_prompt) + strlen(options_newline) + 32];
 	FILE *fp;
 	char *output = NULL;
 	size_t output_len = 0;
 
-	const char *options = options_newline ? options_newline : "";
-
 	if (options_newline)
-		snprintf(cmd, sizeof(cmd), "dmenu -p \"%s\" <<< \"%s\"", dmenu_prompt, options_newline);
+		snprintf(cmd, sizeof(cmd), "dmenu -p '%s' <<< '%s'", dmenu_prompt, options_newline);
 	else
 		snprintf(cmd, sizeof(cmd), "dmenu -p \"%s\" <<< ''", dmenu_prompt);
 
@@ -166,6 +164,31 @@ void insert_images(sqlite3 *db, char *image_paths){
 		"INSERT OR IGNORE INTO images (path) VALUES\n%s;", formatted_image_paths);
 
 	sqlite3_exec(db, sql, 0, 0, 0);
+}
+
+char* get_statement_result(sqlite3 *db, const char *sql) {
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			return (char *) sqlite3_column_text(stmt, 0);
+		}
+	}
+
+	return NULL;
+}
+
+char* get_tag_id(sqlite3 *db, const char *tag_name, const char *tag_value) {
+	char *sql = sqlite3_mprintf(
+		"SELECT id FROM %q WHERE tag = TRIM('%q');", tag_name, tag_value);
+
+	return get_statement_result(db, sql);
+}
+
+char* get_options(sqlite3 *db, const char *tag_name) {
+	char *sql = sqlite3_mprintf(
+		"SELECT GROUP_CONCAT(t.tag, '\n') from %s t ", tag_name);
+
+	return get_statement_result(db, sql);
 }
 
 char* get_image_ids(sqlite3 *db, const char *image_paths) {
@@ -333,20 +356,6 @@ void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_nam
 	notify_send(tag_name, db_tags);
 }
 
-char* get_tag_id(sqlite3 *db, const char *tag_name, const char *tag_value) {
-	char *sql = sqlite3_mprintf(
-		"SELECT id FROM %q WHERE tag = TRIM('%q');", tag_name, tag_value);
-
-	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-		if (sqlite3_step(stmt) == SQLITE_ROW) {
-			return (char *) sqlite3_column_text(stmt, 0);
-		}
-	}
-
-	return NULL;
-}
-
 void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_value_csv) {
 	char *tag_value = strtok(tag_value_csv, ",");
 	while (tag_value != NULL) {
@@ -468,10 +477,10 @@ char *calculate_sha256(const char *filename) {
 }
 
 int prepare_insert_statement(sqlite3 *db, sqlite3_stmt **stmt) {
-	const char *upsert_query =
+	const char *insert_query =
 		"INSERT OR REPLACE INTO images (id, path, sha256sum) "
 		"VALUES ((SELECT id FROM images WHERE sha256sum = ?), ?, ?)";
-	return sqlite3_prepare_v2(db, upsert_query, -1, stmt, NULL);
+	return sqlite3_prepare_v2(db, insert_query, -1, stmt, NULL);
 }
 
 int update_image_table(sqlite3 *db, sqlite3_stmt *stmt, const char *sha256sum_value, const char *path_value) {
@@ -638,11 +647,12 @@ int main(int argc, char **argv) {
 	} else if (sync) {
 		update_sha256sum(db);
 	} else if (search) {
-		search_for_paths(db, tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects"), get_user_input(lf_id, "Query: ", NULL), lf_id);
+		tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
+		search_for_paths(db, tag_name, get_user_input(lf_id, "Query: ", get_options(db, tag_name)), lf_id);
 	} else if (image_paths) {
 		if (should_add_tags || should_remove_tags) {
 			tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
-			tag_values = get_user_input(lf_id, "Tag values: ", NULL);
+			tag_values = get_user_input(lf_id, "Tag values: ", get_options(db, tag_name));
 
 			if (should_add_tags) {
 				insert_images(db, image_paths);
