@@ -3,6 +3,7 @@
 for d in /sys/class/hwmon/hwmon*; do
 	n=$(<"$d/name")
 	v=$(awk '{printf "%.1f, ", $1/1000}' "$d"/temp*_input 2>/dev/null)
+	[ -z "$v" ] && continue
 	echo "$n: ${v%, }"
 done
 

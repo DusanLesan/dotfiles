@@ -16,11 +16,10 @@ if bluetoothctl show | grep -F -q 'Powered: yes'; then
 				'Alias') alias=$value ;;
 				'Battery Percentage') [[ $value =~ \(([^\)]+)\) ]] && battery=" ${BASH_REMATCH[1]}" ;;
 			esac
-			[[ $battery == ' 100' ]] && battery=''
 		done < <(bluetoothctl info "$device")
-		devices="$devices$alias$battery"
+		[[ $battery == ' 100' ]] && devices="$alias$devices" || devices="$devices$alias$battery"
 	done
-	printf '%s\n' "$devices"
+	[ -z "$devices" ] && echo '' || echo "${devices:1}"
 else
 	echo ''
 fi

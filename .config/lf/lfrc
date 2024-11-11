@@ -1,7 +1,6 @@
 set scrolloff 100
 set hidden true
 set ifs "\n"
-set autoquit true
 set wrapscroll true
 set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
 set dupfilefmt "%b.%n%e"
@@ -12,13 +11,19 @@ set cleaner ctpvclear
 &ctpvquit $id
 
 cmd open ${{
-	case $(file --mime-type "$f" -b) in
-		image/*) lf -remote "send $id open_images" ;;
-		*/x-raw-disk-image) dmenumount "$f" ;;
-		*/zip) lf -remote "send $id mount_archive" ;;
-		text/*) $EDITOR $fx ;;
-		*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done ;;
-	esac
+	type="$(mimetype -b "$f")"
+
+	if [ "$(xdg-mime query default "$type")" == "nvim.desktop" ]; then
+		$EDITOR "$fx"
+	else
+		case $type in
+			image/*) lf -remote "send $id open_images" ;;
+			*/vnd.efi.img) dmenumount "$f" ;;
+			*/zip) lf -remote "send $id mount_archive" ;;
+			text/* ) $EDITOR $fx ;;
+			*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done ;;
+		esac
+	fi
 }}
 
 cmd open_images ${{
@@ -203,7 +208,7 @@ cmd on-redraw &{{
 	fi
 }}
 
-cmd set_tmux_conf ${{
+cmd on-init &{{
 	[ -n "$TMUX" ] && lf -remote "send $id source $XDG_CONFIG_HOME/lf/tmux_conf"
 }}
 
@@ -214,8 +219,6 @@ map i
 
 map md mkdir
 map DD delete
-
-set_tmux_conf
 
 # Basic Functions
 map <a-f>j :fzf_jump
