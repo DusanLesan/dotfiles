@@ -3,11 +3,8 @@
 if [ -f ~/.config/mpd/mpd.pid ]; then
 	mpd --kill
 else
-	mpd
+	systemctl --user --now start mpd-mpris
 	mpc play
 fi
 
 kill -44 $(pidof dwmblocks)
-while mpc idle >/dev/null; do
-	kill -44 $(pidof dwmblocks)
-done

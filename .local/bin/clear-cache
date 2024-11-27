@@ -40,10 +40,31 @@ deduplicate() {
 	mv "$1.tmp" "$1"
 }
 
+cleanGit() {
+	while read -r repo; do
+		if [ -d "$repo" ]; then
+			echo "Cleaning $repo"
+			cd "$repo"
+			git remote prune origin
+			git reflog expire --expire-unreachable=now
+			git gc --prune=now --aggressive
+		else
+			echo "Removing $repo"
+			sed -i "/.* ${repo}$/d" "$XDG_CONFIG_HOME/lazygit/state.yml"
+		fi
+	done < <(grep "$HOME" "$XDG_CONFIG_HOME/lazygit/state.yml" | sed 's/^[[:space:]]*-[[:space:]]*//')
+}
+
 pruneVscodeWorkspaces
 cleanCache
 deduplicate "$HOME/.config/zsh/zhistory"
 deduplicate "$HOME/.cache/.bluetoothctl_history"
+
+while getopts "g" opt; do
+	case $opt in
+		g) cleanGit ;;
+	esac
+done
 
 sudo journalctl --vacuum-time=1s
 sudo pacman -Scq

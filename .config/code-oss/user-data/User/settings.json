@@ -51,7 +51,7 @@
 	"gitlens.statusBar.alignment": "left",
 	"gitlens.currentLine.enabled": false,
 	"brightscript.deviceDiscovery.enabled": false,
-	"brightscript.debug.raleTrackerTaskFileLocation": "/home/dusan/git/5.0_roku/pluto-tv-roku/RALEComponent/TrackerTask.xml",
+	"brightscript.debug.raleTrackerTaskFileLocation": "/home/dusan/git/5.0_roku/pluto-tv-roku/RALEComponent/components/TrackerTask.xml",
 	"brightscript.debug.fileLogging.dir": "/home/dusan/git/5.0_roku/brightscriptLog",
 	"redhat.telemetry.enabled": false,
 	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",

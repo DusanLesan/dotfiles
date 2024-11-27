@@ -1,9 +1,8 @@
 [global]
-
     monitor = 0
     follow = keyboard
     height = 1050
-    origin = top-right 
+    origin = top-right
     offset = 5x25
     indicate_hidden = yes
     separator_height = 2
@@ -66,4 +65,3 @@
     background = "#181818"
     timeout = 0
     alignment = center
-

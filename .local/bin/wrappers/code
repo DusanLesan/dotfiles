@@ -1,0 +1,3 @@
+#!/bin/sh
+
+HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/code "$@"
