@@ -25,6 +25,9 @@ roku-remote: roku-remote.c
 image-tag-handler: image-tag-handler.c
 	$(CC) -o $@ $< $(LIBS_SQLITE) $(LIBS_LIBCRYPTO) $(LIBS_NOTIFY)
 
+music: music.c
+	$(CC) -o $@ $< $(LIBS_DBUS)
+
 %: %.c
 	$(CC) -o $@ $<
 
