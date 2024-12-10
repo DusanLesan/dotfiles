@@ -45,19 +45,18 @@ int main(void) {
 	}
 
 	FILE *meminfo = fopen("/proc/meminfo", "r");
-	char line[256];
-	int total, free, available, buffers, cached, sReclaimable, shmem;
-	while(fgets(line, sizeof(line), meminfo)) {
+	char line[64];
+	int total = 0, free = 0, buffers = 0, cached = 0, sReclaimable = 0, shmem = 0;
+	while (fgets(line, sizeof(line), meminfo)) {
 		sscanf(line, "MemTotal: %d kB", &total);
 		sscanf(line, "MemFree: %d kB", &free);
-		sscanf(line, "MemAvailable: %d kB", &available);
 		sscanf(line, "Buffers: %d kB", &buffers);
 		sscanf(line, "Cached: %d kB", &cached);
 		sscanf(line, "SReclaimable: %d kB", &sReclaimable);
 		sscanf(line, "Shmem: %d kB", &shmem);
 	}
 	fclose(meminfo);
-	double used = total - free - buffers - cached - sReclaimable;
+	double used = total - free - buffers - cached - sReclaimable + shmem;
 	printf("󰍛%.2f\n", used / 1024 / 1024);
 	return 0;
 }
