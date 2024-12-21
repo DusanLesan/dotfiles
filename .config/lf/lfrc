@@ -12,9 +12,12 @@ set cleaner ctpvclear
 
 cmd open ${{
 	type="$(mimetype -b "$f")"
+	default="$(xdg-mime query default "$type")"
 
-	if [ "$(xdg-mime query default "$type")" == "nvim.desktop" ]; then
+	if [ "$default" == "nvim.desktop" ]; then
 		$EDITOR $fx
+	elif [ "$default" == "video.desktop" ]; then
+		mpv $fx &
 	else
 		case $type in
 			image/*) lf -remote "send $id open_images" ;;

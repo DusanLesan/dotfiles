@@ -19,16 +19,18 @@ cmd delete ${{
 }}
 
 cmd open-drawer &{{
-	if [ $2 = "ls" ]; then
+	if [ $1 = "rename" ]; then
+		cmd="nvim -c Oil $f"
 		split_height=$(( $(ls -a | wc -l) + 1 ))
 		[ $split_height -gt $lf_height ] && split_height=$lf_height
 	else
+		cmd="$1"
 		split_height=$2
 	fi
-	tmux split-window -l $split_height "$1 && lf -remote \"send $id load\""
+	tmux split-window -l $split_height "$cmd && lf -remote \"send $id load\""
 }}
 
 map md mkdir
 map DD delete
-map R open-drawer 'nvim -c Oil' 'ls'
+map R :open-drawer 'rename'
 map T open-drawer zsh 25%

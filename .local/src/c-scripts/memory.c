@@ -5,7 +5,7 @@
 void displayhogs(void) {
 	size_t size = 0;
 	char *buffer = NULL;
-	FILE *fp = popen("ps axch -o cmd:15,%mem --sort=-%mem", "r");
+	FILE *fp = popen("ps axch -o cmd:15,rss --sort=-rss | head -n 70 | awk '{printf \"%-15s %8.2f MB\\n\", $1, $2 / 1024}'", "r");
 
 	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
