@@ -13,3 +13,10 @@ preview audio audio/* {{
 		y=$((y + $(printf '%s\n' "$meta" | wc -l)))
 	fi
 }}
+
+preview image image/* {{
+	image-tag-handler -dpi "${f}" -t subjects 2>/dev/null && ((y++))
+	image-tag-handler -dpi "${f}" 2>/dev/null && ((y++))
+	setup_image
+	send_image "$f"
+}}

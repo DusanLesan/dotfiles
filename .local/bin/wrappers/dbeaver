@@ -1,0 +1,12 @@
+#!/bin/sh
+
+opt='Dosgi.configuration.area=@user.home/.config/eclipse/'
+config='/usr/share/dbeaver/dbeaver.ini'
+
+if ! grep -Fq "$opt" "$config"; then
+	sudo -A -p 'Password to modify eclipse config: ' tee -a "$config" <<< "-$opt"
+fi
+
+HOME=$(fakehome "$XDG_DATA_HOME/fakehome") /usr/lib/dbeaver/dbeaver "$@"
+
+rm -rf ~/.swt

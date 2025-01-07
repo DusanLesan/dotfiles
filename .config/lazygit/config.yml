@@ -26,7 +26,7 @@ customCommands:
           - value: 'tree'
           - value: 'pr'
   - key: 'F'
-    command: 'alacritty -e lf {{.SelectedFile.Name}}'
+    command: '_START_LFCD={{.SelectedFile.Name}} alacritty &'
     description: 'Open file location'
     context: 'files'
   - key: '<c-y>'

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <libgen.h>
 #include <sqlite3.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,18 +9,28 @@
 #include <libnotify/notify.h>
 #include <openssl/evp.h>
 
-void notify_send(const char *header, const char *message) {
-	printf("%s %s\n", header, message);
-	notify_init("Notification");
-	NotifyNotification *n = notify_notification_new(header, message, NULL);
-	notify_notification_show(n, NULL);
-	g_object_unref(G_OBJECT(n));
-	notify_uninit();
+static char *db_path = NULL;
+static char *lf_id = NULL;
+
+void notify_send(const char *header, const char *message, int is_error) {
+	if (lf_id) {
+		notify_init("Notification");
+		NotifyNotification *n = notify_notification_new(header, message, NULL);
+		notify_notification_show(n, NULL);
+		g_object_unref(G_OBJECT(n));
+		notify_uninit();
+	} else if (is_error) {
+		fprintf(stderr, "%s: %s\n", header, message);
+	} else {
+		fprintf(stdout, "%s: %s\n", header, message);
+	}
 }
 
 void die(const char *error_header, const char *error) {
-	perror(error);
-	notify_send(error_header ? error_header : "Error", error);
+	if (!error_header)
+		error_header = "Error";
+
+	notify_send(error_header ? error_header : "Error", error, 1);
 	exit(EXIT_FAILURE);
 }
 
@@ -138,7 +149,7 @@ char* get_db_path() {
 		if (stat(filepath, &buffer) == 0)
 			return filepath;
 
-		if (strcmp(cwd, "/") == 0)
+		if (cwd[0] == '\0' || strcmp(cwd, "/") == 0)
 			break;
 
 		char *last_slash = strrchr(cwd, '/');
@@ -270,14 +281,14 @@ char* get_tags_from_image(const char *image_path) {
 	snprintf(command, sizeof(command), "exiftool -s -s -s -Keywords '%s'", image_path);
 	FILE *fp = popen(command, "r");
 	if (fp == NULL) {
-		notify_send("Error", "Failed to run command");
+		notify_send("Error", "Failed to run command", 1);
 		return NULL;
 	}
 
 	char tags_csv[1024];
 	if (fgets(tags_csv, sizeof(tags_csv), fp) == NULL) {
 		pclose(fp);
-		notify_send("Error", "No tags found or failed to read output");
+		notify_send("Error", "No tags found or failed to read output", 1);
 		return NULL;
 	}
 	pclose(fp);
@@ -309,7 +320,7 @@ void sync_tags_from_image(sqlite3 *db, char *image_path) {
 void print_tags_from_image(const char *image_path) {
 	char* tags_csv = get_tags_from_image(image_path);
 	if (tags_csv == NULL) return;
-	notify_send("Keywords", tags_csv);
+	notify_send("Keywords", tags_csv, 0);
 }
 
 char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
@@ -336,7 +347,7 @@ char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name
 
 		return strdup(db_tags);
 	} else {
-		notify_send("Error", "Image not found in database.");
+		notify_send("Error", "Image not found in database.", 1);
 		return NULL;
 	}
 }
@@ -352,8 +363,10 @@ void sync_tags_to_image(sqlite3 *db, const char *image_path, const char *tag_nam
 
 void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
 	char* db_tags = get_tags_from_db(db, image_path, tag_name);
-	if (db_tags == NULL) return;
-	notify_send(tag_name, db_tags);
+	if (db_tags == NULL || db_tags[0] == '\0')
+		die("Error", "No tags found in database");
+
+	notify_send(tag_name, db_tags, 0);
 }
 
 void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_value_csv) {
@@ -399,6 +412,33 @@ void toggle_files(const char *lf_id, const char *image_path) {
 	system(command);
 }
 
+void create_directory_if_needed(char *path, const char *name) {
+	snprintf(path + strlen(path), PATH_MAX - strlen(path), "/%s", name);
+
+	if (stat(path, NULL) != 0)
+		mkdir(path, 0755);
+}
+
+void create_symlink_tree(const char *db_path, const char *type, const char *name, char *link_path) {
+	const char *last_slash = strrchr(db_path, '/');
+	snprintf(link_path, last_slash ? (last_slash - db_path + 1) : 0, "%s", db_path);
+
+	create_directory_if_needed(link_path, ".tag_tree");
+	create_directory_if_needed(link_path, type);
+	create_directory_if_needed(link_path, name);
+}
+
+void create_symlink_in_dir(const char *file_path, const char *link_dir) {
+	char link_path[PATH_MAX];
+	char *base_name = basename((char *)file_path);
+
+	snprintf(link_path, sizeof(link_path), "%s/%s", link_dir, base_name);
+
+	struct stat st;
+	if (lstat(link_path, &st) != 0)
+		symlink(file_path, link_path);
+}
+
 void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, const char *lf_id) {
 	char *sql = sqlite3_mprintf(
 		"SELECT i.path FROM images AS i "
@@ -411,9 +451,13 @@ void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, cons
 		char paths[990] = {0};
 		char *path;
 
+		char link_path[PATH_MAX];
+		create_symlink_tree(db_path, tag_name, query, link_path);
+
 		while (sqlite3_step(stmt) == SQLITE_ROW) {
+			path = (char *)sqlite3_column_text(stmt, 0);
+			create_symlink_in_dir(path, link_path);
 			if (lf_id != NULL) {
-				path = (char *)sqlite3_column_text(stmt, 0);
 				if (strlen(paths) + strlen(path) + 3 >= sizeof(paths)) {
 					toggle_files(lf_id, paths);
 					memset(paths, 0, sizeof(paths));
@@ -421,7 +465,7 @@ void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, cons
 
 				snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
 			} else {
-				printf("%s\n", sqlite3_column_text(stmt, 0));
+				printf("%s\n", path);
 			}
 		}
 
@@ -610,7 +654,7 @@ void update_sha256sum(sqlite3 *db) {
 }
 
 int main(int argc, char **argv) {
-	char *db_path = NULL, *image_paths = NULL, *lf_id = NULL , *tag_name = NULL, *tag_values = NULL;
+	char *image_paths = NULL, *tag_name = NULL, *tag_values = NULL;
 	int opt, target_file = 0, target_db = 0, print = 0, update = 0, should_add_tags = 0, should_remove_tags = 0, search = 0;
 
 	char *sync_path = NULL;
@@ -635,8 +679,11 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	if (!db_path)
+	if (!db_path) {
 		db_path = get_db_path();
+		if (!db_path)
+			die("Error", "Failed to find database");
+	}
 
 	sqlite3 *db = open_db(db_path);
 	if (!db)
@@ -666,6 +713,7 @@ int main(int argc, char **argv) {
 		} else {
 			char *image_path, *saveptr;
 			image_path = strtok_r(image_paths, "\n", &saveptr);
+			tag_name = tag_name ? tag_name : "keywords";
 			while (image_path != NULL) {
 				if (update) {
 					if (target_db) {

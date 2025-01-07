@@ -1,21 +1,16 @@
 # Use lf to switch directories and bind it to ctrl-o
 function lfcd () {
-	if [[ $# -eq 0 ]]; then
-		tmp="$(mktemp -uq)"
-		trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
-		lfrun -last-dir-path="$tmp"
-		if [ -f "$tmp" ]; then
-			dir="$(cat "$tmp")"
-			[ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
-		fi
-	else
-		/bin/lf "$@"
+	tmp="$(mktemp -uq)"
+	trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
+	lfrun -last-dir-path="$tmp" "$*"
+	if [ -f "$tmp" ]; then
+		dir="$(cat "$tmp")"
+		[ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
 	fi
 }
 
 if [ "$_START_LFCD" ]; then
-	unset _START_LFCD
-	lfcd
+	[ -e "$_START_LFCD" ] && lfcd "$_START_LFCD" || lfcd
 fi
 
 ## Options section

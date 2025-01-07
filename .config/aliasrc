@@ -28,7 +28,7 @@ alias \
 	i="nsxiv -p" \
 	p="sudo pacman" \
 	c="comms" \
-	lf="lfcd" \
+	l="lfcd" \
 	lg="lazygit"
 
 cdg() {
@@ -46,4 +46,3 @@ wsg() {
 		white "`git rev-parse --show-toplevel`/$line";
 	done
 }
-
