@@ -1,3 +1,4 @@
 #!/bin/sh
 
-HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/code "$@"
+HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/code --wait "$@"
+pgrep -P 1 -f "rokucommunity" | xargs --no-run-if-empty kill -9

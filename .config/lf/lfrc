@@ -135,6 +135,16 @@ cmd mount_archive ${{
 	lf -remote "send $id reload"
 }}
 
+cmd rename_related ${{
+	. utils
+	for file in $fx; do
+		filename=$(getfilename "$1")
+		if [ ! -e "$filename" ]; then
+			mv "$file" "$filename"
+		fi
+	done
+}}
+
 cmd fzf_jump ${{
 	old="$f"
 	while true; do
@@ -240,6 +250,7 @@ map V invert-below
 
 map mf mkfile
 map S push :new_permission<space>
+map <a-r> push :rename_related<space>
 map <a-p> paste_link
 map mu %dmenuumount "$fx"
 
