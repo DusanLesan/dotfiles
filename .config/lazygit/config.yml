@@ -43,7 +43,7 @@ customCommands:
         title: 'File Name:'
 
 os:
-  edit: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && code -g {{filename}} || nvim {{filename}}'
-  editAtLine: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && code -g {{filename}}:{{line}} || nvim +{{line}} {{filename}}'
+  edit: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && /bin/code -g {{filename}} || nvim {{filename}}'
+  editAtLine: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && /bin/code -g {{filename}}:{{line}} || nvim +{{line}} {{filename}}'
 
 promptToReturnFromSubprocess: false

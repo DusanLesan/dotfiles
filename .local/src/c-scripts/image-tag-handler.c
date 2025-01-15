@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <sys/stat.h>
 #include <libnotify/notify.h>
@@ -439,38 +440,70 @@ void create_symlink_in_dir(const char *file_path, const char *link_dir) {
 		symlink(file_path, link_path);
 }
 
-void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, const char *lf_id) {
+void simple_search_out(sqlite3_stmt *stmt) {
+	char paths[990] = {0};
+	char *path;
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		path = (char *)sqlite3_column_text(stmt, 0);
+		if (lf_id != NULL) {
+			if (strlen(paths) + strlen(path) + 3 >= sizeof(paths)) {
+				toggle_files(lf_id, paths);
+				memset(paths, 0, sizeof(paths));
+			}
+
+			snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
+		} else {
+			printf("%s\n", path);
+		}
+	}
+
+	if (strlen(paths) > 0) {
+		toggle_files(lf_id, paths);
+	}
+}
+
+void tree_search_out(sqlite3_stmt *stmt, const char *tag_name, const char *query) {
+	char *path;
+	char link_path[PATH_MAX];
+	create_symlink_tree(db_path, tag_name, query, link_path);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		create_symlink_in_dir((char *)sqlite3_column_text(stmt, 0), link_path);
+	}
+}
+
+void file_search_out(sqlite3_stmt *stmt) {
+	char filepath[256];
+	const char *home = getenv("HOME");
+	if (!home)
+		die("Error", "Failed to get home directory");
+
+	snprintf(filepath, sizeof(filepath), "%s/.local/share/lf/search", home);
+	int fd = open(filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1)
+		die("Error", "Failed to create or clear the file");
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		dprintf(fd, "%s\n", (char *)sqlite3_column_text(stmt, 0));
+	}
+	close(fd);
+}
+
+void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, const char *mode) {
 	char *sql = sqlite3_mprintf(
 		"SELECT i.path FROM images AS i "
 		"JOIN image_%q AS it ON i.id = it.image_id "
 		"JOIN %q AS t ON t.id = it.tag_id "
-		"WHERE t.tag = TRIM('%q');", tag_name, tag_name, query);
+		"WHERE t.tag = TRIM('%q') "
+		"ORDER BY 1 COLLATE NOCASE;", tag_name, tag_name, query);
 
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-		char paths[990] = {0};
-		char *path;
-
-		char link_path[PATH_MAX];
-		create_symlink_tree(db_path, tag_name, query, link_path);
-
-		while (sqlite3_step(stmt) == SQLITE_ROW) {
-			path = (char *)sqlite3_column_text(stmt, 0);
-			create_symlink_in_dir(path, link_path);
-			if (lf_id != NULL) {
-				if (strlen(paths) + strlen(path) + 3 >= sizeof(paths)) {
-					toggle_files(lf_id, paths);
-					memset(paths, 0, sizeof(paths));
-				}
-
-				snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
-			} else {
-				printf("%s\n", path);
-			}
-		}
-
-		if (strlen(paths) > 0) {
-			toggle_files(lf_id, paths);
+		switch (mode[0]) {
+			case 'f': file_search_out(stmt); break;
+			case 't': tree_search_out(stmt, tag_name, query); break;
+			default: simple_search_out(stmt); break;
 		}
 	}
 
@@ -654,19 +687,18 @@ void update_sha256sum(sqlite3 *db) {
 }
 
 int main(int argc, char **argv) {
-	char *image_paths = NULL, *tag_name = NULL, *tag_values = NULL;
-	int opt, target_file = 0, target_db = 0, print = 0, update = 0, should_add_tags = 0, should_remove_tags = 0, search = 0;
+	char *image_paths = NULL, *tag_name = NULL, *tag_values = NULL, *sync_path = NULL, *mode = "d";
+	int target_file = 0, target_db = 0, should_add_tags = 0, should_remove_tags = 0;
+	int opt, search = 0, sync = 0, print = 0, update = 0;
 
-	char *sync_path = NULL;
-	int sync = 0;
-
-	while ((opt = getopt(argc, argv, "D:i:t:l:S:spufdarU")) != -1) {
+	while ((opt = getopt(argc, argv, "D:i:t:l:m:S:spufdarU")) != -1) {
 		switch (opt) {
 			case 'D': db_path = optarg; break;
 			case 'i': image_paths = optarg; break;
 			case 't': tag_name = optarg; break;
 			case 'l': lf_id = optarg; break;
 			case 's': search = 1; break;
+			case 'm': mode = optarg; break;
 			case 'p': print = 1; break;
 			case 'u': update = 1; break;
 			case 'f': target_file = 1; break;
@@ -695,17 +727,16 @@ int main(int argc, char **argv) {
 		update_sha256sum(db);
 	} else if (search) {
 		tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
-		search_for_paths(db, tag_name, get_user_input(lf_id, "Query: ", get_options(db, tag_name)), lf_id);
+		search_for_paths(db, tag_name, get_user_input(lf_id, "Query: ", get_options(db, tag_name)), mode);
 	} else if (image_paths) {
 		if (should_add_tags || should_remove_tags) {
-			tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects");
+			tag_name = tag_name ? tag_name : get_user_input(lf_id, "Tag name: ", "keywords\nsubjects\nshared");
 			tag_values = get_user_input(lf_id, "Tag values: ", get_options(db, tag_name));
 
 			if (should_add_tags) {
 				insert_images(db, image_paths);
 				char *image_ids = get_image_ids(db, image_paths);
 				add_tags(db, image_ids, tag_name, tag_values);
-
 			} else if (should_remove_tags) {
 				char *image_ids = get_image_ids(db, image_paths);
 				remove_tags(db, image_paths, tag_name, tag_values);

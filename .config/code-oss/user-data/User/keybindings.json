@@ -222,5 +222,9 @@
 				}
 			]
 		}
+	},
+	{
+		"key": "ctrl+shift+alt+r",
+		"command": "vscode-neovim.restart"
 	}
 ]

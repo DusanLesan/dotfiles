@@ -4,6 +4,7 @@ set ifs "\n"
 set wrapscroll true
 set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
 set dupfilefmt "%b.%n%e"
+set watch
 
 set previewer ctpv
 set cleaner ctpvclear
@@ -195,6 +196,25 @@ cmd fzf_find_line ${{
 	fi
 }}
 
+cmd db_search &{{
+	image-tag-handler -sl "$id" -m 'f'
+	lf -remote "send $id map n db_search_next"
+	lf -remote "send $id map C db_search_clear"
+}}
+
+cmd db_search_next &{{
+	[ -z "$lf_user_search_index" ] && lf_user_search_index=1 || lf_user_search_index=$((lf_user_search_index + 1))
+	[ "$lf_user_search_index" -gt "$(wc -l < /home/dusan/.local/share/lf/search)" ] && lf_user_search_index=1
+	line=$(sed -n "${lf_user_search_index}p" /home/dusan/.local/share/lf/search)
+	lf -remote "send $id select \"$line\""
+	lf -remote "send $id set user_search_index $lf_user_search_index"
+}}
+
+cmd db_search_clear &{{
+	rm /home/dusan/.local/share/lf/search
+	lf -remote "send $id map n search-next"
+}}
+
 cmd setNumber &lf -remote "send $id set user_pane $lf_count"
 
 cmd resize &{{
@@ -259,7 +279,8 @@ map at tar
 map az zip
 map ai &arc $fx
 map am mount_archive
-map is %image-tag-handler -sl "$id"
+map is db_search
+map iS %image-tag-handler -sl "$id"
 map if %image-tag-handler -fpi "$f" -l "$id"
 map id %image-tag-handler -dpi "$f" -l "$id"
 map it %image-tag-handler -ai "$fx" -l "$id"
@@ -302,6 +323,7 @@ map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
 map gr &open-remote -f "$f"
+map gL %lf -remote "send $id select \"$(realpath $f)\""
 
 cmap <backspace2> cmd-delete-back
 cmap <backspace> cmd-delete-word-back
