@@ -1,5 +1,5 @@
 #!/bin/sh
 
 # composition-toggle off
-HOME=$(fakehome $XDG_DATA_HOME/Steam/fakehome) /bin/steam
+HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/steam
 # composition-toggle on

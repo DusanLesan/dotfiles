@@ -1,5 +1,16 @@
 #!/bin/sh
 
+calculate_time() {
+	local diff abs_diff hours minutes sign hour_diff minute_diff
+	IFS=' ' read -r hours minutes <<< "$(TZ=$1 date '+%-H %-M')"
+	diff=$(($(TZ=$1 date -d "09:00$( [ $hours -ge 20 ] && echo ' tomorrow' )" +%s) - $(TZ=$1 date +%s)))
+	sign=$([ $diff -lt 0 ] && echo '+' || echo '-')
+	abs_diff=$((diff < 0 ? -diff : diff))
+	hour_diff=$((abs_diff / 3600))
+	minute_diff=$(((abs_diff % 3600) / 60))
+	printf "\n<b><span color=\"$2\">%02d:%02d %s%02d:%02d</span></b>" $hours $minutes $sign $hour_diff $minute_diff
+}
+
 case $BLOCK_BUTTON in
 	1) notify-send "date" "$(cal -m --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..0m/<\/span><\/b>/")" ;;
 	2) cityPath=$(realpath /etc/localtime)
@@ -8,7 +19,8 @@ case $BLOCK_BUTTON in
 		"$(cal -m $(date -d "$(date +%Y-%m-15) -1 month" +"%B %Y") \
 		&& cal -m --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..0m/<\/span><\/b>/"\
 		&& cal -m $(date -d "$(date +%Y-%m-15) +1 month" +"%B %Y") \
-		&& printf "<b><span color=\"red\">%s<\/span><\/b>" "$(TZ=America/Los_Angeles date "+%a, %b %d, %H:%M")" )"
+		&& calculate_time 'America/Los_Angeles' 'red' \
+		&& calculate_time 'America/Toronto' 'cyan' )"
 	;;
 esac
 

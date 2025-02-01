@@ -10,5 +10,5 @@ sel=$(prompt "Select key" "$keys") || exit 1
 key="$dir$sel.gpg"
 totp=$(gpg2 --quiet -u "$gpgKey" -r "$email" --decrypt "$key") || exit 1
 code=$(oathtool -b --totp "$totp")
-echo $code | xclip -sel clip
+xclip -sel clip <<< "$code"
 echo "$code"

@@ -57,7 +57,7 @@
 		"description": "Sub with no params"
 	},
 
-	"Sub": {
+	"Sub Params": {
 		"prefix": "sub-with-params",
 		"body": [
 			"sub ${1:subName}(${2:params as } ${3|boolean,integer,string,object,dynamic|})",

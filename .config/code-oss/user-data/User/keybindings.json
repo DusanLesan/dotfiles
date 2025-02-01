@@ -226,5 +226,18 @@
 	{
 		"key": "ctrl+shift+alt+r",
 		"command": "vscode-neovim.restart"
+	},
+	{
+		"key": "tab",
+		"command": "editor.action.inlineSuggest.commit",
+		"when": "inlineEditIsVisible && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus || inlineEditIsVisible && inlineSuggestionVisible && tabShouldAcceptInlineEdit && !editorHoverFocused && !editorTabMovesFocus || inlineEditIsVisible && tabShouldAcceptInlineEdit && !editorHoverFocused && !editorTabMovesFocus || inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus"
+	},
+	{
+		"key": "tab",
+		"command": "-editor.action.inlineSuggest.commit"
+	},
+	{
+		"key": "tab",
+		"command": "-acceptSelectedSuggestion"
 	}
 ]

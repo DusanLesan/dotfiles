@@ -204,14 +204,14 @@ cmd db_search &{{
 
 cmd db_search_next &{{
 	[ -z "$lf_user_search_index" ] && lf_user_search_index=1 || lf_user_search_index=$((lf_user_search_index + 1))
-	[ "$lf_user_search_index" -gt "$(wc -l < /home/dusan/.local/share/lf/search)" ] && lf_user_search_index=1
-	line=$(sed -n "${lf_user_search_index}p" /home/dusan/.local/share/lf/search)
+	[ "$lf_user_search_index" -gt "$(wc -l < ~/.local/share/lf/search)" ] && lf_user_search_index=1
+	line=$(sed -n "${lf_user_search_index}p" ~/.local/share/lf/search)
 	lf -remote "send $id select \"$line\""
 	lf -remote "send $id set user_search_index $lf_user_search_index"
 }}
 
 cmd db_search_clear &{{
-	rm /home/dusan/.local/share/lf/search
+	rm ~/.local/share/lf/search
 	lf -remote "send $id map n search-next"
 }}
 
