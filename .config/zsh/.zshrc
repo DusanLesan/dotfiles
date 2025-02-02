@@ -1,5 +1,4 @@
-# Use lf to switch directories and bind it to ctrl-o
-function lfcd () {
+function lfcd() {
 	tmp="$(mktemp -uq)"
 	trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
 	lfrun -last-dir-path="$tmp" "$*"
@@ -17,7 +16,7 @@ fi
 setopt correct                                                   # Auto correct mistakes
 setopt extendedglob                                              # Extended globbing. Allows using regular expressions with *
 setopt nocaseglob                                                # Case insensitive globbing
-setopt rcexpandparam                                             # Array expension with parameters
+setopt rcexpandparam                                             # Array expansion with parameters
 setopt nocheckjobs                                               # Don't warn about running processes when exiting
 setopt numericglobsort                                           # Sort filenames numerically when it makes sense
 setopt nobeep                                                    # No beep

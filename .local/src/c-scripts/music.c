@@ -158,7 +158,7 @@ void handle_block_button(const char *block_button, PlayerInfo *current_info) {
 	switch (button) {
 		case 1: send_command("PlayPause", current_info->player_name); current_info->is_paused = !current_info->is_paused; break;
 		case 3: send_command("Stop", current_info->player_name); break;
-		case 4: send_command("Previous", current_info->player_name);  break;
+		case 4: send_command("Previous", current_info->player_name); break;
 		case 5: send_command("Next", current_info->player_name); break;
 	}
 }

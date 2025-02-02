@@ -3,8 +3,6 @@
 # Display white-space characters at the ends of the lines
 # Display double spaces
 # Display spaces next to tabs
-# Display multiple empty lines
-# Display empty lines before end statements
 # Find all if statements without then
 
 extensionBlacklist=".zip .jar .png .ico .otf .ttf .webp"
@@ -18,8 +16,6 @@ processFile() {
 		"$(grep -n '[[:blank:]]$' "$1" )" \
 		"$(grep -nP '\S[ ]{2,}\S' "$1")" \
 		"$(grep -nP '\t | \t' "$1")" \
-		"$(pcregrep -Mn '^$.*(\n|.)^$' "$1")" \
-		"$(pcregrep -Mn '^$\n.*(	|^)(end |else)' "$1")" \
 		"$(grep -nP '(?!.*then)^\s*if.*$' "$1")" )
 
 	if [ -n "$result" ]; then
