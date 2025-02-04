@@ -21,8 +21,8 @@
 	},
 	"files": {
 		"enableTrash": false,
-		"insertFinalNewline": true,
 		"trimTrailingWhitespace": true,
+		"insertFinalNewline": true,
 		"trimFinalNewlines": true
 	},
 	"terminal": {
@@ -41,6 +41,7 @@
 		"**/components/youbora": true,
 		"cicd/automation": true
 	},
+	"extensions.ignoreRecommendations": true,
 	"npm.packageManager": "npm",
 	"diffEditor.ignoreTrimWhitespace": false,
 	"githubPullRequests.pullBranch": "never",

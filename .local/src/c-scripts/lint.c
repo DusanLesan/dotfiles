@@ -9,9 +9,74 @@ char current_file[1024];
 int current_line = 0;
 int current_line_reported = 0;
 int previous_was_empty = 0;
-int ignore_consecutive_spaces = 0;
+
 const char *blacklisted_extensions[] = {".png", ".jpeg", ".jpg", ".webp", ".gif", ".mp4", ".jar", ".gz", ".zip", NULL};
-const char *blacklisted_directories[] = {"node_modules", "build", "out", "vendor", ".git", NULL};
+char **blacklisted_directories = NULL;
+
+int ignore_consecutive_spaces = 0;
+int ignore_trailing_whitespace = 0;
+int ignore_empty_lines = 0;
+
+struct IgnoreOption {
+	const char *name;
+	int *flag;
+};
+
+void parse_blacklist_dirs(char *dir_list) {
+	static char *default_blacklisted_directories[] = { "node_modules", "build", "out", "vendor", ".git", NULL};
+
+	if (!dir_list) {
+		blacklisted_directories = default_blacklisted_directories;
+		return;
+	}
+
+	size_t initial_count = 5;
+	size_t blacklisted_count = 1;
+	char *token = strtok(dir_list, ",");
+	for (char *p = dir_list; *p; p++) {
+		if (*p == ',') blacklisted_count++;
+	}
+
+	char **merged_list = malloc((blacklisted_count + initial_count + 1) * sizeof(char *));
+	if (!merged_list) {
+		perror("Memory allocation failed");
+		exit(1);
+	}
+
+	for (size_t i = 0; i < initial_count; i++) {
+		merged_list[i] = default_blacklisted_directories[i];
+	}
+
+	token = strtok(dir_list, ",");
+	size_t i = initial_count;
+	while (token) {
+		merged_list[i++] = token;
+		token = strtok(NULL, ",");
+	}
+
+	merged_list[i] = NULL;
+	blacklisted_directories = merged_list;
+}
+
+void parse_ignore_options(char *ignore_list) {
+	static struct IgnoreOption options[] = {
+		{"consecutive_spaces", &ignore_consecutive_spaces},
+		{"trailing_whitespace", &ignore_trailing_whitespace},
+		{"empty_lines", &ignore_empty_lines},
+		{NULL, NULL}
+	};
+
+	char *token = strtok(ignore_list, ",");
+	while (token) {
+		for (struct IgnoreOption *opt = options; opt->name; opt++) {
+			if (strcmp(token, opt->name) == 0) {
+				*(opt->flag) = 1;
+				break;
+			}
+		}
+		token = strtok(NULL, ",");
+	}
+}
 
 int is_blacklisted(const char *file_path) {
 	for (int i = 0; blacklisted_directories[i] != NULL; i++) {
@@ -108,6 +173,20 @@ void matches_end_statement(char *line, const char *end_statements[]) {
 	}
 }
 
+void check_xml_issues(char *line) {
+	for (char *c = line; *c; c++) {
+		if (*c == '>') {
+			if (*(c - 1) == '/' && *(c - 2) != ' ') {
+				print_issue("Closing tag should have a space before '/'", line);
+			}
+		} else if (*c == '=') {
+			if (*(c + 1) == ' ' || *(c - 1) == ' ') {
+				print_issue("Equals should not have spaces around it", line);
+			}
+		}
+	}
+}
+
 void check_brs_issues(char *line) {
 	line = trim_whitespace(line);
 
@@ -135,10 +214,12 @@ void validate_line(char *line_content){
 	current_line_reported = 0;
 
 	if (line_content[0] == '\n') {
-		if (previous_was_empty) {
-			print_issue("Multiple empty lines detected\n", line_content);
+		if (!ignore_empty_lines) {
+			if (previous_was_empty) {
+				print_issue("Multiple empty lines detected\n", line_content);
+			}
+			previous_was_empty = 1;
 		}
-		previous_was_empty = 1;
 		return;
 	}
 
@@ -146,7 +227,7 @@ void validate_line(char *line_content){
 	size_t len = strlen(line_content);
 	if (len < 2) return;
 
-	if (line_content[len - 2] == ' ' || line_content[len - 2] == '\t') {
+	if (!ignore_trailing_whitespace && line_content[len - 2] == ' ' || line_content[len - 2] == '\t') {
 		print_issue("Line ends with whitespace", line_content);
 	}
 
@@ -154,7 +235,12 @@ void validate_line(char *line_content){
 		print_issue("Line contains two or more consecutive spaces", line_content);
 	}
 
-	if (strstr(current_file, ".brs")) check_brs_issues(line_content);
+	if (strstr(current_file, ".brs")) {
+		check_brs_issues(line_content);
+	} else if (strstr(current_file, ".xml")) {
+		check_xml_issues(line_content);
+	}
+
 	if (current_line_reported) printf("\n");
 	previous_was_empty = 0;
 }
@@ -231,28 +317,25 @@ void process_files_from_path(const char *path) {
 
 int main(int argc, char *argv[]) {
 	int opt;
-	char *ignore_list = NULL;
+	char *ignore_list = NULL, *blacklist_dirs = NULL;
 	const char *path = NULL;
 	int use_stdin = 0;
 
-	while ((opt = getopt(argc, argv, "p:i:s")) != -1) {
+	while ((opt = getopt(argc, argv, "p:i:d:s")) != -1) {
 		switch (opt) {
 			case 'p': path = optarg; break;
 			case 'i': ignore_list = optarg; break;
+			case 'd': blacklist_dirs = optarg; break;
 			case 's': use_stdin = 1; break;
 			default: fprintf(stderr, "Invalid option.\n"); return 1;
 		}
 	}
 
 	if (ignore_list) {
-		char *token = strtok(ignore_list, ",");
-		while (token != NULL) {
-			if (strcmp(token, "consecutive_spaces") == 0) {
-				ignore_consecutive_spaces = 1;
-			}
-			token = strtok(NULL, ",");
-		}
+		parse_ignore_options(ignore_list);
 	}
+
+	parse_blacklist_dirs(blacklist_dirs);
 
 	if (use_stdin) {
 		process_file_list_from_stdin();
