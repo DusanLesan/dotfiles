@@ -52,6 +52,27 @@ red = "#a54242"
 white = "#C3C3C3"
 yellow = "#dec75e"
 
+[hints]
+[[hints.enabled]]
+regex = "(/[^: ]+(:\\d+)?)"
+action = "Copy"
+command = { program = "v", args = ["-t"] }
+mouse.enabled = true
+post_processing = true
+binding = { key = "U", mods = "Control" }
+
+[[hints.enabled]]
+regex = "(\\S+)"
+action = "Copy"
+post_processing = true
+binding = { key = "A", mods = "Control|Shift" }
+
+[[hints.enabled]]
+regex = "(\\S+)"
+action = "MoveViModeCursor"
+post_processing = true
+binding = { key = "S", mods = "Control|Shift" }
+
 [[keyboard.bindings]]
 action = "Paste"
 key = "V"

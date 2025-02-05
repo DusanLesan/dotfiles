@@ -35,8 +35,6 @@ cdg() {
 	cd "$(git rev-parse --show-toplevel)"
 }
 
-v() { [ -e "$1" ] && $EDITOR "$@" || $EDITOR $(IFS="_"; echo "$*"); }
-
 #  Workarounds
 mvn() { command mvn -gs "$XDG_CONFIG_HOME/maven/settings.xml" "$@" }
 

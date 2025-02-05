@@ -1,0 +1,16 @@
+#!/bin/sh
+
+[ "$1" = "-t" ] && startTerm=true && shift
+file="${1%%:*}"
+line="${1##*:}"
+[ "$file" = "$line" ] && line=""
+
+if echo "$file" | grep -q "components"; then
+	[ -n "$line" ] && exec code --goto "$file:$line" || exec code "$file"
+else
+	if [ -n "$startTerm" ]; then
+		alacritty -e "nvim" "$file" "+$line"
+	else
+		nvim "$file" "+$line"
+	fi
+fi
