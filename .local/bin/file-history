@@ -1,0 +1,16 @@
+#!/bin/sh
+
+cmd='\
+get_sha() { \
+	git log --pretty=format:"%h" -- "$2" | awk -v search="$1" '"'"'$0 ~ search {getline; print}'"'"';
+}; \
+f() { \
+	prev_sha=$(get_sha "$1" "$2"); \
+	git diff "$prev_sha" "$1" -- "$2" | bat -p --language=diff --color=always --tabs 2; \
+};'
+
+sha="$(git log --pretty=format:'%h:%ad:%s' -- "$1" | \
+		fzf --preview "$cmd f {1} $1" --delimiter : --preview-window=down:80%)" || exit 0
+
+sha="${sha%%:*}"
+gh browse "$(basename "$1")" --commit="$sha"

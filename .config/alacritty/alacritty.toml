@@ -55,7 +55,6 @@ yellow = "#dec75e"
 [hints]
 [[hints.enabled]]
 regex = "(/[^: ]+(:\\d+)?)"
-action = "Copy"
 command = { program = "v", args = ["-t"] }
 mouse.enabled = true
 post_processing = true

@@ -323,6 +323,7 @@ map gpo cd ~/git/5.0_roku/pluto-tv-roku/out/
 map gpc cd ~/git/5.0_roku/pluto-tv-roku/pluto/components/5.0_app/
 map g1 cd ~/hdd_1/
 map gr &open-remote -f "$f"
+map gf $file-history "$f"
 map gL %lf -remote "send $id select \"$(realpath $f)\""
 
 cmap <backspace2> cmd-delete-back

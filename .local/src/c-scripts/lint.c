@@ -9,6 +9,7 @@ char current_file[1024];
 int current_line = 0;
 int current_line_reported = 0;
 int previous_was_empty = 0;
+char previous_indent = '\t';
 
 const char *blacklisted_extensions[] = {".png", ".jpeg", ".jpg", ".webp", ".gif", ".mp4", ".jar", ".gz", ".zip", NULL};
 char **blacklisted_directories = NULL;
@@ -108,22 +109,24 @@ void print_issue(const char *issue, const char *line_content) {
 
 char* trim_whitespace(char *input) {
 	int found_mixed_indent = 0, line_start = 0;
-	char prev_char = 0;
 
 	for (int i = 0; input[i] != '\0'; i++) {
 		if (input[i] == ' ' || input[i] == '\t') {
-			if (prev_char && prev_char != input[i]) {
+			if (previous_indent && previous_indent != input[i]) {
 				found_mixed_indent = 1;
 			}
+			previous_indent = input[i];
 		} else {
 			line_start = i;
 			if (input[line_start] == '\n') print_issue("Empty line contains whitespaces", input);
 			break;
 		}
-		prev_char = input[i];
 	}
 
-	if (found_mixed_indent) print_issue("Line contains mixed indentation", input);
+	if (found_mixed_indent) {
+		print_issue("Line contains mixed indentation", input);
+		previous_indent = 0;
+	}
 
 	return input + line_start;
 }
@@ -254,6 +257,7 @@ void validate_file(const char *file_path) {
 
 	snprintf(current_file, sizeof(current_file), "%s", file_path);
 
+	previous_indent = 0;
 	current_line = 0;
 	current_line_reported = 0;
 	char line[1024];
