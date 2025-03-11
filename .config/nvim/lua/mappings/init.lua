@@ -18,8 +18,17 @@ vim.api.nvim_create_autocmd('FileType', {
 	end
 })
 
-map('n', '<A-k>', ':m .-2<CR>', desc('Move line up'))
-map('n', '<A-j>', ':m .+1<CR>', desc('Move line down'))
+map("n", "gF", function()
+	local path = vim.fn.expand("<cfile>")
+	if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
+		vim.fn.jobstart({"env", "_START_LFCD=" .. path, "alacritty"}, { detach = true })
+	else
+		vim.fn.jobstart({"notify-send", "Error", "Invalid path: " .. path})
+	end
+end, { silent = true })
+
+mmap('n', {'<C-S-Up>', '<C-K>'}, ':m .-2<CR>', desc('Move line up'))
+mmap('n', {'<C-S-Down>', '<C-J>'}, ':m .+1<CR>', desc('Move line down'))
 
 map('i', '<C-BS>', '<C-w>', desc('Delete word left'))
 map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
@@ -36,21 +45,20 @@ map({'n', 'v'}, '<leader>p', '"ap', desc('Paste from "a" register'))
 map('n', '<leader>c', ':let @a=""<CR>', desc('Clear "a" register'))
 
 -- Window controls
-map('n', '<A-Up>', '<C-w>k', desc('Focus window above'))
-map('n', '<A-Down>', '<C-w>j', desc('Focus window below'))
-map('n', '<A-Left>', '<C-w>h', desc('Focus window left'))
-map('n', '<A-Right>', '<C-w>l', desc('Focus window right'))
-
+mmap('n', {'<A-Up>', '<A-k>'}, '<C-w>k', desc('Focus window above'))
+mmap('n', {'<A-Down>', '<A-j>'}, '<C-w>j', desc('Focus window below'))
+mmap('n', {'<A-Left>', '<A-h>'}, '<C-w>h', desc('Focus window left'))
+mmap('n', {'<A-Right>', '<A-l>'}, '<C-w>l', desc('Focus window right'))
 map('t', '<A-Up>', '<C-\\><C-N><C-w>k', desc('Focus window above'))
 map('t', '<A-Down>', '<C-\\><C-N><C-w>j', desc('Focus window below'))
 map('t', '<A-Left>', '<C-\\><C-N><C-w>h', desc('Focus window left'))
 map('t', '<A-Right>', '<C-\\><C-N><C-w>l', desc('Focus window right'))
 
 -- Window resizing
-map('n', '<S-Up>', ':resize -2<CR>', desc('Resize window up'))
-map('n', '<S-Down>', ':resize +2<CR>', desc('Resize window down'))
-map('n', '<S-Left>', ':vertical resize -2<CR>', desc('Resize window left'))
-map('n', '<S-Right>', ':vertical resize +2<CR>', desc('Resize window right'))
+mmap('n', {'<C-A-Up>', '<C-A-k>'}, ':resize -2<CR>', desc('Resize window up'))
+mmap('n', {'<C-A-Down>', '<C-A-j>'}, ':resize +2<CR>', desc('Resize window down'))
+mmap('n', {'<C-A-Left>', '<C-A-h>'}, ':vertical resize -2<CR>', desc('Resize window left'))
+mmap('n', {'<C-A-Right>', '<C-A-l>'}, ':vertical resize +2<CR>', desc('Resize window right'))
 
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', desc('Next buffer'))

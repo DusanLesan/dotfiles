@@ -2,7 +2,9 @@
 	"window": {
 		"title": "${dirty}${activeEditorShort}",
 		"menuBarVisibility": "toggle",
-		"density.editorTabHeight": "compact"
+		"density.editorTabHeight": "compact",
+		"customTitleBarVisibility": "never",
+		"titleBarStyle": "native"
 	},
 	"workbench": {
 		"startupEditor": "none",
@@ -43,6 +45,7 @@
 	},
 	"extensions.ignoreRecommendations": true,
 	"npm.packageManager": "npm",
+	"npm.scriptRunner": "npm",
 	"diffEditor.ignoreTrimWhitespace": false,
 	"githubPullRequests.pullBranch": "never",
 	"git.autofetch": true,

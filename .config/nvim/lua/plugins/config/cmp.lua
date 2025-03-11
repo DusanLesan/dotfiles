@@ -9,7 +9,8 @@ local M = {
 		"hrsh7th/cmp-path",
 		"hrsh7th/vim-vsnip",
 		"hrsh7th/cmp-vsnip",
-		"hrsh7th/vim-vsnip-integ"
+		"hrsh7th/vim-vsnip-integ",
+		"kristijanhusak/vim-dadbod-completion"
 	}
 }
 
@@ -39,7 +40,8 @@ function M.config()
 				vim_item.menu = ({
 					nvim_lsp = "[LSP]",
 					nvim_lua = "[Lua]",
-					buffer = "[BUF]"
+					buffer = "[BUF]",
+					["vim-dadbod-completion"] = "[DB]",
 				})[entry.source.name]
 
 				return vim_item
@@ -78,7 +80,8 @@ function M.config()
 			{ name = "nvim_lsp" },
 			{ name = "buffer" },
 			{ name = "nvim_lua" },
-			{ name = "path" }
+			{ name = "path" },
+			{ name = "vim-dadbod-completion" }
 		}
 	}
 end

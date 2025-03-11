@@ -689,7 +689,7 @@ void update_sha256sum(sqlite3 *db) {
 int main(int argc, char **argv) {
 	char *image_paths = NULL, *tag_name = NULL, *tag_values = NULL, *sync_path = NULL, *mode = "d";
 	int target_file = 0, target_db = 0, should_add_tags = 0, should_remove_tags = 0;
-	int opt, search = 0, sync = 0, print = 0, update = 0;
+	int opt, search = 0, sync = 0, print = 0, update = 0, help = 0;
 
 	while ((opt = getopt(argc, argv, "D:i:t:l:m:S:spufdarU")) != -1) {
 		switch (opt) {
@@ -707,8 +707,29 @@ int main(int argc, char **argv) {
 			case 'r': should_remove_tags = 1; break;
 			case 'S': sync_path = optarg; break;
 			case 'U': sync = 1; break;
+			case '?': help = 1; break;
 			default: fprintf(stderr, "Invalid option.\n"); return 1;
 		}
+	}
+
+	if (help) {
+		printf("Usage: %s [OPTIONS]\n", argv[0]);
+		printf("Options:\n");
+		printf("  -D <path>  Path to the database\n");
+		printf("  -i <paths> Image paths\n");
+		printf("  -t <name>  Tag name\n");
+		printf("  -l <id>    lf id\n");
+		printf("  -s         Search for images\n");
+		printf("  -m <mode>  Search mode\n");
+		printf("  -p         Print tags\n");
+		printf("  -u         Update tags\n");
+		printf("  -f         Target file\n");
+		printf("  -d         Target database\n");
+		printf("  -a         Add tags\n");
+		printf("  -r         Remove tags\n");
+		printf("  -S <path>  Sync path\n");
+		printf("  -U         Sync sha256sum\n");
+		return 0;
 	}
 
 	if (!db_path) {
