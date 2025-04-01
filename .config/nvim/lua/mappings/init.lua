@@ -72,6 +72,8 @@ map('n', '<A-t>', ':ToggleTerm<CR>', desc('Toggle terminal'))
 map('n', '<leader>w', ':w<CR>', desc('Save file'))
 map('n', '<leader>x', ':wqa!<CR>', desc('Save and quit'))
 
+map ('n', '<leader>fr', ':Rest run<CR>', desc('Execute rest request'))
+
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', desc('Select colorscheme'))
 
 map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))

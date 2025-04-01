@@ -29,6 +29,12 @@ module.exports.themes = [{
 				background-color: var(--color-info);
 				color: black;
 			}
+			div[aria-label="Insomnia Tabs"] {
+				height: 26px !important;
+			}
+			div[class*="box-content"] {
+				height: 26px !important;
+			}
 		`,
 		background: {
 			default: '#181818',

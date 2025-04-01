@@ -6,6 +6,7 @@ local servers = {
 	"bright_script",
 	"pylsp",
 	"typos_lsp",
+	"jsonls",
 }
 
 local M = {

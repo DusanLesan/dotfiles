@@ -54,3 +54,10 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 	pattern = '*',
 	callback = trim_whitespace,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "json",
+	callback = function()
+		vim.opt_local.formatprg = "jq"
+	end
+})

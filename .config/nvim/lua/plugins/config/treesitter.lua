@@ -14,6 +14,7 @@ local opts = {
 		"java",
 		"json",
 		"yaml",
+		"http",
 		"brightscript"
 	},
 	highlight = {
