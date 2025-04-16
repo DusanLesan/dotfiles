@@ -17,7 +17,7 @@ if [ "$D" -lt 6 ] && [ "$H" -gt 10 ] && [ "$H" -lt 20 ]; then
 			--new-window "mail.google.com/mail/u/?authuser=dusan.lesan@pluto.tv" \
 			--new-window "https://mail.pcionline.net" \
 			--new-window "https://www.acumatter.com" \
-			--new-window "https://web.skype.com" \
+			--new-window "https://teams.live.com" \
 			</dev/null >/dev/null 2>&1 &
 	fi
 

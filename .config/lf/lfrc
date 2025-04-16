@@ -4,6 +4,7 @@ set ifs "\n"
 set wrapscroll true
 set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
 set dupfilefmt "%b.%n%e"
+set promptfmt "%d%f"
 set watch
 
 set previewer ctpv
@@ -25,7 +26,7 @@ cmd open ${{
 			*/vnd.efi.img) dmenumount "$f" ;;
 			*/zip) lf -remote "send $id mount_archive" ;;
 			text/* ) $EDITOR $fx ;;
-			audio/*) mpv $fx & ;;
+			audio/*) lf -remote "send $id open-audio" ;;
 			*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done ;;
 		esac
 	fi
@@ -52,6 +53,10 @@ cmd open_images ${{
 		done <<< "$out"
 		lf -remote "send $id select \"${out##*$'\n'}\""
 	fi
+}}
+
+cmd open-audio ${{
+	mpv --msg-level=all=error,statusline=trace --term-status-msg='${media-title}: ${percent-pos}%' "$fx"
 }}
 
 cmd open_new ${{
@@ -243,7 +248,7 @@ cmd on-redraw &{{
 }}
 
 cmd on-init &{{
-	[ -n "$TMUX" ] && lf -remote "send $id source $XDG_CONFIG_HOME/lf/tmux_conf"
+	[ -n "$TMUX" ] && lf -remote "send $id source $XDG_CONFIG_HOME/lf/tmux_lfrc"
 }}
 
 # Remove some defaults

@@ -126,6 +126,19 @@ local server_opts = {
 			completeUnimported = true,
 			clangdFileStatus = true
 		}
+	},
+	["bright_script"] = {
+		settings = {
+			brightscript = {
+				diagnostics = {
+					enabled = true,
+				}
+			}
+		},
+		flags = {
+			debounce_text_changes = 50,
+			allow_incremental_sync = false,
+		}
 	}
 }
 

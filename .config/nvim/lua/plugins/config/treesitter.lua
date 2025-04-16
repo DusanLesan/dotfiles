@@ -42,16 +42,7 @@ local opts = {
 }
 
 function M.config()
-	local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
-	parser_config.brightscript = {
-		install_info = {
-			url = "https://github.com/ajdelcimmuto/tree-sitter-brightscript",
-			files = {"src/parser.c"},
-			branch = "developer"
-		},
-		filetype = "brs"
-	}
-
+	vim.treesitter.language.register('brightscript', 'brs')
 	require("nvim-treesitter.configs").setup(opts)
 end
 
