@@ -332,6 +332,8 @@ map gf $file-history "$f"
 map gt %lf -remote "send $id select \"$(xclip -sel c -o)\""
 map gL %lf -remote "send $id select \"$(realpath $f)\""
 
+map <f-5> %{{ roku-build }}
+
 cmap <backspace2> cmd-delete-back
 cmap <backspace> cmd-delete-word-back
 cmap <c-delete> cmd-delete-word

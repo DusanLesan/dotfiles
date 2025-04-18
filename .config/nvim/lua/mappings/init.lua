@@ -118,3 +118,13 @@ map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
+
+map("n", "<F5>", function()
+	local file = vim.api.nvim_buf_get_name(0)
+	if file:match("%.brs$") then
+		vim.cmd("wa")
+		vim.cmd("!roku-build &")
+	else
+		print("Not a .brs file")
+	end
+end, desc("Build and deploy roku project"))

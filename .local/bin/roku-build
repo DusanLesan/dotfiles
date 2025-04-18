@@ -1,0 +1,61 @@
+#!/bin/sh
+
+. utils
+. "$XDG_DATA_HOME/secrets/priv"
+
+die() {
+	notify "Roku Build" "$1"
+	exit 1
+}
+
+git_root=$(git rev-parse --show-toplevel 2>/dev/null) || die "Error: Not a git repository."
+launch_json="$git_root/.vscode/launch.json" && [ -f "$launch_json" ] || die "Error: launch json not found."
+
+type=$(jq -r '.configurations[0].type // empty' "$launch_json")
+[ "$type" != "brightscript" ] && die "Error: Not a Roku project."
+
+root_dir=$(jq -r '.configurations[0].rootDir // empty' "$launch_json") && root_dir="${root_dir/\$\{workspaceFolder\}/$git_root}"
+[ -z "$root_dir" ] && root_dir="$git_root"
+
+files=$(jq -r '.configurations[0].files[]' "$launch_json")
+[ -z "$files" ] && die "Error: No files found in $launch_json."
+
+tmp_file_list=$(mktemp)
+while IFS= read -r path; do
+	[ -z "$path" ] && continue
+	full_path="$root_dir/$path"
+
+	if echo "$path" | grep -q '\*\*'; then
+		base="${full_path%%\*\**}"
+		pattern="${full_path##*/}"
+		matches=$(find "$base" -type f -name "$pattern" 2>/dev/null)
+	else
+		[ -e "$full_path" ] && matches="$full_path" || matches=""
+	fi
+
+	if [ -n "$matches" ]; then
+		echo "$matches" >> "$tmp_file_list"
+	fi
+done <<< "$files"
+
+out_dir="$git_root/out"
+mkdir -p "$out_dir"
+archive="$out_dir/build.zip"
+
+if [ -s "$tmp_file_list" ]; then
+	(
+		cd "$root_dir" || exit 1
+		sed "s|^$root_dir/||" "$tmp_file_list" | zip -q "$archive" -@
+	)
+else
+	notify "Roku Build" "No valid files to archive."
+fi
+
+rm -f "$tmp_file_list"
+
+random_number=$(date +%s%N | cut -b10-19 | sed 's|^[0]\+||')
+
+ping -c 1 $roku_device -W 1 > /dev/null 2>&1 || roku_device="$(prompt "Default device not found. Enter custom IP address:")" || die "Error: No Roku device found."
+
+curl --user "rokudev:$roku_pass" --digest -s -S -F "mysubmit=Replace" -F "archive=@$archive" -F "passwd=" -F "randInt=$random_number" http://$roku_device/plugin_install > /dev/null 2>&1
+curl --user "rokudev:$roku_pass" --digest -s -S -F "mysubmit=Launch" -F "archive=" -F "passwd=" -F "randInt=$random_number" http://$roku_device/plugin_install > /dev/null 2>&1

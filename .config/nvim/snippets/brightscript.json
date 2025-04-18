@@ -2,7 +2,7 @@
 	"CreateObject": {
 		"prefix": "createObject",
 		"body": [
-			"${2:variableName} = createObject(\"${1:objectType}\")"
+			"createObject(\"${1|roSGNode|}\", \"${2:componentName}\")"
 		],
 		"description": "Simple CreateObject"
 	},
