@@ -20,7 +20,7 @@ file-handler: file-handler.c
 	$(CC) -o $@ $< $(LIBS_DBUS)
 
 roku-remote: roku-remote.c
-	$(CC) -o $@ $< $(LIBS_CURL) $(LIBS_X11)
+	$(CC) -o $@ $< $(LIBS_CURL) $(LIBS_X11) $(LIBS_NOTIFY)
 
 image-tag-handler: image-tag-handler.c
 	$(CC) -o $@ $< $(LIBS_SQLITE) $(LIBS_LIBCRYPTO) $(LIBS_NOTIFY)

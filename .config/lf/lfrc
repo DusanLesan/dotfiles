@@ -178,7 +178,10 @@ cmd fzf_jump ${{
 }}
 
 cmd fzf_find_file ${{
-	selected="$(rg --files * | fzf)"
+	selected="$(rg --files * |
+		fzf --preview 'bat --color=always {+} --theme "Visual Studio Dark+" --tabs 2' \
+			--bind 'ctrl-J:execute($EDITOR {+})+accept' \
+	)"
 	lf -remote "send $id select \"$selected\""
 }}
 
@@ -188,16 +191,15 @@ cmd fzf_find_line ${{
 	selected=$(
 		FZF_DEFAULT_COMMAND="$PREFIX $(printf %q "$INITIAL_QUERY")" \
 		fzf --ansi --disabled --query "$INITIAL_QUERY" \
-		--bind 'alt-f:execute(echo {+})+abort' \
-		--bind "change:reload:sleep 0.1; $PREFIX {q} || true" \
-		--delimiter : \
-		--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
+			--bind 'alt-f:execute(file=$(echo {+} | cut -d: -f1); lf -remote "send '"$id"' select \"$file\"")+abort' \
+			--bind "change:reload:sleep 0.1; $PREFIX {q} || true" \
+			--delimiter : \
+			--preview 'bat --color=always {1} --highlight-line {2} --line-range {2}: --theme "Visual Studio Dark+" --tabs 2'
 	)
-	code=$?
 	if [ -n "${selected[0]}" ]; then
 		IFS=':' read -ra selected <<< "$selected"
 		lf -remote "send $id select \"${selected[0]}\""
-		[ $code -ne 130 ] && $EDITOR +"${selected[1]}" "${selected[0]}"
+		$EDITOR +"${selected[1]}" "${selected[0]}"
 	fi
 }}
 
@@ -332,7 +334,7 @@ map gf $file-history "$f"
 map gt %lf -remote "send $id select \"$(xclip -sel c -o)\""
 map gL %lf -remote "send $id select \"$(realpath $f)\""
 
-map <f-5> %{{ roku-build }}
+map <f-5> &roku-build
 
 cmap <backspace2> cmd-delete-back
 cmap <backspace> cmd-delete-word-back
