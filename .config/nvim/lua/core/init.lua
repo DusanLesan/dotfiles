@@ -61,3 +61,19 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.formatprg = "jq"
 	end
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "brs",
+	callback = function()
+		vim.opt_local.commentstring = "' %s"
+	end
+})
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+		if git_root and vim.fn.isdirectory(git_root) == 1 then
+			vim.cmd("cd " .. git_root)
+		end
+	end
+})

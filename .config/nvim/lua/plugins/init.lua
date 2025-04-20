@@ -15,6 +15,11 @@ require("lazy").setup({
 	{ import = "plugins.config" },
 
 	{
+		"nvim-pack/nvim-spectre",
+		event = "VeryLazy",
+	},
+
+	{
 		"mg979/vim-visual-multi",
 		event = "VeryLazy"
 	},
@@ -52,8 +57,18 @@ require("lazy").setup({
 	},
 
 	{
+		"Darazaki/indent-o-matic",
+		event = "InsertEnter"
+	},
+
+	{
 		"MeanderingProgrammer/render-markdown.nvim",
 		ft = "markdown"
+	},
+
+	{
+		'DusanLesan/lf-vim',
+		event = { 'BufReadPre *lfrc' }
 	},
 
 	{

@@ -28,7 +28,10 @@ const char* get_roku_key(KeySym keysym, XKeyEvent *ev) {
 		case XK_less:      return "rev";
 		case XK_greater:   return "fwd";
 		case XK_BackSpace: return "back";
-		case XK_F1:        return "search";
+		case XK_F1:        return "info";
+		case XK_F2:        return "search";
+		case XK_F4:        return "play";
+		case XK_F5:        return "instantReplay";
 		case XK_F12:       return "backspace";
 		default:           break;
 	}

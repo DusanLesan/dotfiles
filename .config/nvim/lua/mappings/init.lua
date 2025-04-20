@@ -104,6 +104,11 @@ map('n', '<leader>fw', ':Telescope live_grep<CR>', desc('Search words'))
 map('n', '<leader>fb', ':Telescope buffers<CR>', desc('List buffers'))
 map('n', '<leader>fz', ':Telescope current_buffer_fuzzy_find<CR>', desc('Find in buffer'))
 
+map('n', '<leader>S', ':lua require("spectre").toggle()<CR>', desc('Toggle Spectre'))
+map('n', '<leader>sw', ':lua require("spectre").open_visual({select_word=true})<CR>', desc('Search current word'))
+map('v', '<leader>sw', ':lua require("spectre").open_visual()<CR>', desc('Search current word'))
+map('n', '<leader>sp', ':lua require("spectre").open_file_search({select_word=true})<CR>', desc('Search on current file'))
+
 -- Git
 map('n', '<leader>gr', ":Gitsigns reset_hunk<CR>", desc('Reset hunk'))
 map('n', '<leader>gR', ":Gitsigns reset_buffer<CR>", desc('Reset buffer'))
@@ -118,13 +123,6 @@ map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
+map("n", "<F5>", "<cmd>wa | !roku-build &<CR>", desc("Build and deploy roku project"))
 
-map("n", "<F5>", function()
-	local file = vim.api.nvim_buf_get_name(0)
-	if file:match("%.brs$") then
-		vim.cmd("wa")
-		vim.cmd("!roku-build &")
-	else
-		print("Not a .brs file")
-	end
-end, desc("Build and deploy roku project"))
+map('n', '<A-T>', function() vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true }) end, desc('Open external terminal'))
