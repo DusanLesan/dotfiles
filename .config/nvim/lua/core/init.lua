@@ -49,31 +49,35 @@ local trim_whitespace = function()
 	]])
 end
 
-vim.api.nvim_create_autocmd('BufWritePre', {
-	group = vim.api.nvim_create_augroup('trim_whitespaces', { clear = true }),
-	pattern = '*',
-	callback = trim_whitespace,
+local group = vim.api.nvim_create_augroup("user_autocmds", { clear = true })
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = group,
+	pattern = "*",
+	callback = trim_whitespace
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-	pattern = "json",
-	callback = function()
-		vim.opt_local.formatprg = "jq"
-	end
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "brs",
-	callback = function()
-		vim.opt_local.commentstring = "' %s"
+	group = group,
+	pattern = { "json", "brs", "python" },
+	callback = function(args)
+		local ft = args.match
+		if ft == "json" then
+			vim.opt_local.formatprg = "jq"
+		elseif ft == "brs" then
+			vim.opt_local.commentstring = "' %s"
+		elseif ft == "python" then
+			vim.opt_local.expandtab = false
+		end
 	end
 })
 
 vim.api.nvim_create_autocmd("BufEnter", {
+	group = group,
 	callback = function()
 		local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
-		if git_root and vim.fn.isdirectory(git_root) == 1 then
-			vim.cmd("cd " .. git_root)
+		if git_root and vim.fn.isdirectory(vim.fn.trim(git_root)) == 1 then
+			vim.cmd("cd " .. vim.fn.fnameescape(git_root))
 		end
-	end
+	end,
 })

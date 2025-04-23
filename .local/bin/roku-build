@@ -1,61 +1,226 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-. utils
-. "$XDG_DATA_HOME/secrets/priv"
+import os
+import socket
+import zipfile
+import subprocess
+from glob import glob
+from re import search
+from hashlib import md5
+from pathlib import Path
+from json import loads, load
+from argparse import ArgumentParser
+from requests import Session, Request
+from requests.auth import parse_dict_header
 
-die() {
-	notify "Roku Build" "$1"
-	exit 1
-}
+LAUNCH_JSON = ".vscode/launch.json"
+DEFAULT_USER = "rokudev"
+PLUGIN_INSTALL_URI = "/plugin_install"
+PLUGIN_INSTALL_URL_FMT = "http://{ip}" + PLUGIN_INSTALL_URI
+RALE_ENTRY_POINT = "' vscode_rale_tracker_entry"
+RALE_TASK_INIT = 'if true = CreateObject("roAppInfo").IsDev() then m.vscode_rdb_odc_node = createObject("roSGNode", "TrackerTask")'
 
-git_root=$(git rev-parse --show-toplevel 2>/dev/null) || die "Error: Not a git repository."
-launch_json="$git_root/.vscode/launch.json" && [ -f "$launch_json" ] || die "Error: launch json not found."
+def notify(title, message):
+	try:
+		subprocess.run(["notify-send", title, message])
+	except FileNotFoundError:
+		print(f"{title}: {message}")
 
-type=$(jq -r '.configurations[0].type // empty' "$launch_json")
-[ "$type" != "brightscript" ] && die "Error: Not a Roku project."
+def die(msg):
+	notify("Roku Build", msg)
+	raise SystemExit(1)
 
-root_dir=$(jq -r '.configurations[0].rootDir // empty' "$launch_json") && root_dir="${root_dir/\$\{workspaceFolder\}/$git_root}"
-[ -z "$root_dir" ] && root_dir="$git_root"
+def prompt(msg):
+	try:
+		return input(msg)
+	except KeyboardInterrupt:
+		die("Cancelled.")
 
-files=$(jq -r '.configurations[0].files[]' "$launch_json")
-[ -z "$files" ] && die "Error: No files found in $launch_json."
+def get_git_root():
+	try:
+		return subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+	except subprocess.CalledProcessError:
+		die("Not a git repository.")
 
-tmp_file_list=$(mktemp)
-while IFS= read -r path; do
-	[ -z "$path" ] && continue
-	full_path="$root_dir/$path"
+def parse_result(html):
+	result = {"state": None, "info": "unknown"}
+	match = search(r'"messages"\s*:\s*(\[.*?\])', html)
+	if not match:
+		return result
+	try:
+		messages = loads(match.group(1).replace("'", '"'))
+		for msg in messages:
+			if isinstance(msg, dict) and "type" in msg and "text" in msg:
+				notify("Roku Build", msg["text"])
+				result["info"] = msg["text"]
+				if msg["type"] == "error":
+					result["state"] = "error"
+				elif msg["type"] == "success" and not result["state"]:
+					result["state"] = "success"
+	except Exception as e:
+		notify("Roku Build", f"Error parsing messages: {e}")
+	return result
 
-	if echo "$path" | grep -q '\*\*'; then
-		base="${full_path%%\*\**}"
-		pattern="${full_path##*/}"
-		matches=$(find "$base" -type f -name "$pattern" 2>/dev/null)
-	else
-		[ -e "$full_path" ] && matches="$full_path" || matches=""
-	fi
+def get_digest_response(h, user, pw, method, uri, cnonce):
+	ha1 = md5(f"{user}:{user}:{pw}".encode()).hexdigest()
+	ha2 = md5(f"{method}:{uri}".encode()).hexdigest()
+	return md5(f"{ha1}:{h['nonce']}:1:{cnonce}:auth:{ha2}".encode()).hexdigest()
 
-	if [ -n "$matches" ]; then
-		echo "$matches" >> "$tmp_file_list"
-	fi
-done <<< "$files"
+def request_with_digest(method, user, pw, url, uri, data, file=None):
+	session = Session()
+	r = session.post(url, auth=(user, pw))
+	if "WWW-Authenticate" not in r.headers:
+		die("No digest challenge.")
 
-out_dir="$git_root/out"
-mkdir -p "$out_dir"
-archive="$out_dir/build.zip"
+	h = parse_dict_header(r.headers["WWW-Authenticate"])
+	cnonce = os.urandom(8).hex()
+	response = get_digest_response(h, user, pw, method, uri, cnonce)
 
-if [ -s "$tmp_file_list" ]; then
-	(
-		cd "$root_dir" || exit 1
-		sed "s|^$root_dir/||" "$tmp_file_list" | zip -q "$archive" -@
+	auth = (
+		f'Digest username="{user}", realm="{user}", nonce="{h["nonce"]}", '
+		f'uri="{uri}", algorithm=MD5, qop=auth, nc=1, '
+		f'cnonce="{cnonce}", response="{response}"'
 	)
-else
-	notify "Roku Build" "No valid files to archive."
-fi
 
-rm -f "$tmp_file_list"
+	req = Request(method, url, data=data, files=file)
+	prepped = session.prepare_request(req)
+	prepped.headers["Authorization"] = auth
+	return session.send(prepped, timeout=30)
 
-random_number=$(date +%s%N | cut -b10-19 | sed 's|^[0]\+||')
+def deploy(ip, zip_path, user, pw):
+	url = PLUGIN_INSTALL_URL_FMT.format(ip=ip)
+	with open(zip_path, "rb") as f:
+		files = {'archive': ("build.zip", f, "application/zip")}
+		data = {'mysubmit': 'Install', 'passwd': ''}
+		r = request_with_digest("POST", user, pw, url, PLUGIN_INSTALL_URI, data, files)
+	if r.status_code != 200:
+		notify("Roku Build", f"Failed to deploy: {r.status_code}")
+	res = parse_result(r.text)
+	if res["state"] == "error":
+		notify("Roku Build", f"Deploy failed: {res['info']}")
+		return "failed"
+	return "success"
 
-ping -c 1 $roku_device -W 1 > /dev/null 2>&1 || roku_device="$(prompt "Default device not found. Enter custom IP address:")" || die "Error: No Roku device found."
+def set_ip(host, port=80, timeout=1):
+	try:
+		with socket.create_connection((host, port), timeout=timeout):
+			return host
+	except (socket.timeout, socket.gaierror, ConnectionRefusedError, OSError):
+		try:
+			return set_ip(input(f"Device {host} unreachable. Enter IP or hostname: "), port, timeout)
+		except KeyboardInterrupt:
+			die("Cancelled.")
 
-curl --user "rokudev:$roku_pass" --digest -s -S -F "mysubmit=Replace" -F "archive=@$archive" -F "passwd=" -F "randInt=$random_number" http://$roku_device/plugin_install > /dev/null 2>&1
-curl --user "rokudev:$roku_pass" --digest -s -S -F "mysubmit=Launch" -F "archive=" -F "passwd=" -F "randInt=$random_number" http://$roku_device/plugin_install > /dev/null 2>&1
+def parse_launch_json(root):
+	launch_path = root / LAUNCH_JSON
+	if not launch_path.exists():
+		die("launch.json missing.")
+
+	launch = loads(launch_path.read_text())
+	conf = launch.get("configurations", [{}])[0]
+	if conf.get("type") != "brightscript":
+		die("Not a Roku project.")
+
+	base = conf.get("rootDir", "").replace("${workspaceFolder}", str(root)) or str(root)
+	rale = conf.get("raleTrackerTaskFileLocation", "").replace("${workspaceFolder}", str(root)) or ""
+	files = conf.get("files")
+
+	if not files:
+		die("No files specified.")
+	return base, files, rale
+
+def inject_tracker_task(files, root_dir, rale):
+	if not rale:
+		settings_path = Path.home() / ".config/code-oss/user-data/User/settings.json"
+		if not settings_path.exists():
+			die(f"settings.json not found at {settings_path}")
+		with open(settings_path) as f:
+			settings = load(f)
+		rale = settings.get("brightscript.debug.raleTrackerTaskFileLocation")
+		if not rale:
+			die("RALE tracker task path not found in settings.json")
+
+	files.append(f"{rale}=>components/TrackerTask.xml")
+	find_and_replace_in_main(files, root_dir, RALE_ENTRY_POINT, RALE_TASK_INIT)
+
+def find_and_replace_in_main(files, root_dir, old_str, new_str, search_path="source"):
+	for path in files:
+		if search_path in path:
+			expanded = glob(os.path.join(root_dir, path.replace("${workspaceFolder}", root_dir)), recursive=True)
+			for real_path in expanded:
+				if not any(real_path.endswith(name) for name in ["main.brs", "index.brs"]):
+					continue
+				if os.path.isfile(real_path):
+					with open(real_path, "r+", encoding="utf-8") as f:
+						content = f.read()
+						if old_str not in content:
+							continue
+						f.seek(0)
+						f.write(content.replace(old_str, new_str))
+						f.truncate()
+					return
+	die(f"main.brs not found inside a '{search_path}' directory.")
+
+def create_archive(root, base, file_patterns):
+	valid = []
+	for path in file_patterns:
+		if "=>" in path:
+			src_path, arc_path = path.split("=>", 1)
+			src = Path(src_path.strip())
+			if src.is_file():
+				valid.append((src, Path(arc_path.strip())))
+			continue
+
+		pattern = path.replace("${workspaceFolder}", str(root))
+		matches = glob(f"{base}/{pattern}", recursive=True) if "*" in pattern else [f"{base}/{pattern}"]
+		valid += [f for f in matches if Path(f).is_file()]
+
+	if not valid:
+		notify("Roku Build", "No valid files found.")
+		raise SystemExit(0)
+
+	out = root / "out"
+	out.mkdir(exist_ok=True)
+
+	archive = out / "roku_build.zip"
+	seen = set()
+	with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zf:
+		for item in valid:
+			if isinstance(item, tuple):
+				src, arcname = item
+			else:
+				src = item
+				arcname = Path(src).relative_to(base)
+			if arcname in seen:
+				continue
+			seen.add(arcname)
+			zf.write(src, arcname=arcname)
+	return archive
+
+def read_arguments():
+	parser = ArgumentParser()
+	parser.add_argument("-username", "-u", default=DEFAULT_USER, help="Roku Dev username.")
+	parser.add_argument("-password", "-p", default=os.environ.get("roku_pass"), help="Roku Dev password.")
+	parser.add_argument("-ip", "-i", default=os.environ.get("roku_device"), help="Target Roku device's IP address.")
+	parser.add_argument("-rale", "-r", action="store_true", help="Inject RALE tracker task.")
+	args, _ = parser.parse_known_args()
+	return args
+
+def main():
+	args = read_arguments()
+	ip = set_ip(args.ip)
+	password = args.password or prompt("Enter device password: ")
+	root = Path(get_git_root())
+	base, file_patterns, rale = parse_launch_json(root)
+
+	if args.rale:
+		inject_tracker_task(file_patterns, base, rale)
+
+	archive = create_archive(root, base, file_patterns)
+	deploy(ip, archive, args.username, password)
+
+	if args.rale:
+		find_and_replace_in_main(file_patterns, base, RALE_TASK_INIT, RALE_ENTRY_POINT)
+
+if __name__ == "__main__":
+	main()

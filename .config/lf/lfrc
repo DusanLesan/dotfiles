@@ -334,7 +334,7 @@ map gf $file-history "$f"
 map gt %lf -remote "send $id select \"$(xclip -sel c -o)\""
 map gL %lf -remote "send $id select \"$(realpath $f)\""
 
-map <f-5> &roku-build
+map <f-5> &env $(grep -E '^(roku_pass|roku_device)=' "$XDG_DATA_HOME/secrets/priv") roku-build -r
 
 cmap <backspace2> cmd-delete-back
 cmap <backspace> cmd-delete-word-back

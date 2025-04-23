@@ -25,7 +25,11 @@ map("n", "gF", function()
 	else
 		vim.fn.jobstart({"notify-send", "Error", "Invalid path: " .. path})
 	end
-end, { silent = true })
+end, desc("Open path below cursor in lf"))
+
+map('n', '<A-T>', function()
+	vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true })
+end, desc('Open external terminal'))
 
 mmap('n', {'<C-S-Up>', '<C-K>'}, ':m .-2<CR>', desc('Move line up'))
 mmap('n', {'<C-S-Down>', '<C-J>'}, ':m .+1<CR>', desc('Move line down'))
@@ -38,6 +42,7 @@ map('n', '<F10>', ':set spell!<CR>', desc('Toggle spell check'))
 map('v', '<', '<gv', desc('Indent left'))
 map('v', '>', '>gv', desc('Indent right'))
 
+map('x', 'p', [["_dP]], desc('Paste over selection preserving register'))
 map({'n', 'v'}, '<A-d>', '"_d', desc('Delete into black hole'))
 map({'n', 'v'}, '<leader>d', '"Ad', desc('Delete into "a" register'))
 map({'n', 'v'}, '<leader>y', '"Ay', desc('Yank into "a" register'))
@@ -123,6 +128,4 @@ map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
-map("n", "<F5>", "<cmd>wa | !roku-build &<CR>", desc("Build and deploy roku project"))
-
-map('n', '<A-T>', function() vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true }) end, desc('Open external terminal'))
+map("n", "<F5>", "<cmd>wa | silent !roku-build<CR>", desc("Build and deploy roku project"))
