@@ -128,4 +128,6 @@ map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
-map("n", "<F5>", "<cmd>wa | silent !roku-build<CR>", desc("Build and deploy roku project"))
+map("n", "<F5>",
+	'<cmd>wa | silent !env $(grep -E "^(roku_pass|roku_device)=" "$XDG_DATA_HOME/secrets/priv") roku-build -r<CR>',
+	desc("Build and deploy roku project"))

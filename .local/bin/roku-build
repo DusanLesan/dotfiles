@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
-import os
-import socket
-import zipfile
-import subprocess
-from glob import glob
 from re import search
+from glob import glob
 from hashlib import md5
 from pathlib import Path
 from json import loads, load
 from argparse import ArgumentParser
+from socket import create_connection
 from requests import Session, Request
+from os import path, environ, urandom
+from zipfile import ZipFile, ZIP_DEFLATED
 from requests.auth import parse_dict_header
+from subprocess import run, check_output, CalledProcessError
 
 LAUNCH_JSON = ".vscode/launch.json"
 DEFAULT_USER = "rokudev"
@@ -22,7 +22,7 @@ RALE_TASK_INIT = 'if true = CreateObject("roAppInfo").IsDev() then m.vscode_rdb_
 
 def notify(title, message):
 	try:
-		subprocess.run(["notify-send", title, message])
+		run(["notify-send", title, message])
 	except FileNotFoundError:
 		print(f"{title}: {message}")
 
@@ -38,8 +38,8 @@ def prompt(msg):
 
 def get_git_root():
 	try:
-		return subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
-	except subprocess.CalledProcessError:
+		return check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+	except CalledProcessError:
 		die("Not a git repository.")
 
 def parse_result(html):
@@ -73,7 +73,7 @@ def request_with_digest(method, user, pw, url, uri, data, file=None):
 		die("No digest challenge.")
 
 	h = parse_dict_header(r.headers["WWW-Authenticate"])
-	cnonce = os.urandom(8).hex()
+	cnonce = urandom(8).hex()
 	response = get_digest_response(h, user, pw, method, uri, cnonce)
 
 	auth = (
@@ -103,9 +103,9 @@ def deploy(ip, zip_path, user, pw):
 
 def set_ip(host, port=80, timeout=1):
 	try:
-		with socket.create_connection((host, port), timeout=timeout):
-			return host
-	except (socket.timeout, socket.gaierror, ConnectionRefusedError, OSError):
+		create_connection((host, port), timeout=timeout).close()
+		return host
+	except Exception:
 		try:
 			return set_ip(input(f"Device {host} unreachable. Enter IP or hostname: "), port, timeout)
 		except KeyboardInterrupt:
@@ -144,13 +144,13 @@ def inject_tracker_task(files, root_dir, rale):
 	find_and_replace_in_main(files, root_dir, RALE_ENTRY_POINT, RALE_TASK_INIT)
 
 def find_and_replace_in_main(files, root_dir, old_str, new_str, search_path="source"):
-	for path in files:
-		if search_path in path:
-			expanded = glob(os.path.join(root_dir, path.replace("${workspaceFolder}", root_dir)), recursive=True)
+	for file_path in files:
+		if search_path in file_path:
+			expanded = glob(path.join(root_dir, file_path.replace("${workspaceFolder}", root_dir)), recursive=True)
 			for real_path in expanded:
 				if not any(real_path.endswith(name) for name in ["main.brs", "index.brs"]):
 					continue
-				if os.path.isfile(real_path):
+				if path.isfile(real_path):
 					with open(real_path, "r+", encoding="utf-8") as f:
 						content = f.read()
 						if old_str not in content:
@@ -159,19 +159,19 @@ def find_and_replace_in_main(files, root_dir, old_str, new_str, search_path="sou
 						f.write(content.replace(old_str, new_str))
 						f.truncate()
 					return
-	die(f"main.brs not found inside a '{search_path}' directory.")
+	notify("Roku Build", f"RALE entry point not found inside '{search_path}' directory.")
 
 def create_archive(root, base, file_patterns):
 	valid = []
-	for path in file_patterns:
-		if "=>" in path:
-			src_path, arc_path = path.split("=>", 1)
+	for file_path in file_patterns:
+		if "=>" in file_path:
+			src_path, arc_path = file_path.split("=>", 1)
 			src = Path(src_path.strip())
 			if src.is_file():
 				valid.append((src, Path(arc_path.strip())))
 			continue
 
-		pattern = path.replace("${workspaceFolder}", str(root))
+		pattern = file_path.replace("${workspaceFolder}", str(root))
 		matches = glob(f"{base}/{pattern}", recursive=True) if "*" in pattern else [f"{base}/{pattern}"]
 		valid += [f for f in matches if Path(f).is_file()]
 
@@ -184,7 +184,7 @@ def create_archive(root, base, file_patterns):
 
 	archive = out / "roku_build.zip"
 	seen = set()
-	with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zf:
+	with ZipFile(archive, 'w', ZIP_DEFLATED) as zf:
 		for item in valid:
 			if isinstance(item, tuple):
 				src, arcname = item
@@ -200,8 +200,8 @@ def create_archive(root, base, file_patterns):
 def read_arguments():
 	parser = ArgumentParser()
 	parser.add_argument("-username", "-u", default=DEFAULT_USER, help="Roku Dev username.")
-	parser.add_argument("-password", "-p", default=os.environ.get("roku_pass"), help="Roku Dev password.")
-	parser.add_argument("-ip", "-i", default=os.environ.get("roku_device"), help="Target Roku device's IP address.")
+	parser.add_argument("-password", "-p", default=environ.get("roku_pass"), help="Roku Dev password.")
+	parser.add_argument("-ip", "-i", default=environ.get("roku_device"), help="Target Roku device's IP address.")
 	parser.add_argument("-rale", "-r", action="store_true", help="Inject RALE tracker task.")
 	args, _ = parser.parse_known_args()
 	return args
