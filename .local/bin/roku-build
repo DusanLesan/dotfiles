@@ -148,18 +148,27 @@ def find_and_replace_in_main(files, root_dir, old_str, new_str, search_path="sou
 		if search_path in file_path:
 			expanded = glob(path.join(root_dir, file_path.replace("${workspaceFolder}", root_dir)), recursive=True)
 			for real_path in expanded:
-				if not any(real_path.endswith(name) for name in ["main.brs", "index.brs"]):
+				if not any(real_path.endswith(name) for name in ["main.brs", "index.brs", "Main.brs"]):
 					continue
 				if path.isfile(real_path):
-					with open(real_path, "r+", encoding="utf-8") as f:
-						content = f.read()
-						if old_str not in content:
-							continue
-						f.seek(0)
-						f.write(content.replace(old_str, new_str))
-						f.truncate()
-					return
+					if replace_one_occurrence_in_file(real_path, old_str, new_str):
+						return
 	notify("Roku Build", f"RALE entry point not found inside '{search_path}' directory.")
+
+def replace_one_occurrence_in_file(filepath, old_str, new_str):
+	with open(filepath, 'rb+') as f:
+		content = f.read()
+		old_bytes = old_str.encode('utf-8')
+		new_bytes = new_str.encode('utf-8')
+		index = content.find(old_bytes)
+		if index == -1:
+			return False
+
+		new_content = content[:index] + new_bytes + content[index + len(old_bytes):]
+		f.seek(0)
+		f.write(new_content)
+		f.truncate()
+		return True
 
 def create_archive(root, base, file_patterns):
 	valid = []
