@@ -19,7 +19,7 @@ cmd open ${{
 	if [ "$default" == "nvim.desktop" ]; then
 		$EDITOR $fx
 	elif [ "$default" == "video.desktop" ]; then
-		mpv $fx &
+		video "$fx"
 	else
 		case $type in
 			image/*) lf -remote "send $id open_images" ;;

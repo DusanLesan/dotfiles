@@ -25,6 +25,7 @@ ffmpeg \
 	-video_size "${params[$target,size]}" \
 	-i ":0.0+${params[$target,offset]}" \
 	-c:v libx264 \
+	-preset veryfast \
 	-crf 28 \
-	-qp 0 \
+	-movflags +faststart \
 	"$(getfilename "${target}_recording.mp4" "$PWD/")"

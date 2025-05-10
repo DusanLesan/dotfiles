@@ -239,5 +239,14 @@
 	{
 		"key": "tab",
 		"command": "-acceptSelectedSuggestion"
+	},
+	{
+		"key": "escape",
+		"command": "-vscode-neovim.escape"
+	},
+	{
+		"key": "escape",
+		"command": "vscode-neovim.escape",
+		"when": "!inlineSuggestionVisible && editorTextFocus && neovim.init && neovim.mode != 'normal' && editorLangId not in 'neovim.editorLangIdExclusions' "
 	}
 ]

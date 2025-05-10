@@ -12,7 +12,7 @@ done
 if [[ -n $subs ]]; then
 	devour mpv --sub-files="$subs" "$1"
 else
-	devour mpv "$1"
+	devour mpv $(printf '%s ' "$@")
 fi
 
 exit 0

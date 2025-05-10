@@ -26,4 +26,4 @@ export SUDO_ASKPASS="$HOME/.local/bin/askpass"
 export QT_QPA_PLATFORMTHEME="gtk2"	# Have QT use gtk2 theme.
 
 # Adds `~/.local/bin` and its subdirectories to $PATH
-export PATH="$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':'):$GOPATH/bin:$PATH"
+export PATH="$(du "$HOME/.local/bin" | cut -f2 | paste -sd ':'):$GOPATH/bin:$XDG_DATA_HOME/npm/bin:$PATH"

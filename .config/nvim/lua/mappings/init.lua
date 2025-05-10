@@ -9,28 +9,6 @@ local function desc(description)
 	return { noremap = true, silent = true, desc = description }
 end
 
-vim.api.nvim_create_autocmd('FileType', {
-	pattern = 'qf',
-	callback = function()
-		map('n', '<CR>', '<CR>:cclose<CR>', { buffer = true, silent = true })
-		mmap('n', {'j', '<Down>'}, 'j<CR><c-w>p', { buffer = true, silent = true })
-		mmap('n', {'k', '<Up>'}, 'k<CR><c-w>p', { buffer = true, silent = true })
-	end
-})
-
-map("n", "gF", function()
-	local path = vim.fn.expand("<cfile>")
-	if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
-		vim.fn.jobstart({"env", "_START_LFCD=" .. path, "alacritty"}, { detach = true })
-	else
-		vim.fn.jobstart({"notify-send", "Error", "Invalid path: " .. path})
-	end
-end, desc("Open path below cursor in lf"))
-
-map('n', '<A-T>', function()
-	vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true })
-end, desc('Open external terminal'))
-
 mmap('n', {'<C-S-Up>', '<C-K>'}, ':m .-2<CR>', desc('Move line up'))
 mmap('n', {'<C-S-Down>', '<C-J>'}, ':m .+1<CR>', desc('Move line down'))
 
@@ -131,3 +109,33 @@ map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make 
 map("n", "<F5>",
 	'<cmd>wa | silent !env $(grep -E "^(roku_pass|roku_device)=" "$XDG_DATA_HOME/secrets/priv") roku-build -r<CR>',
 	desc("Build and deploy roku project"))
+
+vim.api.nvim_create_autocmd('FileType', {
+	pattern = 'qf',
+	callback = function()
+		map('n', '<CR>', '<CR>:cclose<CR>', { buffer = true, silent = true })
+		mmap('n', {'j', '<Down>'}, 'j<CR><c-w>p', { buffer = true, silent = true })
+		mmap('n', {'k', '<Up>'}, 'k<CR><c-w>p', { buffer = true, silent = true })
+	end
+})
+
+map("n", "gF", function()
+	local path = vim.fn.expand("<cfile>")
+	if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
+		vim.fn.jobstart({"env", "_START_LFCD=" .. path, "alacritty"}, { detach = true })
+	else
+		vim.fn.jobstart({"notify-send", "Error", "Invalid path: " .. path})
+	end
+end, desc("Open path below cursor in lf"))
+
+map('n', '<A-T>', function()
+	vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true })
+end, desc('Open external terminal'))
+
+map("v", "<leader>m", function()
+	vim.cmd('normal! "vy')
+	local f, err = load("return " .. vim.fn.getreg("v"))
+	if not f then return vim.notify("Invalid expression: " .. err, vim.log.levels.ERROR) end
+	local ok, result = pcall(f)
+	if ok then vim.cmd('normal! gv"vc' .. result) end
+end, desc("Evaluate visual math expression"))

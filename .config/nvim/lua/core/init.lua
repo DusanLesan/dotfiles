@@ -39,6 +39,13 @@ vim.g.mapleader = ' '
 vim.g.transparent_background = true
 vim.g.vscode_style = 'dark'
 
+vim.filetype.add({
+	extension = {
+		bookmarks = "bookmarks",
+		brs = 'brs'
+	}
+})
+
 local trim_whitespace = function()
 	vim.cmd([[
 		keeppatterns
@@ -59,7 +66,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 vim.api.nvim_create_autocmd("FileType", {
 	group = group,
-	pattern = { "json", "brs", "python" },
+	pattern = { "json", "brs", "python", "bookmarks" },
 	callback = function(args)
 		local ft = args.match
 		if ft == "json" then
@@ -68,6 +75,17 @@ vim.api.nvim_create_autocmd("FileType", {
 			vim.opt_local.commentstring = "' %s"
 		elseif ft == "python" then
 			vim.opt_local.expandtab = false
+		elseif ft == "bookmarks" then
+			vim.keymap.set("n", "<CR>", function()
+				local pattern, path = vim.api.nvim_get_current_line():match("^%s*'(.-)'%s+(.+)$")
+				if not (pattern and path) then return end
+				vim.cmd("edit " .. path)
+				if tonumber(pattern) then
+					vim.cmd(pattern)
+				else
+					vim.fn.search(pattern)
+				end
+			end, { buffer = true, desc = "Jump to bookmarked pattern in file" })
 		end
 	end
 })
