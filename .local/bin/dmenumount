@@ -99,8 +99,13 @@ if [ -z "$1" ]; then
 	asktype
 else
 	chosen="$1"
-	name="a-$(basename $chosen | sed 's/.img//')"
+	ext="${chosen##*.}"
+	name="a-$(basename "$chosen" | sed "s/.$ext//")"
 	mnt="$(pwd)/$name"
 	[ ! -d "$mnt" ] && mkdir -p "$mnt"
-	cryptsetup isLuks "$1" && decrypt $1 "$name"
+	if cryptsetup isLuks "$chosen"; then
+		decrypt
+	else
+		sudo -A mount "$chosen" "$mnt"
+	fi
 fi

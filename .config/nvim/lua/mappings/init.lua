@@ -16,6 +16,7 @@ map('i', '<C-BS>', '<C-w>', desc('Delete word left'))
 map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
 
 map('n', '<F10>', ':set spell!<CR>', desc('Toggle spell check'))
+map('n', '<esc><esc>', ':nohlsearch<CR>', desc('Clear search highlight'))
 
 map('v', '<', '<gv', desc('Indent left'))
 map('v', '>', '>gv', desc('Indent right'))
@@ -59,8 +60,6 @@ map ('n', '<leader>fr', ':Rest run<CR>', desc('Execute rest request'))
 
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', desc('Select colorscheme'))
 
-map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))
-
 -- Lsp
 map('n', '<leader>K', '<cmd>lua vim.lsp.buf.hover()<CR>', desc('Hover'))
 map('n', '<C-k', '<cmd>lua vim.lsp.buf.signature_help()<CR>', desc('Signature help'))
@@ -79,11 +78,14 @@ map('n', '<leader>lq', '<cmd>lua vim.diagnostic.setloclist()<CR>', desc('Set loc
 map('n', '<leader>lx', '<cmd>lua vim.diagnostic.reset()<CR>', desc('Clear diagnostics'))
 map('n', '<leader>lt', '<cmd>lua vim.diagnostic.config({ virtual_text = not vim.diagnostic.config().virtual_text })<CR>', desc('Toggle virtual text'))
 
+map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))
 map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', desc('List symbols'))
 map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', desc('List workspace symbols'))
 map('n', '<leader><leader>', ':Telescope git_files<CR>', desc('Find files'))
 map('n', '<leader>fh', ':Telescope oldfiles<CR>', desc('List recently opened files'))
 map('n', '<leader>fw', ':Telescope live_grep<CR>', desc('Search words'))
+map('v', '<leader>fw', function() vim.cmd('normal! "ay') vim.cmd('Telescope live_grep default_text=' .. vim.fn.getreg('a')) end, desc('Search words'))
+
 map('n', '<leader>fb', ':Telescope buffers<CR>', desc('List buffers'))
 map('n', '<leader>fz', ':Telescope current_buffer_fuzzy_find<CR>', desc('Find in buffer'))
 

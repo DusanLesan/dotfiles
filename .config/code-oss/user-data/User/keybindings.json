@@ -228,6 +228,11 @@
 		"command": "vscode-neovim.restart"
 	},
 	{
+		"key": "ctrl+b",
+		"command": "vscode-neovim.send",
+		"args": "<space>b"
+	},
+	{
 		"key": "tab",
 		"command": "editor.action.inlineSuggest.commit",
 		"when": "inlineEditIsVisible && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus || inlineEditIsVisible && inlineSuggestionVisible && tabShouldAcceptInlineEdit && !editorHoverFocused && !editorTabMovesFocus || inlineEditIsVisible && tabShouldAcceptInlineEdit && !editorHoverFocused && !editorTabMovesFocus || inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus"

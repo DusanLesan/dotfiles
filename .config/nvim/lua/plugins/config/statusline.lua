@@ -76,6 +76,19 @@ ins_left({
 	color = { fg = colors.magenta, gui = 'bold' }
 })
 
+ins_left({
+	'macro',
+	fmt = function()
+		local reg = vim.fn.reg_recording()
+		if reg ~= "" then
+			return "Recording @" .. reg
+		end
+		return nil
+	end,
+	color = { fg = "#ff9e64" },
+	draw_empty = false,
+})
+
 ins_right({ 'selectioncount' })
 ins_right({ 'searchcount' })
 ins_right({ 'progress', color = { fg = colors.fg, gui = 'bold' } })

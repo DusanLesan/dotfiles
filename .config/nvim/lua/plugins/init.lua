@@ -25,6 +25,12 @@ require("lazy").setup({
 	},
 
 	{
+		"kylechui/nvim-surround",
+		event = "VeryLazy",
+		opts = {}
+	},
+
+	{
 		"folke/which-key.nvim",
 		event = "VeryLazy"
 	},

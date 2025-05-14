@@ -23,7 +23,7 @@ cmd open ${{
 	else
 		case $type in
 			image/*) lf -remote "send $id open_images" ;;
-			*/vnd.efi.img) dmenumount "$f" ;;
+			*/vnd.efi.*) dmenumount "$f" ;;
 			*/zip) lf -remote "send $id mount_archive" ;;
 			text/* ) $EDITOR $fx ;;
 			audio/*) lf -remote "send $id open-audio" ;;

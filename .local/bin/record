@@ -21,11 +21,14 @@ target=$(prompt 'Record:' "$(printf '%s\n' "${modes[@]}")") || exit 1
 
 ffmpeg \
 	-f x11grab \
+	-framerate 30 \
 	-draw_mouse 1 \
 	-video_size "${params[$target,size]}" \
 	-i ":0.0+${params[$target,offset]}" \
 	-c:v libx264 \
 	-preset veryfast \
-	-crf 28 \
+	-crf 25 \
+	-pix_fmt yuv420p \
+	-vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" \
 	-movflags +faststart \
 	"$(getfilename "${target}_recording.mp4" "$PWD/")"
