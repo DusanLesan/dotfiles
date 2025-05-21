@@ -66,7 +66,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 vim.api.nvim_create_autocmd("FileType", {
 	group = group,
-	pattern = { "json", "brs", "python", "bookmarks" },
+	pattern = { "json", "brs", "python", "bookmarks", "http" },
 	callback = function(args)
 		local ft = args.match
 		if ft == "json" then
@@ -86,6 +86,11 @@ vim.api.nvim_create_autocmd("FileType", {
 					vim.fn.search(pattern)
 				end
 			end, { buffer = true, desc = "Jump to bookmarked pattern in file" })
+		elseif ft == "http" then
+			vim.opt_local.expandtab = true
+			vim.schedule(function()
+				vim.keymap.set("n", "<CR>", ":Rest run<CR>", { buffer = true, desc = "Run HTTP request" })
+			end)
 		end
 	end
 })

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import subprocess
 from re import search
 from glob import glob
 from hashlib import md5
@@ -11,7 +12,6 @@ from requests import Session, Request
 from os import path, environ, urandom
 from zipfile import ZipFile, ZIP_DEFLATED
 from requests.auth import parse_dict_header
-from subprocess import run, check_output, CalledProcessError
 
 LAUNCH_JSON = ".vscode/launch.json"
 DEFAULT_USER = "rokudev"
@@ -22,7 +22,7 @@ RALE_TASK_INIT = 'if true = CreateObject("roAppInfo").IsDev() then m.vscode_rdb_
 
 def notify(title, message):
 	try:
-		run(["notify-send", title, message])
+		subprocess.run(["notify-send", title, message])
 	except FileNotFoundError:
 		print(f"{title}: {message}")
 
@@ -36,10 +36,23 @@ def prompt(msg):
 	except KeyboardInterrupt:
 		die("Cancelled.")
 
+def dmenu_prompt(options, prompt="Select:"):
+	input_data = "\n".join(options)
+	try:
+		selection = subprocess.run(
+			["dmenu", "-p", prompt],
+			input=input_data.encode(),
+			stdout=subprocess.PIPE,
+			stderr=subprocess.DEVNULL
+		)
+		return selection.stdout.decode().strip() or None
+	except Exception:
+		return None
+
 def get_git_root():
 	try:
-		return check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
-	except CalledProcessError:
+		return subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+	except subprocess.CalledProcessError:
 		die("Not a git repository.")
 
 def parse_result(html):
@@ -111,12 +124,18 @@ def set_ip(host, port=80, timeout=1):
 		except KeyboardInterrupt:
 			die("Cancelled.")
 
-def parse_launch_json(root):
-	launch_path = root / LAUNCH_JSON
-	if not launch_path.exists():
-		die("launch.json missing.")
+def strip_json_comments(text):
+	lines = text.splitlines()
+	return "\n".join(line for line in lines if not line.strip().startswith("//"))
 
-	launch = loads(launch_path.read_text())
+def load_json(path):
+	if not path.exists():
+		die(f"File not found: {path}")
+
+	return loads(strip_json_comments(path.read_text()))
+
+def parse_launch_json(root):
+	launch = load_json(root / LAUNCH_JSON)
 	conf = launch.get("configurations", [{}])[0]
 	if conf.get("type") != "brightscript":
 		die("Not a Roku project.")
@@ -128,6 +147,17 @@ def parse_launch_json(root):
 	if not files:
 		die("No files specified.")
 	return base, files, rale
+
+def parseTasks(root):
+	tasks = load_json(root / ".vscode" / "tasks.json")
+	inputs = tasks.get("inputs", [])
+
+	for item in inputs:
+		if item.get("id") == "stageName":
+			options = item.get("options", [])
+			return options
+
+	die("No 'stageName' input with options found.")
 
 def inject_tracker_task(files, root_dir, rale):
 	if not rale:
@@ -215,11 +245,9 @@ def read_arguments():
 	args, _ = parser.parse_known_args()
 	return args
 
-def main():
-	args = read_arguments()
+def launch_generic(args, root):
 	ip = set_ip(args.ip)
 	password = args.password or prompt("Enter device password: ")
-	root = Path(get_git_root())
 	base, file_patterns, rale = parse_launch_json(root)
 
 	if args.rale:
@@ -230,6 +258,16 @@ def main():
 
 	if args.rale:
 		find_and_replace_in_main(file_patterns, base, RALE_TASK_INIT, RALE_ENTRY_POINT)
+
+def main():
+	args = read_arguments()
+	root = Path(get_git_root())
+	if not (root / ".rokujs").exists():
+		launch_generic(args, root)
+	else:
+		options = parseTasks(root)
+		choice = dmenu_prompt(options, prompt="Choose an option")
+		subprocess.run(["rokujs", "-ls", choice])
 
 if __name__ == "__main__":
 	main()

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+export HOME=$(fakehome $XDG_DATA_HOME/fakehome)
+export _JAVA_AWT_WM_NONREPARENTING=1
+export GDK_SCALE=$(/usr/bin/gsettings get org.gnome.desktop.interface scaling-factor | awk '{print $2}')
+
+CHARLES_LIB="/home/dusan/.local/share/charles/lib"
+[ -d "$CHARLES_LIB/jdk" ] && export JAVA_HOME="$CHARLES_LIB/jdk"
+JAVA="$JAVA_HOME/bin/java"
+
+$JAVA \
+	-Duser.home="$HOME" \
+	-Xmx1024M \
+	-Dcharles.config="~/.charles.config" \
+	-Djava.library.path="$CHARLES_LIB" \
+	-jar $CHARLES_LIB/charles.jar \
+	$*

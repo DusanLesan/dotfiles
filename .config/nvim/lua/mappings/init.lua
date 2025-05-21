@@ -16,7 +16,7 @@ map('i', '<C-BS>', '<C-w>', desc('Delete word left'))
 map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
 
 map('n', '<F10>', ':set spell!<CR>', desc('Toggle spell check'))
-map('n', '<esc><esc>', ':nohlsearch<CR>', desc('Clear search highlight'))
+map('n', '<esc><esc>', ':nohlsearch<CR>', desc('which_key_ignore'))
 
 map('v', '<', '<gv', desc('Indent left'))
 map('v', '>', '>gv', desc('Indent right'))

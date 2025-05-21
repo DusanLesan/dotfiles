@@ -1,0 +1,20 @@
+#!/bin/sh
+
+t1="$(date -d "$1" +%s 2>/dev/null)"
+t2="$(date ${2:+-d "$2"} +%s 2>/dev/null)"
+[ -z "$t1" ] || [ -z "$t2" ] && { echo "Invalid date/time format"; exit 1; }
+
+diff=$(( t2 - t1 ))
+[ $diff -lt 0 ] && diff=$(( -diff ))
+
+d=$(( diff / 86400 ))
+h=$(( (diff % 86400) / 3600 ))
+m=$(( (diff % 3600) / 60 ))
+s=$(( diff % 60 ))
+
+[ $d -gt 0 ] && printf "%dd " $d
+[ $h -gt 0 ] && printf "%dh " $h
+[ $m -gt 0 ] && printf "%dm " $m
+[ $s -gt 0 ] && printf "%ds" $s
+[ $diff -eq 0 ] && echo "0s"
+echo
