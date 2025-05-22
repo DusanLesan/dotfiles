@@ -76,6 +76,28 @@ char* read_user_input(char *prompt) {
 	return strdup(input);
 }
 
+void create_empty_db(const char *path) {
+	char *schema =
+		"CREATE TABLE images (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, sha256sum TEXT);"
+		"CREATE TABLE keywords (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
+		"CREATE TABLE image_keywords (image_id INTEGER, tag_id INTEGER, "
+		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE RESTRICT, "
+		"FOREIGN KEY (tag_id) REFERENCES keywords(id) ON DELETE RESTRICT);"
+		"CREATE TABLE subjects (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
+		"CREATE TABLE image_subjects (image_id INTEGER, tag_id INTEGER, FOREIGN KEY(image_id) REFERENCES images(id), "
+		"FOREIGN KEY(tag_id) REFERENCES subjects(id), UNIQUE(image_id, tag_id));"
+		"CREATE TABLE shared (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
+		"CREATE TABLE image_shared (image_id INTEGER, tag_id INTEGER, "
+		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE RESTRICT, "
+		"FOREIGN KEY (tag_id) REFERENCES shared(id) ON DELETE RESTRICT);"
+		"CREATE UNIQUE INDEX image_shared_image_id_IDX ON image_shared (image_id,tag_id);"
+		"CREATE UNIQUE INDEX image_keywords_image_id_IDX ON image_keywords (image_id,tag_id);";
+	sqlite3 *db;
+	if (sqlite3_open(path, &db) == SQLITE_OK)
+		sqlite3_exec(db, schema, 0, 0, 0);
+	sqlite3_close(db);
+}
+
 char* get_user_input(char *lf_id, char *prompt, char *options_newline) {
 	if (lf_id)
 		return dmenu_prompt(prompt, options_newline);
@@ -199,8 +221,10 @@ char* get_tag_id(sqlite3 *db, const char *tag_name, const char *tag_value) {
 char* get_options(sqlite3 *db, const char *tag_name) {
 	char *sql = sqlite3_mprintf(
 		"SELECT GROUP_CONCAT(t.tag, '\n') from %s t ", tag_name);
+	char *res = get_statement_result(db, sql);
+	sqlite3_free(sql);
 
-	return get_statement_result(db, sql);
+	return res ? res : "";
 }
 
 char* get_image_ids(sqlite3 *db, const char *image_paths) {
@@ -734,8 +758,15 @@ int main(int argc, char **argv) {
 
 	if (!db_path) {
 		db_path = get_db_path();
-		if (!db_path)
-			die("Error", "Failed to find database");
+		if (!db_path) {
+			char *user_yes_no = get_user_input(lf_id, "No database found. Create a new one? (y/n): ", "y\nn");
+			if (strcmp(user_yes_no, "y") == 0) {
+				create_empty_db(".image.db");
+				db_path = ".image.db";
+			} else {
+				die(NULL, "No database found and user declined to create one.");
+			}
+		}
 	}
 
 	sqlite3 *db = open_db(db_path);
