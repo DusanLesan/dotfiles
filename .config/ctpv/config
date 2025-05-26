@@ -15,9 +15,9 @@ preview audio audio/* {{
 }}
 
 preview image image/* {{
-	image-tag-handler -dpi "${f}" -t subjects 2>/dev/null && ((y++))
-	image-tag-handler -dpi "${f}" 2>/dev/null && ((y++))
-	image-tag-handler -dpi "${f}" -t shared 2>/dev/null && ((y++))
+	out="$(image-tag-handler -dpi "$f" 2>/dev/null)"
+	(( y += $( wc -l <<< "$out" ) ))
+	column -t -s ': ' <<< "$out"
 	setup_image
 	send_image "$f"
 }}

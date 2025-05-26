@@ -8,13 +8,12 @@ gui:
   theme:
     selectedLineBgColor:
       - reverse
-
 customCommands:
   - key: 'C'
     command: 'cpr'
     description: 'Create PR'
     context: 'localBranches'
-    subprocess: true
+    output: terminal
   - key: 'G'
     command: 'open-remote -b "{{.SelectedLocalBranch.Name}}" -m {{index .PromptResponses 0}}'
     description: 'Open remote branch'
@@ -41,9 +40,7 @@ customCommands:
           - value: 'file'
       - type: 'input'
         title: 'File Name:'
-
 os:
   edit: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && /bin/code -g {{filename}} || nvim {{filename}}'
   editAtLine: '[[ "$(realpath {{filename}})" == *"/git/"* ]] && /bin/code -g {{filename}}:{{line}} || nvim +{{line}} {{filename}}'
-
 promptToReturnFromSubprocess: false

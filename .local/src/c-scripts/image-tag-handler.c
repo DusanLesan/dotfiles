@@ -23,7 +23,10 @@ void notify_send(const char *header, const char *message, int is_error) {
 	} else if (is_error) {
 		fprintf(stderr, "%s: %s\n", header, message);
 	} else {
-		fprintf(stdout, "%s: %s\n", header, message);
+		if (header)
+			fprintf(stdout, "%s: %s\n", header, message);
+		else
+			fprintf(stdout, "%s\n", message);
 	}
 }
 
@@ -349,32 +352,71 @@ void print_tags_from_image(const char *image_path) {
 }
 
 char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
-	char *image_id = get_image_ids(db, image_path);
+	char *tags = strdup(tag_name);
+	if (!tags) return NULL;
 
-	if (image_id > 0) {
-		char db_tags[1024] = {0};
+	char *selects = malloc(256);
+	char *joins = malloc(512);
+	char *result = malloc(1024);
+	if (!selects || !joins || !result) return NULL;
 
-		char *sql = sqlite3_mprintf(
-			"SELECT GROUP_CONCAT(tag, ',') FROM %q AS t INNER JOIN image_%q AS it ON t.id = it.tag_id "
-			"WHERE it.image_id = %s;", tag_name, tag_name, image_id);
+	selects[0] = joins[0] = result[0] = 0;
 
-		sqlite3_stmt *stmt;
-		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-			if (sqlite3_step(stmt) == SQLITE_ROW) {
-				const char *tags = (const char *)sqlite3_column_text(stmt, 0);
-				if (tags) {
-					strncpy(db_tags, tags, sizeof(db_tags) - 1);
+	strcat(selects, "SELECT ");
+	strcat(joins, " FROM images i ");
+
+	char *token = strtok(tags, ",");
+	int first = 1;
+
+	while (token) {
+		char *tag = token;
+
+		if (!first) strcat(selects, ", ");
+		first = 0;
+
+		char buf[256];
+		snprintf(buf, sizeof(buf), "GROUP_CONCAT(DISTINCT %s.tag) AS %s", tag, tag);
+		strcat(selects, buf);
+
+		snprintf(buf, sizeof(buf),
+			" LEFT JOIN image_%s ON image_%s.image_id = i.id"
+			" LEFT JOIN %s ON %s.id = image_%s.tag_id",
+			tag, tag, tag, tag, tag);
+		strcat(joins, buf);
+
+		token = strtok(NULL, ",");
+	}
+
+	free(tags);
+
+	char *sql = malloc(strlen(selects) + strlen(joins) + strlen(image_path) + 100);
+	sprintf(sql, "%s%s WHERE i.path LIKE '%%%s%%';", selects, joins, image_path);
+
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			int col_count = sqlite3_column_count(stmt);
+			first = 1;
+			for (int i = 0; i < col_count; ++i) {
+				const char *val = (const char *)sqlite3_column_text(stmt, i);
+				if (val) {
+					const char *col_name = sqlite3_column_name(stmt, i);
+					if (!first) strcat(result, "\n");
+					strcat(result, col_name);
+					strcat(result, ": ");
+					strcat(result, val);
+					first = 0;
 				}
 			}
 		}
-		sqlite3_finalize(stmt);
-		sqlite3_free(sql);
-
-		return strdup(db_tags);
-	} else {
-		notify_send("Error", "Image not found in database.", 1);
-		return NULL;
 	}
+
+	sqlite3_finalize(stmt);
+	free(selects);
+	free(joins);
+	free(sql);
+
+	return (*result) ? strdup(result) : NULL;
 }
 
 void sync_tags_to_image(sqlite3 *db, const char *image_path, const char *tag_name) {
@@ -391,7 +433,7 @@ void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_nam
 	if (db_tags == NULL || db_tags[0] == '\0')
 		die("Error", "No tags found in database");
 
-	notify_send(tag_name, db_tags, 0);
+	notify_send(NULL, db_tags, 0);
 }
 
 void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_value_csv) {
@@ -758,7 +800,7 @@ int main(int argc, char **argv) {
 
 	if (!db_path) {
 		db_path = get_db_path();
-		if (!db_path) {
+		if (!db_path && !print) {
 			char *user_yes_no = get_user_input(lf_id, "No database found. Create a new one? (y/n): ", "y\nn");
 			if (strcmp(user_yes_no, "y") == 0) {
 				create_empty_db(".image.db");
@@ -796,7 +838,7 @@ int main(int argc, char **argv) {
 		} else {
 			char *image_path, *saveptr;
 			image_path = strtok_r(image_paths, "\n", &saveptr);
-			tag_name = tag_name ? tag_name : "keywords";
+			tag_name = tag_name ? tag_name : "keywords,subjects,shared";
 			while (image_path != NULL) {
 				if (update) {
 					if (target_db) {

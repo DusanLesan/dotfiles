@@ -1,6 +1,6 @@
 [
 	{
-		"key": "alt+q",
+		"key": "alt+z",
 		"command": "workbench.action.closeActiveEditor"
 	},
 	{
