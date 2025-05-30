@@ -288,8 +288,8 @@ map ai &arc $fx
 map am mount_archive
 map is db_search
 map iS %image-tag-handler -sl "$id"
-map if %image-tag-handler -fpi "$f" -l "$id"
-map id %image-tag-handler -dpi "$f" -l "$id"
+map if %image-tag-handler -pfi "$f" -l "$id"
+map id %image-tag-handler -pdi "$f" -l "$id"
 map it %image-tag-handler -ai "$fx" -l "$id"
 map ir %image-tag-handler -ri "$fx" -l "$id"
 

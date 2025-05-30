@@ -19,6 +19,7 @@ PLUGIN_INSTALL_URI = "/plugin_install"
 PLUGIN_INSTALL_URL_FMT = "http://{ip}" + PLUGIN_INSTALL_URI
 RALE_ENTRY_POINT = "' vscode_rale_tracker_entry"
 RALE_TASK_INIT = 'if true = CreateObject("roAppInfo").IsDev() then m.vscode_rdb_odc_node = createObject("roSGNode", "TrackerTask")'
+CODE_SETTINGS = ".config/code-oss/user-data/User/settings.json"
 
 def notify(title, message):
 	try:
@@ -161,7 +162,7 @@ def parseTasks(root):
 
 def inject_tracker_task(files, root_dir, rale):
 	if not rale:
-		settings_path = Path.home() / ".config/code-oss/user-data/User/settings.json"
+		settings_path = Path.home() / CODE_SETTINGS
 		if not settings_path.exists():
 			die(f"settings.json not found at {settings_path}")
 		with open(settings_path) as f:

@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 . utils
 
@@ -27,6 +27,8 @@ while read file; do
 		"f") convert -flop "$file" "$file" ;;
 		"y") echo -n "$file" | xclip -sel c && notify "$file copied " & ;;
 		"Y") copyImage ;;
+		"t") image-tag-handler -ai "$file" -l 0 ;;
+		"T") image-tag-handler -ri "$file" -l 0 ;;
 		"d") [ $(prompt "Delete $file?" $'No\nYes') = "Yes" ] &&
 			rm "$file" && notify "$file deleted." ;;
 	esac

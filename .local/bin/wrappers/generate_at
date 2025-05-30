@@ -1,0 +1,7 @@
+#!/bin/sh
+
+env $(grep -E '^(pp_key|pp_secret)=' "$XDG_DATA_HOME/secrets/priv") run_py ~/.local/bin/genat.py "pycryptodome" | {
+	if read -r output; then
+		printf %s "$output" | xclip -selection clipboard; echo "$output"
+	fi
+}

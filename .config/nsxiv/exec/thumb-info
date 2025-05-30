@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "$(image-tag-handler -pdi "$1")"
