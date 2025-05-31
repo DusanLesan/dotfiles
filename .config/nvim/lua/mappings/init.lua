@@ -47,8 +47,7 @@ mmap('n', {'<C-A-Right>', '<C-A-l>'}, ':vertical resize +2<CR>', desc('Resize wi
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', desc('Next buffer'))
 map('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', desc('Previous buffer'))
-map('n', '<leader>z', ':bdelete<CR>', desc('Close buffer'))
-map('n', '<A-z>', ':bdelete!<CR>', desc('Force close buffer'))
+map('n', '<A-z>', ':bdelete<CR>', desc('Close buffer'))
 
 map('n', '<leader>e', ":Oil<CR>", desc('Open file manager'))
 map('n', '<A-t>', ':ToggleTerm<CR>', desc('Toggle terminal'))
@@ -107,6 +106,9 @@ map('n', '<leader>gg', ":Gitsigns toggle_signs<CR>", desc('Toggle signs'))
 map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
+map("v", "<leader>m", ":EvalMath<CR>",  desc("Evaluate visual math expression"))
+map("n", "gF", ":OpenInLf<CR>", desc("Open path below cursor in lf"))
+map('n', '<leader>zp', ':SwitchPairedFile<CR>', desc('Switch to paired file'))
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
 map("n", "<F5>",
 	'<cmd>wa | silent !env $(grep -E "^(roku_pass|roku_device)=" "$XDG_DATA_HOME/secrets/priv") roku-build -r<CR>',
@@ -121,23 +123,6 @@ vim.api.nvim_create_autocmd('FileType', {
 	end
 })
 
-map("n", "gF", function()
-	local path = vim.fn.expand("<cfile>")
-	if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
-		vim.fn.jobstart({"env", "_START_LFCD=" .. path, "alacritty"}, { detach = true })
-	else
-		vim.fn.jobstart({"notify-send", "Error", "Invalid path: " .. path})
-	end
-end, desc("Open path below cursor in lf"))
-
 map('n', '<A-T>', function()
 	vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true })
 end, desc('Open external terminal'))
-
-map("v", "<leader>m", function()
-	vim.cmd('normal! "vy')
-	local f, err = load("return " .. vim.fn.getreg("v"))
-	if not f then return vim.notify("Invalid expression: " .. err, vim.log.levels.ERROR) end
-	local ok, result = pcall(f)
-	if ok then vim.cmd('normal! gv"vc' .. result) end
-end, desc("Evaluate visual math expression"))

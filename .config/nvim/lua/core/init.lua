@@ -104,3 +104,29 @@ vim.api.nvim_create_autocmd("BufEnter", {
 		end
 	end,
 })
+
+vim.api.nvim_create_user_command("SwitchPairedFile", function()
+	local cur = vim.api.nvim_buf_get_name(0)
+	local dir, base = vim.fn.fnamemodify(cur, ":h"), vim.fn.fnamemodify(cur, ":t:r")
+	for _, f in ipairs(vim.fn.globpath(dir, base .. ".*", false, true)) do
+		if f ~= cur then return vim.cmd.edit(vim.fn.fnameescape(f)) end
+	end
+	print("No paired file found.")
+end, {})
+
+vim.api.nvim_create_user_command("OpenInLf", function()
+	local path = vim.fn.expand("<cfile>")
+	if vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1 then
+		vim.fn.jobstart({ "env", "_START_LFCD=" .. path, "alacritty" }, { detach = true })
+	else
+		vim.fn.jobstart({ "notify-send", "Error", "Invalid path: " .. path })
+	end
+end, {})
+
+vim.api.nvim_create_user_command("EvalMath", function()
+	vim.cmd('normal! "vy')
+	local f, err = load("return " .. vim.fn.getreg("v"))
+	if not f then return vim.notify("Invalid expression: " .. err, vim.log.levels.ERROR) end
+	local ok, result = pcall(f)
+	if ok then vim.cmd('normal! gv"vc' .. result) end
+end, { range = true })
