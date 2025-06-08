@@ -15,9 +15,10 @@ preview audio audio/* {{
 }}
 
 preview image image/* {{
-	out="$(image-tag-handler -dpi "$f" 2>/dev/null)"
-	(( y += $( wc -l <<< "$out" ) ))
-	column -t -s ': ' <<< "$out"
+	if out="$(image-tag-handler -dpi "${f}" 2>/dev/null)"; then
+		while IFS= read -r _; do ((y++)); done <<< "$out"
+		column -t -s ': ' <<< "$out"
+	fi
 	setup_image
 	send_image "$f"
 }}

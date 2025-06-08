@@ -351,6 +351,13 @@ void print_tags_from_image(const char *image_path) {
 	notify_send("Keywords", tags_csv, 0);
 }
 
+static void* free_all(void **ptrs, int count) {
+	for (int i = 0; i < count; i++) {
+		free(ptrs[i]);
+	}
+	return NULL;
+}
+
 char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
 	char *tags = strdup(tag_name);
 	if (!tags) return NULL;
@@ -358,7 +365,7 @@ char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name
 	char *selects = malloc(256);
 	char *joins = malloc(512);
 	char *result = malloc(1024);
-	if (!selects || !joins || !result) return NULL;
+	if (!selects || !joins || !result) return free_all((void*[]){tags, selects, joins, result}, 4);
 
 	selects[0] = joins[0] = result[0] = 0;
 
@@ -390,6 +397,8 @@ char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name
 	free(tags);
 
 	char *sql = malloc(strlen(selects) + strlen(joins) + strlen(image_path) + 100);
+	if (!sql) return free_all((void*[]){selects, joins, result}, 3);
+
 	sprintf(sql, "%s%s WHERE i.path LIKE '%%%s%%';", selects, joins, image_path);
 
 	sqlite3_stmt *stmt;
@@ -409,23 +418,22 @@ char* get_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name
 				}
 			}
 		}
+		sqlite3_finalize(stmt);
 	}
 
-	sqlite3_finalize(stmt);
-	free(selects);
-	free(joins);
-	free(sql);
+	free_all((void*[]){selects, joins, sql}, 3);
 
-	return (*result) ? strdup(result) : NULL;
+	return (*result) ? result : (free(result), NULL);
 }
 
 void sync_tags_to_image(sqlite3 *db, const char *image_path, const char *tag_name) {
 	char* db_tags = get_tags_from_db(db, image_path, tag_name);
-	if (db_tags[0] == '\0') return;
-
-	char command[1024];
-	snprintf(command, sizeof(command), "exiftool -overwrite_original -Keywords=\"%s\" \"%s\"", db_tags, image_path);
-	system(command);
+	if (db_tags && db_tags[0]) {
+		char command[1024];
+		snprintf(command, sizeof(command), "exiftool -overwrite_original -Keywords=\"%s\" \"%s\"", db_tags, image_path);
+		system(command);
+	}
+	free(db_tags);
 }
 
 void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_name) {
@@ -434,10 +442,12 @@ void print_tags_from_db(sqlite3 *db, const char *image_path, const char *tag_nam
 		die("Error", "No tags found in database");
 
 	notify_send(NULL, db_tags, 0);
+	free(db_tags);
 }
 
 void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_value_csv) {
-	char *tag_value = strtok(tag_value_csv, ",");
+	char *tag_value_copy = strdup(tag_value_csv);
+	char *tag_value = strtok(tag_value_copy, ",");
 	while (tag_value != NULL) {
 		insert_tag(db, tag_name, tag_value);
 
@@ -452,23 +462,30 @@ void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_valu
 				"%q;", tag_name, formatted_sql_template);
 
 			sqlite3_exec(db, sql, 0, 0, 0);
+			sqlite3_free(sql);
+			free_all((void*[]){formatted_sql_template, tag_id}, 2);
 		}
 		tag_value = strtok(NULL, ",");
 	}
+	free(tag_value_copy);
 }
 
 void remove_tags(sqlite3 *db, const char *image_paths, const char *tag_name, const char *tag_value_csv) {
 	char *image_ids = get_image_ids(db, image_paths);
 	if (image_ids) {
-		char *tag_value = strtok((char *)tag_value_csv, ",");
-		while (tag_value != NULL) {
-			char *tag_id = get_tag_id(db, tag_name, tag_value);
-			if (tag_id != NULL) {
-				disassociate_tag(db, image_ids, tag_name, tag_id);
+		char *tag_value_copy = strdup(tag_value_csv);
+		if (tag_value_copy) {
+			char *tag_value = strtok(tag_value_copy, ",");
+			while (tag_value != NULL) {
+				char *tag_id = get_tag_id(db, tag_name, tag_value);
+				if (tag_id != NULL) {
+					disassociate_tag(db, image_ids, tag_name, tag_id);
+					free(tag_id);
+				}
+				tag_value = strtok(NULL, ",");
 			}
-
-			tag_value = strtok(NULL, ",");
 		}
+		free_all((void*[]){image_ids, tag_value_copy}, 2);
 	}
 }
 
@@ -673,6 +690,7 @@ int batch_sync(sqlite3 *db, const char *directory_path) {
 		}
 
 		rc = update_image_table(db, stmt, file_sha256, file_path);
+		free(file_sha256);
 
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "Failed to insert image for file: %s\n", file_path);

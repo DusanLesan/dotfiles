@@ -4,6 +4,7 @@ LIBS_IMLIB2 = -lImlib2
 LIBS_DBUS = -ldbus-1 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
 LIBS_SQLITE = -lsqlite3
 LIBS_LIBCRYPTO = -lcrypto
+LIBS_JSON = -ljson-c
 LIBS_NOTIFY = $(shell pkg-config --libs --cflags libnotify)
 
 INSTALL_DIR = /usr/local/bin
@@ -27,6 +28,9 @@ image-tag-handler: image-tag-handler.c
 
 music: music.c
 	$(CC) -o $@ $< $(LIBS_DBUS)
+
+dmenupolkit: dmenupolkit.c
+	$(CC) -o $@ $< $(LIBS_JSON)
 
 %: %.c
 	$(CC) -o $@ $<
