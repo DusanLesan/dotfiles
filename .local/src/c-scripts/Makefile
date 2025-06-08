@@ -32,6 +32,9 @@ music: music.c
 dmenupolkit: dmenupolkit.c
 	$(CC) -o $@ $< $(LIBS_JSON)
 
+bluetooth: bluetooth.c
+	$(CC) -o $@ $< $(LIBS_DBUS)
+
 %: %.c
 	$(CC) -o $@ $<
 

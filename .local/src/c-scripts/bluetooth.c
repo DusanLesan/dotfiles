@@ -1,0 +1,476 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <dbus/dbus.h>
+#include <stdbool.h>
+#include <getopt.h>
+
+#define BLUEZ_SERVICE "org.bluez"
+#define BLUEZ_DEVICE_INTERFACE "org.bluez.Device1"
+#define BLUEZ_BATTERY_INTERFACE "org.bluez.Battery1"
+#define BLUEZ_GATT_CHARACTERISTIC_INTERFACE "org.bluez.GattCharacteristic1"
+#define DBUS_OBJECT_MANAGER_INTERFACE "org.freedesktop.DBus.ObjectManager"
+#define BATTERY_LEVEL_UUID "00002A19-0000-1000-8000-00805F9B34FB"
+
+typedef struct {
+	bool use_gatt;
+	bool verbose_output;
+} Config;
+
+typedef struct {
+	int level;
+	char *description;
+} BatteryInfo;
+
+typedef struct {
+	char *path;
+	char *alias;
+	char *address;
+	int standard_battery_level;
+	bool has_standard_battery;
+	BatteryInfo *gatt_batteries;
+	int gatt_battery_count;
+} BluetoothDevice;
+
+typedef struct {
+	BluetoothDevice *devices;
+	int count;
+	int capacity;
+} DeviceList;
+
+static char* safe_strdup(const char *str) {
+	if (!str) return NULL;
+	return strdup(str);
+}
+
+static bool str_equal(const char *a, const char *b) {
+	return a && b && strcmp(a, b) == 0;
+}
+
+static void str_to_upper(char *str) {
+	if (!str) return;
+	for (; *str; str++) {
+		if (*str >= 'a' && *str <= 'z') {
+			*str = *str - 'a' + 'A';
+		}
+	}
+}
+
+static BluetoothDevice* add_device(DeviceList *list, const char *path) {
+	if (list->count >= list->capacity) {
+		list->capacity = list->capacity ? list->capacity * 2 : 8;
+		list->devices = realloc(list->devices, sizeof(BluetoothDevice) * list->capacity);
+	}
+
+	BluetoothDevice *dev = &list->devices[list->count++];
+	memset(dev, 0, sizeof(BluetoothDevice));
+	dev->path = safe_strdup(path);
+	dev->standard_battery_level = -1;
+	return dev;
+}
+
+static void add_gatt_battery(BluetoothDevice *device, int level, const char *description) {
+	device->gatt_batteries = realloc(device->gatt_batteries,
+									sizeof(BatteryInfo) * (device->gatt_battery_count + 1));
+
+	BatteryInfo *battery = &device->gatt_batteries[device->gatt_battery_count++];
+	battery->level = level;
+	battery->description = safe_strdup(description ? description : "GATT Battery");
+}
+
+static void free_device_list(DeviceList *list) {
+	for (int i = 0; i < list->count; i++) {
+		free(list->devices[i].path);
+		free(list->devices[i].alias);
+		free(list->devices[i].address);
+
+		for (int j = 0; j < list->devices[i].gatt_battery_count; j++) {
+			free(list->devices[i].gatt_batteries[j].description);
+		}
+		free(list->devices[i].gatt_batteries);
+	}
+	free(list->devices);
+	memset(list, 0, sizeof(DeviceList));
+}
+
+static char* extract_string(DBusMessageIter *variant) {
+	if (dbus_message_iter_get_arg_type(variant) != DBUS_TYPE_STRING) return NULL;
+	char *str;
+	dbus_message_iter_get_basic(variant, &str);
+	return safe_strdup(str);
+}
+
+static bool extract_bool(DBusMessageIter *variant) {
+	if (dbus_message_iter_get_arg_type(variant) != DBUS_TYPE_BOOLEAN) return false;
+	dbus_bool_t val;
+	dbus_message_iter_get_basic(variant, &val);
+	return val;
+}
+
+static int extract_byte(DBusMessageIter *variant) {
+	if (dbus_message_iter_get_arg_type(variant) != DBUS_TYPE_BYTE) return -1;
+	unsigned char val;
+	dbus_message_iter_get_basic(variant, &val);
+	return val;
+}
+
+static int read_gatt_characteristic(DBusConnection *conn, const char *char_path) {
+	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, char_path,
+													BLUEZ_GATT_CHARACTERISTIC_INTERFACE,
+													"ReadValue");
+	if (!msg) return -1;
+
+	DBusMessageIter args, dict;
+	dbus_message_iter_init_append(msg, &args);
+	dbus_message_iter_open_container(&args, DBUS_TYPE_ARRAY, "{sv}", &dict);
+	dbus_message_iter_close_container(&args, &dict);
+
+	DBusError error;
+	dbus_error_init(&error);
+	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
+	dbus_message_unref(msg);
+
+	if (!reply) {
+		dbus_error_free(&error);
+		return -1;
+	}
+
+	int value = -1;
+	DBusMessageIter reply_iter, array;
+	if (dbus_message_iter_init(reply, &reply_iter) &&
+		dbus_message_iter_get_arg_type(&reply_iter) == DBUS_TYPE_ARRAY) {
+		dbus_message_iter_recurse(&reply_iter, &array);
+		if (dbus_message_iter_get_arg_type(&array) == DBUS_TYPE_BYTE) {
+			unsigned char val;
+			dbus_message_iter_get_basic(&array, &val);
+			value = val;
+		}
+	}
+
+	dbus_message_unref(reply);
+	return value;
+}
+
+static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
+	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
+													DBUS_OBJECT_MANAGER_INTERFACE,
+													"GetManagedObjects");
+	if (!msg) return;
+
+	DBusError error;
+	dbus_error_init(&error);
+	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
+	dbus_message_unref(msg);
+
+	if (!reply) {
+		dbus_error_free(&error);
+		return;
+	}
+
+	DBusMessageIter iter, objects;
+	dbus_message_iter_init(reply, &iter);
+	dbus_message_iter_recurse(&iter, &objects);
+
+	while (dbus_message_iter_get_arg_type(&objects) == DBUS_TYPE_DICT_ENTRY) {
+		DBusMessageIter object_entry, interfaces;
+		char *object_path;
+
+		dbus_message_iter_recurse(&objects, &object_entry);
+		dbus_message_iter_get_basic(&object_entry, &object_path);
+		dbus_message_iter_next(&object_entry);
+		dbus_message_iter_recurse(&object_entry, &interfaces);
+
+		while (dbus_message_iter_get_arg_type(&interfaces) == DBUS_TYPE_DICT_ENTRY) {
+			DBusMessageIter interface_entry, properties;
+			char *interface_name;
+
+			dbus_message_iter_recurse(&interfaces, &interface_entry);
+			dbus_message_iter_get_basic(&interface_entry, &interface_name);
+
+			if (str_equal(interface_name, BLUEZ_GATT_CHARACTERISTIC_INTERFACE)) {
+				dbus_message_iter_next(&interface_entry);
+				dbus_message_iter_recurse(&interface_entry, &properties);
+
+				char *uuid = NULL;
+				while (dbus_message_iter_get_arg_type(&properties) == DBUS_TYPE_DICT_ENTRY) {
+					DBusMessageIter property_entry, variant;
+					char *property_name;
+
+					dbus_message_iter_recurse(&properties, &property_entry);
+					dbus_message_iter_get_basic(&property_entry, &property_name);
+					dbus_message_iter_next(&property_entry);
+					dbus_message_iter_recurse(&property_entry, &variant);
+
+					if (str_equal(property_name, "UUID")) {
+						uuid = extract_string(&variant);
+						break;
+					}
+					dbus_message_iter_next(&properties);
+				}
+
+				if (uuid) {
+					str_to_upper(uuid);
+					if (str_equal(uuid, BATTERY_LEVEL_UUID)) {
+						for (int i = 0; i < devices->count; i++) {
+							if (strstr(object_path, devices->devices[i].path)) {
+								int level = read_gatt_characteristic(conn, object_path);
+								if (level >= 0)
+									add_gatt_battery(&devices->devices[i], level, "GATT Battery");
+								break;
+							}
+						}
+					}
+					free(uuid);
+				}
+			}
+			dbus_message_iter_next(&interfaces);
+		}
+		dbus_message_iter_next(&objects);
+	}
+
+	dbus_message_unref(reply);
+}
+
+static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, const Config *config) {
+	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
+													DBUS_OBJECT_MANAGER_INTERFACE,
+													"GetManagedObjects");
+	if (!msg) return;
+
+	DBusError error;
+	dbus_error_init(&error);
+	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
+	dbus_message_unref(msg);
+
+	if (!reply) {
+		fprintf(stderr, "Failed to get managed objects: %s\n", error.message);
+		dbus_error_free(&error);
+		return;
+	}
+
+	DBusMessageIter iter, objects;
+	dbus_message_iter_init(reply, &iter);
+	dbus_message_iter_recurse(&iter, &objects);
+
+	while (dbus_message_iter_get_arg_type(&objects) == DBUS_TYPE_DICT_ENTRY) {
+		DBusMessageIter object_entry, interfaces;
+		char *object_path;
+
+		dbus_message_iter_recurse(&objects, &object_entry);
+		dbus_message_iter_get_basic(&object_entry, &object_path);
+		dbus_message_iter_next(&object_entry);
+		dbus_message_iter_recurse(&object_entry, &interfaces);
+
+		BluetoothDevice *current_device = NULL;
+
+		while (dbus_message_iter_get_arg_type(&interfaces) == DBUS_TYPE_DICT_ENTRY) {
+			DBusMessageIter interface_entry, properties;
+			char *interface_name;
+
+			dbus_message_iter_recurse(&interfaces, &interface_entry);
+			dbus_message_iter_get_basic(&interface_entry, &interface_name);
+
+			if (str_equal(interface_name, BLUEZ_DEVICE_INTERFACE)) {
+				dbus_message_iter_next(&interface_entry);
+				dbus_message_iter_recurse(&interface_entry, &properties);
+
+				bool connected = false;
+				char *alias = NULL;
+				char *address = NULL;
+
+				while (dbus_message_iter_get_arg_type(&properties) == DBUS_TYPE_DICT_ENTRY) {
+					DBusMessageIter property_entry, variant;
+					char *property_name;
+
+					dbus_message_iter_recurse(&properties, &property_entry);
+					dbus_message_iter_get_basic(&property_entry, &property_name);
+					dbus_message_iter_next(&property_entry);
+					dbus_message_iter_recurse(&property_entry, &variant);
+
+					if (str_equal(property_name, "Connected")) {
+						connected = extract_bool(&variant);
+					} else if (str_equal(property_name, "Alias")) {
+						alias = extract_string(&variant);
+					} else if (str_equal(property_name, "Address")) {
+						address = extract_string(&variant);
+					}
+
+					dbus_message_iter_next(&properties);
+				}
+
+				if (connected) {
+					current_device = add_device(devices, object_path);
+					current_device->alias = alias;
+					current_device->address = address;
+				} else {
+					free(alias);
+					free(address);
+				}
+			}
+			else if (str_equal(interface_name, BLUEZ_BATTERY_INTERFACE) && current_device) {
+				current_device->has_standard_battery = true;
+
+				dbus_message_iter_next(&interface_entry);
+				dbus_message_iter_recurse(&interface_entry, &properties);
+
+				while (dbus_message_iter_get_arg_type(&properties) == DBUS_TYPE_DICT_ENTRY) {
+					DBusMessageIter property_entry, variant;
+					char *property_name;
+
+					dbus_message_iter_recurse(&properties, &property_entry);
+					dbus_message_iter_get_basic(&property_entry, &property_name);
+					dbus_message_iter_next(&property_entry);
+					dbus_message_iter_recurse(&property_entry, &variant);
+
+					if (str_equal(property_name, "Percentage"))
+						current_device->standard_battery_level = extract_byte(&variant);
+
+					dbus_message_iter_next(&properties);
+				}
+			}
+			dbus_message_iter_next(&interfaces);
+		}
+		dbus_message_iter_next(&objects);
+	}
+
+	dbus_message_unref(reply);
+
+	if (config->use_gatt)
+		scan_gatt_batteries(conn, devices);
+}
+
+static void print_verbose_output(const DeviceList *devices) {
+	printf("\nBluetooth Devices:\n");
+	printf("==================\n\n");
+	if (devices->count == 0) {
+		printf("No connected Bluetooth devices found.\n");
+		return;
+	}
+	for (int i = 0; i < devices->count; i++) {
+		const BluetoothDevice *dev = &devices->devices[i];
+		printf("Device: %s\n", dev->alias ? dev->alias : "Unknown");
+		printf("  Address: %s\n", dev->address ? dev->address : "Unknown");
+		printf("  Connected: Yes\n");
+		if (dev->has_standard_battery && dev->standard_battery_level >= 0)
+			printf("  Standard Battery: %d%%\n", dev->standard_battery_level);
+		if (dev->gatt_battery_count > 0) {
+			printf("  GATT Batteries:\n");
+			for (int j = 0; j < dev->gatt_battery_count; j++) {
+				printf("    %s: %d%%\n", dev->gatt_batteries[j].description, dev->gatt_batteries[j].level);
+			}
+		}
+		printf("\n");
+	}
+}
+
+static void print_short_output(const DeviceList *devices) {
+	for (int i = 0; i < devices->count; i++) {
+		const BluetoothDevice *dev = &devices->devices[i];
+		if (!dev->alias) continue;
+
+		printf("%s", dev->alias);
+
+		if (dev->has_standard_battery && dev->standard_battery_level >= 0 && dev->standard_battery_level < 100)
+			printf(" %d%% ", dev->standard_battery_level);
+
+		if (i < devices->count - 1) {
+			printf(" ");
+		} else {
+			printf("\n");
+		}
+	}
+}
+
+static bool init_bluetooth(DBusConnection **conn) {
+	DBusError err;
+	dbus_error_init(&err);
+
+	*conn = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+	if (dbus_error_is_set(&err)) {
+		fprintf(stderr, "D-Bus connection error: %s\n", err.message);
+		dbus_error_free(&err);
+		return false;
+	}
+
+	return *conn != NULL;
+}
+
+static void print_usage(const char *program_name) {
+	printf("Usage: %s [options]\n", program_name);
+	printf("Options:\n");
+	printf("  -g    Enable GATT battery service scanning\n");
+	printf("  -s    Short output format\n");
+	printf("  -h    Show this help message\n");
+}
+
+static bool parse_args(int argc, char *argv[], Config *config) {
+	int opt;
+	while ((opt = getopt(argc, argv, "gvnh")) != -1) {
+		switch (opt) {
+			case 'g':
+				config->use_gatt = true;
+				break;
+			case 'v':
+				config->verbose_output = true;
+				break;
+			case 'h':
+				return false;
+			default:
+				fprintf(stderr, "Unknown option: %c\n", opt);
+				print_usage(argv[0]);
+				return false;
+		}
+	}
+	return true;
+}
+
+void dmenu_bluetooth(void) {
+	pid_t child_pid = fork();
+	if (child_pid == 0) {
+		char *args[] = {"/bin/alacritty", "--class", "floating", "-e", "dmenu-bluetooth", NULL};
+		setenv("WINIT_X11_SCALE_FACTOR", "1", 1);
+		setenv("USE_TERM", "true", 1);
+		execv(args[0], args);
+	}
+}
+
+void notification(void) {
+	pid_t child_pid = fork();
+	if (child_pid == 0) {
+		char *args[] = {"/bin/alacritty", "--class", "floating", "--hold", "-e", "bluetooth", "-vg", NULL};
+		execv(args[0], args);
+	}
+}
+
+int main(int argc, char *argv[]) {
+	Config config = {0};
+	if (!parse_args(argc, argv, &config))
+		return EXIT_FAILURE;
+
+	char* button = getenv("BLOCK_BUTTON");
+	if(button != NULL) {
+		if (atoi(button) == 1) {
+			dmenu_bluetooth();
+		} else {
+			notification();
+		}
+	}
+
+	DBusConnection *conn;
+	if (!init_bluetooth(&conn))
+		return EXIT_FAILURE;
+
+	DeviceList devices = {0};
+	scan_bluetooth_devices(conn, &devices, &config);
+
+	if (config.verbose_output)
+		print_verbose_output(&devices);
+	else
+		print_short_output(&devices);
+
+	free_device_list(&devices);
+	dbus_connection_unref(conn);
+
+	return EXIT_SUCCESS;
+}
