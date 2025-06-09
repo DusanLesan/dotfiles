@@ -38,10 +38,15 @@ bluetooth: bluetooth.c
 %: %.c
 	$(CC) -o $@ $<
 
-install: all
-	@mkdir -p $(INSTALL_DIR)
-	@for file in $(TARGETS); do \
-		mv $$file $(INSTALL_DIR)/; \
+install:
+	@for src in *.c; do \
+		name=$${src%.c}; \
+		target="$(INSTALL_DIR)/$$name"; \
+		if [ ! -f "$$target" ] || [ "$$src" -nt "$$target" ]; then \
+			$(MAKE) --no-print-directory $$name; \
+			cp -f "$$name" "$$target"; \
+			rm -f "$$name"; \
+		fi; \
 	done
 
 clean:
