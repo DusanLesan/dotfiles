@@ -5,6 +5,8 @@
 #include <dbus/dbus.h>
 #include <stdbool.h>
 #include <getopt.h>
+#include <time.h>
+#include <sys/stat.h>
 
 #define BLUEZ_SERVICE "org.bluez"
 #define BLUEZ_DEVICE_INTERFACE "org.bluez.Device1"
@@ -13,9 +15,13 @@
 #define DBUS_OBJECT_MANAGER_INTERFACE "org.freedesktop.DBus.ObjectManager"
 #define BATTERY_LEVEL_UUID "00002A19-0000-1000-8000-00805F9B34FB"
 
+#define CACHE_FILE_PATH "/tmp/batterycache"
+#define DEFAULT_CACHE_TIMEOUT 90
+
 typedef struct {
 	bool use_gatt;
 	bool verbose_output;
+	int cache_timeout;
 } Config;
 
 typedef struct {
@@ -38,6 +44,19 @@ typedef struct {
 	int count;
 	int capacity;
 } DeviceList;
+
+typedef struct {
+	char address[18];
+	int gatt_battery_count;
+	int gatt_battery_levels[8];
+	char gatt_battery_descriptions[8][64];
+} CachedDeviceInfo;
+
+typedef struct {
+	int device_count;
+	time_t timestamp;
+	CachedDeviceInfo devices[32];
+} BatteryCache;
 
 static char* safe_strdup(const char *str) {
 	if (!str) return NULL;
@@ -72,7 +91,7 @@ static BluetoothDevice* add_device(DeviceList *list, const char *path) {
 
 static void add_gatt_battery(BluetoothDevice *device, int level, const char *description) {
 	device->gatt_batteries = realloc(device->gatt_batteries,
-									sizeof(BatteryInfo) * (device->gatt_battery_count + 1));
+			sizeof(BatteryInfo) * (device->gatt_battery_count + 1));
 
 	BatteryInfo *battery = &device->gatt_batteries[device->gatt_battery_count++];
 	battery->level = level;
@@ -115,10 +134,123 @@ static int extract_byte(DBusMessageIter *variant) {
 	return val;
 }
 
+static bool is_cache_valid(const Config *config) {
+	struct stat st;
+	if (stat(CACHE_FILE_PATH, &st) != 0)
+		return false;
+
+	time_t now = time(NULL);
+	return (now - st.st_mtime) < config->cache_timeout;
+}
+
+static bool load_battery_cache(BatteryCache *cache) {
+	FILE *f = fopen(CACHE_FILE_PATH, "rb");
+	if (!f) return false;
+
+	size_t read = fread(cache, sizeof(BatteryCache), 1, f);
+	fclose(f);
+
+	if (read != 1) return false;
+
+	return true;
+}
+
+static bool save_battery_cache(const BatteryCache *cache) {
+	FILE *f = fopen(CACHE_FILE_PATH, "wb");
+	if (!f) {
+		fprintf(stderr, "Warning: Could not open cache file for writing\n");
+		return false;
+	}
+
+	size_t written = fwrite(cache, sizeof(BatteryCache), 1, f);
+	fclose(f);
+
+	if (written != 1) {
+		fprintf(stderr, "Warning: Could not write to cache file\n");
+		return false;
+	}
+
+	return true;
+}
+
+static void populate_from_cache(DeviceList *devices, const BatteryCache *cache) {
+	for (int i = 0; i < devices->count; i++) {
+		BluetoothDevice *dev = &devices->devices[i];
+		if (!dev->address) continue;
+
+		for (int j = 0; j < cache->device_count; j++) {
+			if (str_equal(dev->address, cache->devices[j].address)) {
+				for (int k = 0; k < cache->devices[j].gatt_battery_count; k++) {
+					int level = cache->devices[j].gatt_battery_levels[k];
+					const char *desc = cache->devices[j].gatt_battery_descriptions[k];
+
+					if (level >= 0) {
+						add_gatt_battery(dev, level, desc);
+					}
+				}
+				break;
+			}
+		}
+	}
+}
+
+static void update_cache_from_devices(BatteryCache *cache, const DeviceList *devices) {
+	cache->timestamp = time(NULL);
+	cache->device_count = 0;
+
+	for (int i = 0; i < devices->count && cache->device_count < 32; i++) {
+		const BluetoothDevice *dev = &devices->devices[i];
+		if (!dev->address) continue;
+
+		CachedDeviceInfo *cached_dev = &cache->devices[cache->device_count++];
+		strncpy(cached_dev->address, dev->address, sizeof(cached_dev->address) - 1);
+		cached_dev->address[sizeof(cached_dev->address) - 1] = '\0';
+
+		cached_dev->gatt_battery_count = 0;
+
+		if (dev->gatt_battery_count > 0) {
+			for (int j = 0; j < dev->gatt_battery_count && j < 8; j++) {
+				cached_dev->gatt_battery_levels[cached_dev->gatt_battery_count] = dev->gatt_batteries[j].level;
+				strncpy(cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count],
+						dev->gatt_batteries[j].description ? dev->gatt_batteries[j].description : "GATT Battery",
+						sizeof(cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count]) - 1);
+				cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count][63] = '\0';
+				cached_dev->gatt_battery_count++;
+			}
+		} else {
+			cached_dev->gatt_battery_levels[0] = -1;
+			strncpy(cached_dev->gatt_battery_descriptions[0], "No GATT Battery",
+					sizeof(cached_dev->gatt_battery_descriptions[0]) - 1);
+			cached_dev->gatt_battery_descriptions[0][63] = '\0';
+			cached_dev->gatt_battery_count = 1;
+		}
+	}
+}
+
+static bool device_list_changed(const DeviceList *current_devices, const BatteryCache *cache) {
+	if (current_devices->count != cache->device_count) return true;
+
+	for (int i = 0; i < current_devices->count; i++) {
+		const BluetoothDevice *dev = &current_devices->devices[i];
+		if (!dev->address) continue;
+
+		bool found = false;
+		for (int j = 0; j < cache->device_count; j++) {
+			if (str_equal(dev->address, cache->devices[j].address)) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) return true;
+	}
+
+	return false;
+}
+
 static int read_gatt_characteristic(DBusConnection *conn, const char *char_path) {
 	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, char_path,
-													BLUEZ_GATT_CHARACTERISTIC_INTERFACE,
-													"ReadValue");
+			BLUEZ_GATT_CHARACTERISTIC_INTERFACE,
+			"ReadValue");
 	if (!msg) return -1;
 
 	DBusMessageIter args, dict;
@@ -139,7 +271,7 @@ static int read_gatt_characteristic(DBusConnection *conn, const char *char_path)
 	int value = -1;
 	DBusMessageIter reply_iter, array;
 	if (dbus_message_iter_init(reply, &reply_iter) &&
-		dbus_message_iter_get_arg_type(&reply_iter) == DBUS_TYPE_ARRAY) {
+			dbus_message_iter_get_arg_type(&reply_iter) == DBUS_TYPE_ARRAY) {
 		dbus_message_iter_recurse(&reply_iter, &array);
 		if (dbus_message_iter_get_arg_type(&array) == DBUS_TYPE_BYTE) {
 			unsigned char val;
@@ -154,8 +286,8 @@ static int read_gatt_characteristic(DBusConnection *conn, const char *char_path)
 
 static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
-													DBUS_OBJECT_MANAGER_INTERFACE,
-													"GetManagedObjects");
+			DBUS_OBJECT_MANAGER_INTERFACE,
+			"GetManagedObjects");
 	if (!msg) return;
 
 	DBusError error;
@@ -234,8 +366,8 @@ static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 
 static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, const Config *config) {
 	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
-													DBUS_OBJECT_MANAGER_INTERFACE,
-													"GetManagedObjects");
+			DBUS_OBJECT_MANAGER_INTERFACE,
+			"GetManagedObjects");
 	if (!msg) return;
 
 	DBusError error;
@@ -336,8 +468,32 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 
 	dbus_message_unref(reply);
 
-	if (config->use_gatt)
-		scan_gatt_batteries(conn, devices);
+	if (config->use_gatt) {
+		BatteryCache cache = {0};
+		bool cache_valid = is_cache_valid(config) && load_battery_cache(&cache);
+		bool devices_changed = false;
+
+		if (cache_valid)
+			devices_changed = device_list_changed(devices, &cache);
+
+		if (cache_valid && !devices_changed) {
+			if (config->verbose_output)
+				printf("Using cached GATT battery data (age: %ld seconds)\n", time(NULL) - cache.timestamp);
+			populate_from_cache(devices, &cache);
+		} else {
+			if (config->verbose_output) {
+				if (!cache_valid) {
+					printf("Cache invalid or missing, scanning GATT batteries...\n");
+				} else {
+					printf("Device list changed, rescanning GATT batteries...\n");
+				}
+			}
+
+			scan_gatt_batteries(conn, devices);
+			update_cache_from_devices(&cache, devices);
+			save_battery_cache(&cache);
+		}
+	}
 }
 
 static void print_verbose_output(const DeviceList *devices) {
@@ -372,13 +528,19 @@ static void print_short_output(const DeviceList *devices) {
 		printf("%s", dev->alias);
 
 		if (dev->has_standard_battery && dev->standard_battery_level >= 0 && dev->standard_battery_level < 100)
-			printf(" %d%% ", dev->standard_battery_level);
+			printf(" %d%%", dev->standard_battery_level);
 
-		if (i < devices->count - 1) {
-			printf(" ");
-		} else {
-			printf("\n");
+		if (dev->gatt_battery_count > 0) {
+			for (int j = 0; j < dev->gatt_battery_count; j++) {
+				if (dev->standard_battery_level != dev->gatt_batteries[j].level)
+					printf("(%d%%)", dev->gatt_batteries[j].level);
+			}
 		}
+
+		if (i < devices->count - 1)
+			printf("  ");
+		else
+			printf("\n");
 	}
 }
 
@@ -399,20 +561,30 @@ static bool init_bluetooth(DBusConnection **conn) {
 static void print_usage(const char *program_name) {
 	printf("Usage: %s [options]\n", program_name);
 	printf("Options:\n");
-	printf("  -g    Enable GATT battery service scanning\n");
-	printf("  -s    Short output format\n");
-	printf("  -h    Show this help message\n");
+	printf("  -g              Disable GATT battery service scanning\n");
+	printf("  -v              Verbose output format\n");
+	printf("  -t <seconds>    Cache timeout in seconds (default: %d)\n", DEFAULT_CACHE_TIMEOUT);
+	printf("  -h              Show this help message\n");
 }
 
 static bool parse_args(int argc, char *argv[], Config *config) {
+	config->cache_timeout = DEFAULT_CACHE_TIMEOUT;
+
 	int opt;
-	while ((opt = getopt(argc, argv, "gvnh")) != -1) {
+	while ((opt = getopt(argc, argv, "gvt:h")) != -1) {
 		switch (opt) {
 			case 'g':
-				config->use_gatt = true;
+				config->use_gatt = false;
 				break;
 			case 'v':
 				config->verbose_output = true;
+				break;
+			case 't':
+				config->cache_timeout = atoi(optarg);
+				if (config->cache_timeout <= 0) {
+					fprintf(stderr, "Invalid cache timeout: %s\n", optarg);
+					return false;
+				}
 				break;
 			case 'h':
 				return false;
@@ -438,13 +610,14 @@ void dmenu_bluetooth(void) {
 void notification(void) {
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
-		char *args[] = {"/bin/alacritty", "--class", "floating", "--hold", "-e", "bluetooth", "-vg", NULL};
+		char *args[] = {"/bin/alacritty", "--class", "floating", "--hold", "-e", "bluetooth", "-vt", "1", NULL};
 		execv(args[0], args);
 	}
 }
 
 int main(int argc, char *argv[]) {
 	Config config = {0};
+	config.use_gatt = true;
 	if (!parse_args(argc, argv, &config))
 		return EXIT_FAILURE;
 
