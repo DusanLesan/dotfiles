@@ -19,6 +19,10 @@
 
 #define CACHE_FILE_PATH "/tmp/batterycache"
 #define DEFAULT_CACHE_TIMEOUT 90
+#define MAX_CACHED_DEVICES 32
+#define MAX_GATT_BATTERIES 8
+#define MAX_DESCRIPTION_LENGTH 64
+#define MAX_PATH_LENGTH 128
 
 typedef struct {
 	bool use_gatt;
@@ -51,25 +55,16 @@ typedef struct {
 typedef struct {
 	char address[18];
 	int gatt_battery_count;
-	int gatt_battery_levels[8];
-	char gatt_battery_descriptions[8][64];
-	char gatt_battery_paths[8][128];
+	int gatt_battery_levels[MAX_GATT_BATTERIES];
+	char gatt_battery_descriptions[MAX_GATT_BATTERIES][MAX_DESCRIPTION_LENGTH];
+	char gatt_battery_paths[MAX_GATT_BATTERIES][MAX_PATH_LENGTH];
 } CachedDeviceInfo;
 
 typedef struct {
 	int device_count;
 	time_t timestamp;
-	CachedDeviceInfo devices[32];
+	CachedDeviceInfo devices[MAX_CACHED_DEVICES];
 } BatteryCache;
-
-static char* safe_strdup(const char *str) {
-	if (!str) return NULL;
-	return strdup(str);
-}
-
-static bool str_equal(const char *a, const char *b) {
-	return a && b && strcmp(a, b) == 0;
-}
 
 static void str_to_upper(char *str) {
 	if (!str) return;
@@ -88,7 +83,7 @@ static BluetoothDevice* add_device(DeviceList *list, const char *path) {
 
 	BluetoothDevice *dev = &list->devices[list->count++];
 	memset(dev, 0, sizeof(BluetoothDevice));
-	dev->path = safe_strdup(path);
+	dev->path = path ? strdup(path) : NULL;
 	dev->standard_battery_level = -1;
 	return dev;
 }
@@ -99,8 +94,8 @@ static void add_gatt_battery(BluetoothDevice *device, int level, const char *des
 
 	BatteryInfo *battery = &device->gatt_batteries[device->gatt_battery_count++];
 	battery->level = level;
-	battery->description = safe_strdup(description ? description : "GATT Battery");
-	battery->object_path = safe_strdup(object_path);
+	battery->description = description ? strdup(description) : strdup("GATT Battery");
+	battery->object_path = object_path ? strdup(object_path) : NULL;
 }
 
 static void free_device_list(DeviceList *list) {
@@ -123,7 +118,7 @@ static char* extract_string(DBusMessageIter *variant) {
 	if (dbus_message_iter_get_arg_type(variant) != DBUS_TYPE_STRING) return NULL;
 	char *str;
 	dbus_message_iter_get_basic(variant, &str);
-	return safe_strdup(str);
+	return str ? strdup(str) : NULL;
 }
 
 static bool extract_bool(DBusMessageIter *variant) {
@@ -147,25 +142,13 @@ static int compare_battery_by_path(const void *a, const void *b) {
 	if (battery_a->object_path && battery_b->object_path)
 		return strcmp(battery_a->object_path, battery_b->object_path);
 
-	const char *desc_a = battery_a->description ? battery_a->description : "GATT Battery";
-	const char *desc_b = battery_b->description ? battery_b->description : "GATT Battery";
-
-	return strcmp(desc_a, desc_b);
+	return strcmp(battery_a->description, battery_b->description);
 }
 
 static void sort_device_batteries_by_path(BluetoothDevice *device) {
 	if (device->gatt_battery_count > 1)
 		qsort(device->gatt_batteries, device->gatt_battery_count,
 				sizeof(BatteryInfo), compare_battery_by_path);
-}
-
-static bool is_cache_valid(const Config *config) {
-	struct stat st;
-	if (stat(CACHE_FILE_PATH, &st) != 0)
-		return false;
-
-	time_t now = time(NULL);
-	return (now - st.st_mtime) < config->cache_timeout;
 }
 
 static bool load_battery_cache(BatteryCache *cache) {
@@ -175,9 +158,7 @@ static bool load_battery_cache(BatteryCache *cache) {
 	size_t read = fread(cache, sizeof(BatteryCache), 1, f);
 	fclose(f);
 
-	if (read != 1) return false;
-
-	return true;
+	return read == 1;
 }
 
 static bool save_battery_cache(const BatteryCache *cache) {
@@ -204,7 +185,7 @@ static void populate_from_cache(DeviceList *devices, const BatteryCache *cache) 
 		if (!dev->address) continue;
 
 		for (int j = 0; j < cache->device_count; j++) {
-			if (str_equal(dev->address, cache->devices[j].address)) {
+			if (strcmp(dev->address, cache->devices[j].address) == 0) {
 				for (int k = 0; k < cache->devices[j].gatt_battery_count; k++) {
 					int level = cache->devices[j].gatt_battery_levels[k];
 					const char *desc = cache->devices[j].gatt_battery_descriptions[k];
@@ -225,7 +206,7 @@ static void update_cache_from_devices(BatteryCache *cache, const DeviceList *dev
 	cache->timestamp = time(NULL);
 	cache->device_count = 0;
 
-	for (int i = 0; i < devices->count && cache->device_count < 32; i++) {
+	for (int i = 0; i < devices->count && cache->device_count < MAX_CACHED_DEVICES; i++) {
 		const BluetoothDevice *dev = &devices->devices[i];
 		if (!dev->address) continue;
 
@@ -236,18 +217,18 @@ static void update_cache_from_devices(BatteryCache *cache, const DeviceList *dev
 		cached_dev->gatt_battery_count = 0;
 
 		if (dev->gatt_battery_count > 0) {
-			for (int j = 0; j < dev->gatt_battery_count && j < 8; j++) {
+			for (int j = 0; j < dev->gatt_battery_count && j < MAX_GATT_BATTERIES; j++) {
 				cached_dev->gatt_battery_levels[cached_dev->gatt_battery_count] = dev->gatt_batteries[j].level;
 
 				strncpy(cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count],
 						dev->gatt_batteries[j].description ? dev->gatt_batteries[j].description : "GATT Battery",
 						sizeof(cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count]) - 1);
-				cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count][63] = '\0';
+				cached_dev->gatt_battery_descriptions[cached_dev->gatt_battery_count][MAX_DESCRIPTION_LENGTH-1] = '\0';
 
 				strncpy(cached_dev->gatt_battery_paths[cached_dev->gatt_battery_count],
 						dev->gatt_batteries[j].object_path ? dev->gatt_batteries[j].object_path : "",
 						sizeof(cached_dev->gatt_battery_paths[cached_dev->gatt_battery_count]) - 1);
-				cached_dev->gatt_battery_paths[cached_dev->gatt_battery_count][127] = '\0';
+				cached_dev->gatt_battery_paths[cached_dev->gatt_battery_count][MAX_PATH_LENGTH-1] = '\0';
 
 				cached_dev->gatt_battery_count++;
 			}
@@ -255,7 +236,7 @@ static void update_cache_from_devices(BatteryCache *cache, const DeviceList *dev
 			cached_dev->gatt_battery_levels[0] = -1;
 			strncpy(cached_dev->gatt_battery_descriptions[0], "No GATT Battery",
 					sizeof(cached_dev->gatt_battery_descriptions[0]) - 1);
-			cached_dev->gatt_battery_descriptions[0][63] = '\0';
+			cached_dev->gatt_battery_descriptions[0][MAX_DESCRIPTION_LENGTH-1] = '\0';
 			cached_dev->gatt_battery_paths[0][0] = '\0';
 			cached_dev->gatt_battery_count = 1;
 		}
@@ -271,7 +252,7 @@ static bool device_list_changed(const DeviceList *current_devices, const Battery
 
 		bool found = false;
 		for (int j = 0; j < cache->device_count; j++) {
-			if (str_equal(dev->address, cache->devices[j].address)) {
+			if (strcmp(dev->address, cache->devices[j].address) == 0) {
 				found = true;
 				break;
 			}
@@ -280,6 +261,24 @@ static bool device_list_changed(const DeviceList *current_devices, const Battery
 	}
 
 	return false;
+}
+
+static DBusMessage* dbus_call_method(DBusConnection *conn, const char *service, const char *path,
+		const char *interface, const char *method) {
+	DBusMessage *msg = dbus_message_new_method_call(service, path, interface, method);
+	if (!msg) return NULL;
+
+	DBusError error;
+	dbus_error_init(&error);
+	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
+	dbus_message_unref(msg);
+
+	if (!reply) {
+		dbus_error_free(&error);
+		return NULL;
+	}
+
+	return reply;
 }
 
 static int read_gatt_characteristic(DBusConnection *conn, const char *char_path) {
@@ -358,7 +357,7 @@ static char* read_gatt_descriptor(DBusConnection *conn, const char *desc_path) {
 
 		if (byte_count > 0) {
 			buffer[byte_count] = '\0';
-			result = safe_strdup(buffer);
+			result = strdup(buffer);
 		}
 	}
 
@@ -367,20 +366,9 @@ static char* read_gatt_descriptor(DBusConnection *conn, const char *desc_path) {
 }
 
 static char* get_battery_name_from_descriptors(DBusConnection *conn, const char *char_path) {
-	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
-			DBUS_OBJECT_MANAGER_INTERFACE,
-			"GetManagedObjects");
-	if (!msg) return NULL;
-
-	DBusError error;
-	dbus_error_init(&error);
-	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
-	dbus_message_unref(msg);
-
-	if (!reply) {
-		dbus_error_free(&error);
-		return NULL;
-	}
+	DBusMessage *reply = dbus_call_method(conn, BLUEZ_SERVICE, "/",
+			DBUS_OBJECT_MANAGER_INTERFACE, "GetManagedObjects");
+	if (!reply) return NULL;
 
 	char *battery_name = NULL;
 	DBusMessageIter iter, objects;
@@ -405,7 +393,7 @@ static char* get_battery_name_from_descriptors(DBusConnection *conn, const char 
 				dbus_message_iter_recurse(&interfaces, &interface_entry);
 				dbus_message_iter_get_basic(&interface_entry, &interface_name);
 
-				if (str_equal(interface_name, "org.bluez.GattDescriptor1")) {
+				if (strcmp(interface_name, "org.bluez.GattDescriptor1") == 0) {
 					dbus_message_iter_next(&interface_entry);
 					dbus_message_iter_recurse(&interface_entry, &properties);
 
@@ -419,7 +407,7 @@ static char* get_battery_name_from_descriptors(DBusConnection *conn, const char 
 						dbus_message_iter_next(&property_entry);
 						dbus_message_iter_recurse(&property_entry, &variant);
 
-						if (str_equal(property_name, "UUID")) {
+						if (strcmp(property_name, "UUID") == 0) {
 							uuid = extract_string(&variant);
 							break;
 						}
@@ -428,7 +416,7 @@ static char* get_battery_name_from_descriptors(DBusConnection *conn, const char 
 
 					if (uuid) {
 						str_to_upper(uuid);
-						if (str_equal(uuid, BATTERY_USER_DESC_UUID)) {
+						if (strcmp(uuid, BATTERY_USER_DESC_UUID) == 0) {
 							battery_name = read_gatt_descriptor(conn, object_path);
 							free(uuid);
 							break;
@@ -449,20 +437,9 @@ static char* get_battery_name_from_descriptors(DBusConnection *conn, const char 
 }
 
 static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
-	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
-			DBUS_OBJECT_MANAGER_INTERFACE,
-			"GetManagedObjects");
-	if (!msg) return;
-
-	DBusError error;
-	dbus_error_init(&error);
-	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
-	dbus_message_unref(msg);
-
-	if (!reply) {
-		dbus_error_free(&error);
-		return;
-	}
+	DBusMessage *reply = dbus_call_method(conn, BLUEZ_SERVICE, "/",
+			DBUS_OBJECT_MANAGER_INTERFACE, "GetManagedObjects");
+	if (!reply) return;
 
 	DBusMessageIter iter, objects;
 	dbus_message_iter_init(reply, &iter);
@@ -484,7 +461,7 @@ static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 			dbus_message_iter_recurse(&interfaces, &interface_entry);
 			dbus_message_iter_get_basic(&interface_entry, &interface_name);
 
-			if (str_equal(interface_name, BLUEZ_GATT_CHARACTERISTIC_INTERFACE)) {
+			if (strcmp(interface_name, BLUEZ_GATT_CHARACTERISTIC_INTERFACE) == 0) {
 				dbus_message_iter_next(&interface_entry);
 				dbus_message_iter_recurse(&interface_entry, &properties);
 
@@ -498,7 +475,7 @@ static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 					dbus_message_iter_next(&property_entry);
 					dbus_message_iter_recurse(&property_entry, &variant);
 
-					if (str_equal(property_name, "UUID")) {
+					if (strcmp(property_name, "UUID") == 0) {
 						uuid = extract_string(&variant);
 						break;
 					}
@@ -507,14 +484,14 @@ static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 
 				if (uuid) {
 					str_to_upper(uuid);
-					if (str_equal(uuid, BATTERY_LEVEL_UUID)) {
+					if (strcmp(uuid, BATTERY_LEVEL_UUID) == 0) {
 						for (int i = 0; i < devices->count; i++) {
 							if (strstr(object_path, devices->devices[i].path)) {
 								int level = read_gatt_characteristic(conn, object_path);
 								if (level >= 0) {
 									char *peripheral_name = get_battery_name_from_descriptors(conn, object_path);
 									if (!peripheral_name)
-										peripheral_name = safe_strdup("GATT Battery");
+										peripheral_name = strdup("GATT Battery");
 
 									add_gatt_battery(&devices->devices[i], level, peripheral_name, object_path);
 									free(peripheral_name);
@@ -539,19 +516,10 @@ static void scan_gatt_batteries(DBusConnection *conn, DeviceList *devices) {
 }
 
 static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, const Config *config) {
-	DBusMessage *msg = dbus_message_new_method_call(BLUEZ_SERVICE, "/",
-			DBUS_OBJECT_MANAGER_INTERFACE,
-			"GetManagedObjects");
-	if (!msg) return;
-
-	DBusError error;
-	dbus_error_init(&error);
-	DBusMessage *reply = dbus_connection_send_with_reply_and_block(conn, msg, 5000, &error);
-	dbus_message_unref(msg);
-
+	DBusMessage *reply = dbus_call_method(conn, BLUEZ_SERVICE, "/",
+			DBUS_OBJECT_MANAGER_INTERFACE, "GetManagedObjects");
 	if (!reply) {
-		fprintf(stderr, "Failed to get managed objects: %s\n", error.message);
-		dbus_error_free(&error);
+		fprintf(stderr, "Failed to get managed objects\n");
 		return;
 	}
 
@@ -577,7 +545,7 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 			dbus_message_iter_recurse(&interfaces, &interface_entry);
 			dbus_message_iter_get_basic(&interface_entry, &interface_name);
 
-			if (str_equal(interface_name, BLUEZ_DEVICE_INTERFACE)) {
+			if (strcmp(interface_name, BLUEZ_DEVICE_INTERFACE) == 0) {
 				dbus_message_iter_next(&interface_entry);
 				dbus_message_iter_recurse(&interface_entry, &properties);
 
@@ -594,11 +562,11 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 					dbus_message_iter_next(&property_entry);
 					dbus_message_iter_recurse(&property_entry, &variant);
 
-					if (str_equal(property_name, "Connected")) {
+					if (strcmp(property_name, "Connected") == 0) {
 						connected = extract_bool(&variant);
-					} else if (str_equal(property_name, "Alias")) {
+					} else if (strcmp(property_name, "Alias") == 0) {
 						alias = extract_string(&variant);
-					} else if (str_equal(property_name, "Address")) {
+					} else if (strcmp(property_name, "Address") == 0) {
 						address = extract_string(&variant);
 					}
 
@@ -614,7 +582,7 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 					free(address);
 				}
 			}
-			else if (str_equal(interface_name, BLUEZ_BATTERY_INTERFACE) && current_device) {
+			else if (strcmp(interface_name, BLUEZ_BATTERY_INTERFACE) == 0 && current_device) {
 				current_device->has_standard_battery = true;
 
 				dbus_message_iter_next(&interface_entry);
@@ -629,7 +597,7 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 					dbus_message_iter_next(&property_entry);
 					dbus_message_iter_recurse(&property_entry, &variant);
 
-					if (str_equal(property_name, "Percentage"))
+					if (strcmp(property_name, "Percentage") == 0)
 						current_device->standard_battery_level = extract_byte(&variant);
 
 					dbus_message_iter_next(&properties);
@@ -644,7 +612,10 @@ static void scan_bluetooth_devices(DBusConnection *conn, DeviceList *devices, co
 
 	if (config->use_gatt) {
 		BatteryCache cache = {0};
-		bool cache_valid = is_cache_valid(config) && load_battery_cache(&cache);
+		struct stat st;
+		bool cache_valid = (stat(CACHE_FILE_PATH, &st) == 0) &&
+			((time(NULL) - st.st_mtime) < config->cache_timeout) &&
+			load_battery_cache(&cache);
 		bool devices_changed = false;
 
 		if (cache_valid)
