@@ -124,7 +124,7 @@ vim.api.nvim_create_user_command("OpenInLf", function()
 end, {})
 
 vim.api.nvim_create_user_command("EvalMath", function()
-	vim.cmd('normal! "vy')
+	vim.cmd('normal! gv"vy')
 	local f, err = load("return " .. vim.fn.getreg("v"))
 	if not f then return vim.notify("Invalid expression: " .. err, vim.log.levels.ERROR) end
 	local ok, result = pcall(f)
