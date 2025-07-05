@@ -84,17 +84,22 @@ void create_empty_db(const char *path) {
 		"CREATE TABLE images (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, sha256sum TEXT);"
 		"CREATE TABLE keywords (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
 		"CREATE TABLE image_keywords (image_id INTEGER, tag_id INTEGER, "
-		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE RESTRICT, "
-		"FOREIGN KEY (tag_id) REFERENCES keywords(id) ON DELETE RESTRICT);"
+		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE, "
+		"FOREIGN KEY (tag_id) REFERENCES keywords(id) ON DELETE RESTRICT, UNIQUE(image_id, tag_id));"
+		"CREATE INDEX idx_image_keywords_image_id ON image_keywords(image_id);"
+		"CREATE INDEX idx_image_keywords_tag_id ON image_keywords(tag_id);"
 		"CREATE TABLE subjects (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
-		"CREATE TABLE image_subjects (image_id INTEGER, tag_id INTEGER, FOREIGN KEY(image_id) REFERENCES images(id), "
-		"FOREIGN KEY(tag_id) REFERENCES subjects(id), UNIQUE(image_id, tag_id));"
+		"CREATE TABLE image_subjects (image_id INTEGER, tag_id INTEGER, "
+		"FOREIGN KEY(image_id) REFERENCES images(id) ON DELETE CASCADE, "
+		"FOREIGN KEY(tag_id) REFERENCES subjects(id) ON DELETE RESTRICT, UNIQUE(image_id, tag_id));"
+		"CREATE INDEX idx_image_subjects_image_id ON image_subjects(image_id);"
+		"CREATE INDEX idx_image_subjects_tag_id ON image_subjects(tag_id);"
 		"CREATE TABLE shared (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
 		"CREATE TABLE image_shared (image_id INTEGER, tag_id INTEGER, "
-		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE RESTRICT, "
-		"FOREIGN KEY (tag_id) REFERENCES shared(id) ON DELETE RESTRICT);"
-		"CREATE UNIQUE INDEX image_shared_image_id_IDX ON image_shared (image_id,tag_id);"
-		"CREATE UNIQUE INDEX image_keywords_image_id_IDX ON image_keywords (image_id,tag_id);";
+		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE, "
+		"FOREIGN KEY (tag_id) REFERENCES shared(id) ON DELETE RESTRICT, UNIQUE(image_id, tag_id));"
+		"CREATE INDEX idx_image_shared_image_id ON image_shared(image_id);"
+		"CREATE INDEX idx_image_shared_tag_id ON image_shared(tag_id);";
 	sqlite3 *db;
 	if (sqlite3_open(path, &db) == SQLITE_OK)
 		sqlite3_exec(db, schema, 0, 0, 0);
@@ -192,6 +197,7 @@ sqlite3* open_db(const char *db_path) {
 		die("Can't open database:", sqlite3_errmsg(db));
 		return NULL;
 	}
+	sqlite3_exec(db, "PRAGMA foreign_keys = ON;", NULL, NULL, NULL);
 	return db;
 }
 
@@ -463,7 +469,7 @@ void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_valu
 
 			sqlite3_exec(db, sql, 0, 0, 0);
 			sqlite3_free(sql);
-			free_all((void*[]){formatted_sql_template, tag_id}, 2);
+			free(formatted_sql_template);
 		}
 		tag_value = strtok(NULL, ",");
 	}
@@ -480,7 +486,6 @@ void remove_tags(sqlite3 *db, const char *image_paths, const char *tag_name, con
 				char *tag_id = get_tag_id(db, tag_name, tag_value);
 				if (tag_id != NULL) {
 					disassociate_tag(db, image_ids, tag_name, tag_id);
-					free(tag_id);
 				}
 				tag_value = strtok(NULL, ",");
 			}
