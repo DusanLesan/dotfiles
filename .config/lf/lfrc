@@ -2,7 +2,8 @@ set scrolloff 100
 set hidden true
 set ifs "\n"
 set wrapscroll true
-set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
+set rulerfmt "%a |%p |\033[7;31m %m \033[0m |\033[7;33m %c \033[0m |\033[7;35m %s \033[0m |\033[7;36m %v \033[0m |\033[7;34m %f \033[0m |%d |%i/%t"
+set statfmt "\033[7;36m %m \033[0m |\033[36m%p\033[0m| %c| %u| %g| %S| %t| -> %l"
 set dupfilefmt "%b.%n%e"
 set promptfmt "%d%f"
 set watch
@@ -108,6 +109,13 @@ cmd delete ${{
 		done
 	fi
 	echo
+}}
+
+cmd visual-toggle &{{
+	while read -r file; do
+		lf -remote "send $id toggle \"$file\""
+	done <<< "$fv"
+	lf -remote "send $id visual-discard"
 }}
 
 # compress current file or selected files with tar and gunzip
@@ -273,7 +281,8 @@ map r :rename; reload
 map dr &dragon-drop -a -x $fx
 map zc :calcdirsize; set info size
 map Q %{{ lf -remote "send $id :cd $OLDPWD; quit" }}
-map V invert-below
+map v visual
+map V invert
 
 map mf mkfile
 map S push :new_permission<space>
@@ -341,3 +350,6 @@ cmap <backspace> cmd-delete-word-back
 cmap <c-delete> cmd-delete-word
 cmap <c-left> cmd-word-back
 cmap <c-right> cmd-word
+
+vmap <space> visual-toggle
+vmap <enter> visual-accept

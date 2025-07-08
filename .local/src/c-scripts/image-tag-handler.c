@@ -494,10 +494,10 @@ void remove_tags(sqlite3 *db, const char *image_paths, const char *tag_name, con
 	}
 }
 
-void toggle_files(const char *lf_id, const char *image_path) {
+void lf_files_selection(const char *lf_id, const char *action, const char *image_path) {
 	if (!lf_id) return;
 	char command[1024];
-	snprintf(command, sizeof(command), "lf -remote 'send %s toggle %s'", lf_id, image_path);
+	snprintf(command, sizeof(command), "lf -remote 'send %s %s %s'", lf_id, action, image_path);
 	system(command);
 }
 
@@ -530,24 +530,31 @@ void create_symlink_in_dir(const char *file_path, const char *link_dir) {
 
 void simple_search_out(sqlite3_stmt *stmt) {
 	char paths[990] = {0};
-	char *path;
+	char *last_path = NULL;
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		path = (char *)sqlite3_column_text(stmt, 0);
+		const char *path = (const char *)sqlite3_column_text(stmt, 0);
 		if (lf_id != NULL) {
 			if (strlen(paths) + strlen(path) + 3 >= sizeof(paths)) {
-				toggle_files(lf_id, paths);
+				lf_files_selection(lf_id, "select-path", paths);
 				memset(paths, 0, sizeof(paths));
 			}
 
-			snprintf(paths + strlen(paths), sizeof(paths) - strlen(paths), " \"%s\"", path);
+			size_t len = strlen(paths);
+			snprintf(paths + len, sizeof(paths) - len, " \"%s\"", path);
+			last_path = paths + len;
 		} else {
 			printf("%s\n", path);
 		}
 	}
 
 	if (strlen(paths) > 0) {
-		toggle_files(lf_id, paths);
+		lf_files_selection(lf_id, "select-path", paths);
+	}
+
+	if (last_path != NULL) {
+		lf_files_selection(lf_id, "select", last_path + 1);
+		free(last_path);
 	}
 }
 
