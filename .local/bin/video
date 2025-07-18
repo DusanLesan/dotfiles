@@ -9,10 +9,15 @@ for file in "$mdir"/*; do
 	fi
 done
 
-if [[ -n $subs ]]; then
-	devour mpv --sub-files="$subs" "$1"
-else
-	printf '%s\n' "$@" | xargs -d '\n' devour mpv
-fi
+paths=()
+for arg; do
+	IFS=$'\n' read -rd '' -a lines <<<"$arg"; paths+=("${lines[@]}");
+done
+
+cmd=mpv
+[[ -n $subs ]] && cmd="$cmd --sub-files=$subs"
+! printf '%s\0' "$@" | grep -qz ';' && cmd="devour $cmd" # devour cannot handle semicolons
+
+$cmd "${paths[@]}"
 
 exit 0

@@ -97,7 +97,7 @@ cmd yank_image ${{
 	if [ $(mimetype -Mb "$f") = "image/png" ]; then
 		xclip -sel c -t "image/png" "$f" >/dev/null 2>&1 &
 	else
-		convert "$f" png:- | xclip -sel c -t "image/png" &
+		magick "$f" png:- | xclip -sel c -t "image/png" &
 	fi
 }}
 
@@ -213,13 +213,20 @@ cmd fzf_find_line ${{
 
 cmd db_search &{{
 	image-tag-handler -sl "$id" -m 'f'
-	lf -remote "send $id map n db_search_next"
+	lf -remote "send $id map n db_search_jump +"
+	lf -remote "send $id map N db_search_jump -"
 	lf -remote "send $id map C db_search_clear"
 }}
 
-cmd db_search_next &{{
-	[ -z "$lf_user_search_index" ] && lf_user_search_index=1 || lf_user_search_index=$((lf_user_search_index + 1))
-	[ "$lf_user_search_index" -gt "$(wc -l < ~/.local/share/lf/search)" ] && lf_user_search_index=1
+cmd db_search_jump &{{
+	[ -z "$lf_user_search_index" ] && lf_user_search_index=1
+	total=$(wc -l < ~/.local/share/lf/search)
+	lf_user_search_index=$((lf_user_search_index ${1} 1))
+	if [ "$lf_user_search_index" -lt 1 ]; then
+		lf_user_search_index=1
+	elif [ "$lf_user_search_index" -gt "$total" ]; then
+		lf_user_search_index=$total
+	fi
 	line=$(sed -n "${lf_user_search_index}p" ~/.local/share/lf/search)
 	lf -remote "send $id select \"$line\""
 	lf -remote "send $id set user_search_index $lf_user_search_index"

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. "$XDG_DATA_HOME/secrets/priv"
+
+docker run --rm -it --user builder \
+	-e DISPLAY=$DISPLAY \
+	-e LIBGL_ALWAYS_SOFTWARE=1 \
+	-e XDG_RUNTIME_DIR=/tmp/runtime-builder \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	--network=host \
+	--cap-add=NET_ADMIN \
+	--device /dev/net/tun \
+	openconnect-sso --server "$openconnect_server"
