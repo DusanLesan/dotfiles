@@ -2,6 +2,16 @@
 
 . "$XDG_DATA_HOME/secrets/priv"
 
+docker_running() {
+	pidof dockerd >/dev/null
+}
+
+start_docker=0
+if ! docker_running; then
+	echo "Starting docker..."
+	sudo -S systemctl start docker
+fi
+
 docker run --rm -it --user builder \
 	-e DISPLAY=$DISPLAY \
 	-e LIBGL_ALWAYS_SOFTWARE=1 \
@@ -11,3 +21,12 @@ docker run --rm -it --user builder \
 	--cap-add=NET_ADMIN \
 	--device /dev/net/tun \
 	openconnect-sso --server "$openconnect_server"
+
+sleep 2
+
+if [ -z "$(docker ps -q)" ]; then
+	echo -S "No containers running, stopping docker..."
+	sudo systemctl stop docker
+else
+	echo "Other containers running, leaving docker active."
+fi

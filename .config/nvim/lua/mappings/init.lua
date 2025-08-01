@@ -9,8 +9,8 @@ local function desc(description)
 	return { noremap = true, silent = true, desc = description }
 end
 
-mmap('n', {'<C-S-Up>', '<C-K>'}, ':m .-2<CR>', desc('Move line up'))
-mmap('n', {'<C-S-Down>', '<C-J>'}, ':m .+1<CR>', desc('Move line down'))
+mmap('n', { '<C-S-Up>', '<C-K>' }, ':m .-2<CR>', desc('Move line up'))
+mmap('n', { '<C-S-Down>', '<C-J>' }, ':m .+1<CR>', desc('Move line down'))
 
 map('i', '<C-BS>', '<C-w>', desc('Delete word left'))
 map('i', '<C-Delete>', '<C-o>dw', desc('Delete word right'))
@@ -22,27 +22,27 @@ map('v', '<', '<gv', desc('Indent left'))
 map('v', '>', '>gv', desc('Indent right'))
 
 map('x', 'p', [["_dP]], desc('Paste over selection preserving register'))
-map({'n', 'v'}, '<A-d>', '"_d', desc('Delete into black hole'))
-map({'n', 'v'}, '<leader>d', '"Ad', desc('Delete into "a" register'))
-map({'n', 'v'}, '<leader>y', '"Ay', desc('Yank into "a" register'))
-map({'n', 'v'}, '<leader>p', '"ap', desc('Paste from "a" register'))
+map({ 'n', 'v' }, '<A-d>', '"_d', desc('Delete into black hole'))
+map({ 'n', 'v' }, '<leader>d', '"Ad', desc('Delete into "a" register'))
+map({ 'n', 'v' }, '<leader>y', '"Ay', desc('Yank into "a" register'))
+map({ 'n', 'v' }, '<leader>p', '"ap', desc('Paste from "a" register'))
 map('n', '<leader>c', ':let @a=""<CR>', desc('Clear "a" register'))
 
 -- Window controls
-mmap('n', {'<A-Up>', '<A-k>'}, '<C-w>k', desc('Focus window above'))
-mmap('n', {'<A-Down>', '<A-j>'}, '<C-w>j', desc('Focus window below'))
-mmap('n', {'<A-Left>', '<A-h>'}, '<C-w>h', desc('Focus window left'))
-mmap('n', {'<A-Right>', '<A-l>'}, '<C-w>l', desc('Focus window right'))
+mmap('n', { '<A-Up>', '<A-k>' }, '<C-w>k', desc('Focus window above'))
+mmap('n', { '<A-Down>', '<A-j>' }, '<C-w>j', desc('Focus window below'))
+mmap('n', { '<A-Left>', '<A-h>' }, '<C-w>h', desc('Focus window left'))
+mmap('n', { '<A-Right>', '<A-l>' }, '<C-w>l', desc('Focus window right'))
 map('t', '<A-Up>', '<C-\\><C-N><C-w>k', desc('Focus window above'))
 map('t', '<A-Down>', '<C-\\><C-N><C-w>j', desc('Focus window below'))
 map('t', '<A-Left>', '<C-\\><C-N><C-w>h', desc('Focus window left'))
 map('t', '<A-Right>', '<C-\\><C-N><C-w>l', desc('Focus window right'))
 
 -- Window resizing
-mmap('n', {'<C-A-Up>', '<C-A-k>'}, ':resize -2<CR>', desc('Resize window up'))
-mmap('n', {'<C-A-Down>', '<C-A-j>'}, ':resize +2<CR>', desc('Resize window down'))
-mmap('n', {'<C-A-Left>', '<C-A-h>'}, ':vertical resize -2<CR>', desc('Resize window left'))
-mmap('n', {'<C-A-Right>', '<C-A-l>'}, ':vertical resize +2<CR>', desc('Resize window right'))
+mmap('n', { '<C-A-Up>', '<C-A-k>' }, ':resize -2<CR>', desc('Resize window up'))
+mmap('n', { '<C-A-Down>', '<C-A-j>' }, ':resize +2<CR>', desc('Resize window down'))
+mmap('n', { '<C-A-Left>', '<C-A-h>' }, ':vertical resize -2<CR>', desc('Resize window left'))
+mmap('n', { '<C-A-Right>', '<C-A-l>' }, ':vertical resize +2<CR>', desc('Resize window right'))
 
 -- Buffers
 map('n', '<TAB>', ':BufferLineCycleNext<CR>', desc('Next buffer'))
@@ -55,7 +55,7 @@ map('n', '<A-t>', ':ToggleTerm<CR>', desc('Toggle terminal'))
 map('n', '<leader>w', ':w<CR>', desc('Save file'))
 map('n', '<leader>x', ':wqa!<CR>', desc('Save and quit'))
 
-map ('n', '<leader>fr', ':Rest run<CR>', desc('Execute rest request'))
+map('n', '<leader>fr', ':Rest run<CR>', desc('Execute rest request'))
 
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', desc('Select colorscheme'))
 
@@ -75,7 +75,8 @@ map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', desc('Previous diagnos
 map('n', '<leader>ld', '<cmd>lua vim.diagnostic.open_float()<CR>', desc('Line diagnostics'))
 map('n', '<leader>lq', '<cmd>lua vim.diagnostic.setloclist()<CR>', desc('Set loclist with diagnostics'))
 map('n', '<leader>lx', '<cmd>lua vim.diagnostic.reset()<CR>', desc('Clear diagnostics'))
-map('n', '<leader>lt', '<cmd>lua vim.diagnostic.config({ virtual_text = not vim.diagnostic.config().virtual_text })<CR>', desc('Toggle virtual text'))
+map('n', '<leader>lt', '<cmd>lua vim.diagnostic.config({ virtual_text = not vim.diagnostic.config().virtual_text })<CR>',
+	desc('Toggle virtual text'))
 
 map('n', '<leader>ff', ':Telescope find_files<CR>', desc('Find files'))
 map('n', '<leader>fs', ':Telescope lsp_document_symbols<CR>', desc('List symbols'))
@@ -83,7 +84,10 @@ map('n', '<leader>fS', ':Telescope lsp_workspace_symbols<CR>', desc('List worksp
 map('n', '<leader><leader>', ':Telescope git_files<CR>', desc('Find files'))
 map('n', '<leader>fh', ':Telescope oldfiles<CR>', desc('List recently opened files'))
 map('n', '<leader>fw', ':Telescope live_grep<CR>', desc('Search words'))
-map('v', '<leader>fw', function() vim.cmd('normal! "ay') vim.cmd('Telescope live_grep default_text=' .. vim.fn.getreg('a')) end, desc('Search words'))
+map('v', '<leader>fw', function()
+	vim.cmd('normal! "ay')
+	vim.cmd('Telescope live_grep default_text=' .. vim.fn.getreg('a'))
+end, desc('Search words'))
 
 map('n', '<leader>fb', ':Telescope buffers<CR>', desc('List buffers'))
 map('n', '<leader>fz', ':Telescope current_buffer_fuzzy_find<CR>', desc('Find in buffer'))
@@ -106,7 +110,7 @@ map('n', '<leader>gg', ":Gitsigns toggle_signs<CR>", desc('Toggle signs'))
 map('n', '<leader>gt', ":Telescope git_status<CR>", desc('Git status'))
 map('n', '<leader>gc', ":Telescope git_commits<CR>", desc('Git commits'))
 
-map("v", "<leader>m", ":EvalMath<CR>",  desc("Evaluate visual math expression"))
+map("v", "<leader>m", ":EvalMath<CR>", desc("Evaluate visual math expression"))
 map("n", "gF", ":OpenInLf<CR>", desc("Open path below cursor in lf"))
 map('n', '<leader>zp', ':SwitchPairedFile<CR>', desc('Switch to paired file'))
 map('n', '<leader>lc', ':! sudo make clean install<CR><CR>', desc('Execute make clean install'))
@@ -114,12 +118,15 @@ map("n", "<F5>",
 	'<cmd>wa | silent !env $(grep -E "^(roku_pass|roku_device)=" "$XDG_DATA_HOME/secrets/priv") roku-build -r<CR>',
 	desc("Build and deploy roku project"))
 
+map('n', '<leader>b', '<CMD>AddBookmark<CR>', desc('Appennd current line to bookmarks'))
+map('n', '<leader>B', '<CMD>OpenProjectBookmarks<CR>', desc('Open project bookmarks'))
+
 vim.api.nvim_create_autocmd('FileType', {
 	pattern = 'qf',
 	callback = function()
 		map('n', '<CR>', '<CR>:cclose<CR>', { buffer = true, silent = true })
-		mmap('n', {'j', '<Down>'}, 'j<CR><c-w>p', { buffer = true, silent = true })
-		mmap('n', {'k', '<Up>'}, 'k<CR><c-w>p', { buffer = true, silent = true })
+		mmap('n', { 'j', '<Down>' }, 'j<CR><c-w>p', { buffer = true, silent = true })
+		mmap('n', { 'k', '<Up>' }, 'k<CR><c-w>p', { buffer = true, silent = true })
 	end
 })
 

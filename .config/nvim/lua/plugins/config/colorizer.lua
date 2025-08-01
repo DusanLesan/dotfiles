@@ -1,5 +1,5 @@
 local M = {
-	"catgoose/nvim-colorizer.lua",
+	"DusanLesan/nvim-colorizer.lua",
 	event = "VeryLazy"
 }
 
@@ -12,7 +12,8 @@ local opts = {
 		rgb_fn = true,
 		hsl_fn = true,
 		css = true,
-		css_fn = true
+		css_fn = true,
+		AARRGGBB = true
 	}
 }
 

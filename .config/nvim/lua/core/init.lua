@@ -46,6 +46,83 @@ vim.filetype.add({
 	}
 })
 
+vim.api.nvim_create_autocmd('LspAttach', {
+	group = vim.api.nvim_create_augroup('my.lsp', {}),
+	callback = function(args)
+		local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+		if client:supports_method('textDocument/completion') then
+			vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+		end
+
+		if not client:supports_method('textDocument/willSaveWaitUntil')
+			and client:supports_method('textDocument/formatting') then
+			vim.api.nvim_create_autocmd('BufWritePre', {
+				group = vim.api.nvim_create_augroup('my.lsp', { clear = false }),
+				buffer = args.buf,
+				callback = function()
+					vim.lsp.buf.format({ bufnr = args.buf, id = client.id, timeout_ms = 1000 })
+				end
+			})
+		end
+	end
+})
+
+local function get_project_root()
+	local util = require("lspconfig.util")
+	local fname = vim.api.nvim_buf_get_name(0)
+	if fname == "" then return nil end
+	return util.root_pattern("Makefile")(fname)
+		or util.root_pattern("compile_commands.json", "compile_flags.txt")(fname)
+		or util.find_git_ancestor(fname)
+end
+
+local function get_bookmark_file()
+	local root = get_project_root()
+	if not root then
+		vim.notify("Could not determine project root.", vim.log.levels.ERROR)
+		return nil
+	end
+
+	local hash = vim.fn.sha256(root)
+	local bookmark_file = vim.fn.stdpath("data") .. "/bookmarks/" .. hash .. ".bookmarks"
+	vim.fn.mkdir(vim.fn.fnamemodify(bookmark_file, ":h"), "p")
+	return bookmark_file
+end
+
+vim.api.nvim_create_user_command("OpenProjectBookmarks", function()
+	local bookmark_file = get_bookmark_file()
+	if not bookmark_file then return end
+	vim.cmd("edit " .. vim.fn.fnameescape(bookmark_file))
+end, {})
+
+vim.api.nvim_create_user_command("OpenProjectBookmarks", function()
+	local root = get_project_root()
+	if not root then
+		vim.notify("Could not determine project root.", vim.log.levels.ERROR)
+		return
+	end
+
+	local hash = vim.fn.sha256(root)
+	local path = vim.fn.stdpath("data") .. "/bookmarks/" .. hash .. ".bookmarks"
+
+	vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+	vim.cmd("edit " .. vim.fn.fnameescape(path))
+end, {})
+
+vim.api.nvim_create_user_command("AddBookmark", function()
+	local bookmark_file = get_bookmark_file()
+	if not bookmark_file then return end
+	local line_content = vim.fn.getline(".")
+	local filepath = vim.fn.expand("%:p")
+	line_content = line_content:gsub("'", "\\'")
+	local entry = string.format("'%s' %s\n", line_content, filepath)
+	local f = io.open(bookmark_file, "a")
+	if not f then return end
+	f:write(entry)
+	f:close()
+	vim.notify("Added to bookmarks: " .. entry)
+end, {})
+
 local trim_whitespace = function()
 	vim.cmd([[
 		keeppatterns
