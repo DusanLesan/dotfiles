@@ -23,3 +23,4 @@ image/jpeg=nsxiv.desktop;
 image/png=nsxiv.desktop;
 application/x-bittorrent=torrent.desktop;
 x-scheme-handler/magnet=torrent.desktop;
+x-scheme-handler/viber=viber.desktop

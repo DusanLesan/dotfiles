@@ -3,7 +3,7 @@
 . utils
 
 connect() {
-	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//' )
+	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//')
 	name=$(prompt 'Connect:' "$vpnlist") || exit 0
 	pass=$(secret-tool lookup pass "$name")
 	user=$(secret-tool lookup user "$name")

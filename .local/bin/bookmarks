@@ -2,11 +2,29 @@
 
 . utils
 
+datadir="$HOME/.config/BraveSoftware/Brave-Browser/Default"
+
+if [ -z "$1" ]; then
+	browser=$BROWSER
+else
+	browser=$(prompt "Choose browser:" $'firefox\nlibrewolf\nbrave') || exit
+	if pgrep -x "$browser" >/dev/null; then
+		[ "$(prompt 'Open in new window?' $'yes\nno')" = "yes" ] && browser="$browser --new-window"
+	fi
+fi
+
 getUrl() {
 	chosen="$(prompt "Search:" "$(jq -r '.name' <<< $children)")" || exit
 	selected="$(jq 'select(.name == "'"$chosen"'")' <<< $children)"
 
-	if jq -e 'select(.children != null)' <<< "$selected" > /dev/null; then
+	if [ "$chosen" = "s" ] || [ "$chosen" = "search" ]; then
+		searches=$(sqlite3 "file:$datadir/Web Data?mode=ro&nolock=1" \
+			"SELECT short_name, url FROM keywords WHERE usage_count > 0;")
+		search_short=$(prompt "Choose search engine:" "$(printf '%s\n' "$searches" | cut -d'|' -f1)") || exit
+		search_term=$(prompt "Enter search term:") || exit
+		url=$(printf '%s\n' "$searches" | awk -F'|' -v se="$search_short" -v term="$search_term" \
+			'$1 == se {gsub(/\{searchTerms\}/, term, $2); print $2}')
+	elif jq -e 'select(.children != null)' <<< "$selected" > /dev/null; then
 		children=$(jq "$jqQuery" <<< "$selected" 2>/dev/null)
 		getUrl
 	else
@@ -14,10 +32,9 @@ getUrl() {
 	fi
 }
 
-bookmarks=~/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
 jqQuery='.children[]? | {name: .name, url: .url, children: .children}'
-children=$(jq ".roots[] | $jqQuery" $bookmarks 2>/dev/null)
+children=$(jq ".roots[] | $jqQuery" "$datadir/Bookmarks" 2>/dev/null)
 
 getUrl
 
-$BROWSER "$url" >/dev/null 2>&1 &
+$browser "$url" >/dev/null 2>&1 &

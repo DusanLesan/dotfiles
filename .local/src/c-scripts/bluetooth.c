@@ -768,10 +768,13 @@ int main(int argc, char *argv[]) {
 
 	char* button = getenv("BLOCK_BUTTON");
 	if(button != NULL) {
-		if (atoi(button) == 1) {
-			dmenu_bluetooth();
-		} else {
-			notification();
+		switch (atoi(button)) {
+			case 1:
+				dmenu_bluetooth();
+				break;
+			case 3:
+				notification();
+				break;
 		}
 	}
 

@@ -1,3 +1,3 @@
-require("core.init")
+require("core")
 require("plugins")
-require("mappings.init")
+require("mappings")

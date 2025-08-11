@@ -75,6 +75,7 @@ map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', desc('Previous diagnos
 map('n', '<leader>ld', '<cmd>lua vim.diagnostic.open_float()<CR>', desc('Line diagnostics'))
 map('n', '<leader>lq', '<cmd>lua vim.diagnostic.setloclist()<CR>', desc('Set loclist with diagnostics'))
 map('n', '<leader>lx', '<cmd>lua vim.diagnostic.reset()<CR>', desc('Clear diagnostics'))
+map('n', '<leader>lf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', desc('Format buffer'))
 map('n', '<leader>lt', '<cmd>lua vim.diagnostic.config({ virtual_text = not vim.diagnostic.config().virtual_text })<CR>',
 	desc('Toggle virtual text'))
 

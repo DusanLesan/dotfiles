@@ -1,0 +1,20 @@
+#!/bin/sh
+
+HOME=$(fakehome $XDG_DATA_HOME/fakehome) /opt/viber.AppImage &
+
+while true; do
+	win_id=$(xdotool search --name "Rakuten Viber" | head -n 1)
+	[ -n "$win_id" ] && break
+	sleep 1
+
+	if (( ++elapsed >= 30 )); then
+		notify-send -u critical "Viber" "Window not found"
+		break
+	fi
+done
+
+while xdotool getwindowname "$win_id" &>/dev/null; do
+	sleep 1
+done
+
+pkill -9 -f '/tmp/.mount_viber'
