@@ -672,14 +672,12 @@ static void print_short_output(const DeviceList *devices) {
 
 		printf("%s", dev->alias);
 
-		if (dev->has_standard_battery && dev->standard_battery_level >= 0 && dev->standard_battery_level < 100)
-			printf(" %d%%", dev->standard_battery_level);
-
 		if (dev->gatt_battery_count > 0) {
 			for (int j = 0; j < dev->gatt_battery_count; j++) {
-				if (dev->standard_battery_level != dev->gatt_batteries[j].level)
-					printf("(%d%%)", dev->gatt_batteries[j].level);
+				printf("%s%d%%", j ? "; " : " ", dev->gatt_batteries[j].level);
 			}
+		} else if (dev->has_standard_battery && dev->standard_battery_level >= 0 && dev->standard_battery_level < 100) {
+			printf(" %d%%", dev->standard_battery_level);
 		}
 
 		if (i < devices->count - 1)

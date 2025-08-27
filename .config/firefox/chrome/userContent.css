@@ -308,3 +308,8 @@ body.theme-body.devtools-monospace div#content div.mainFrame span div.split-box.
 	section[aria-label="User area"] { width: 290px !important; }
 	nav[aria-label="Servers sidebar"]:hover { width: 73px !important; }
 }
+
+:root {
+	--tridactyl-bg: #181818 !important;
+	--tridactyl-fg: white !important;
+}
