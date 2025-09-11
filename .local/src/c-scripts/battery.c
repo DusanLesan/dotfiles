@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
 
 void setbacklight(char* action) {
 	char cmd[16] = "sudo backlight ";
@@ -9,34 +10,54 @@ void setbacklight(char* action) {
 }
 
 int main(void) {
-	char* button = getenv("BLOCK_BUTTON");
-	if (button != NULL) {
-		switch (atoi(button)) {
-			case 4:
-				setbacklight("+");
-				break;
-			case 5:
-				setbacklight("-");
-				break;
+	char *btn = getenv("BLOCK_BUTTON");
+	if (btn != NULL) {
+		switch (atoi(btn)) {
+			case 4: setbacklight("+"); break;
+			case 5: setbacklight("-"); break;
 		}
 	}
 
-	FILE *fc = fopen("/sys/class/power_supply/BAT1/capacity", "r");
-	char cap[4];
-	fscanf(fc, "%[^\n]", cap);
-	fclose(fc);
-
-	FILE *fs = fopen("/sys/class/power_supply/BAT1/status", "r");
-	char stat[16];
-	fscanf(fs, "%[^\n]", stat);
-	fclose(fs);
-
+	char cap[4], stat[16];
 	char* icon = "󰁹";
-	if(strcmp(stat, "Discharging") == 0)
-		icon = "󱟟";
-	else if (strcmp(stat, "Charging") == 0)
-		icon = "󰂄";
-	printf("%s%s\n", icon, cap);
+	int found = 0;
+	DIR *d = opendir("/sys/class/power_supply/");
+	if (!d) return 1;
 
+	struct dirent *e;
+	while ((e = readdir(d)) != NULL) {
+		if (strncmp(e->d_name, "BAT", 3) == 0) {
+			char path[256];
+			snprintf(path, sizeof(path), "/sys/class/power_supply/%s", e->d_name);
+
+			char cap_file[256], stat_file[256];
+			snprintf(cap_file, sizeof(cap_file), "%s/capacity", path);
+			snprintf(stat_file, sizeof(stat_file), "%s/status", path);
+
+			FILE *fc = fopen(cap_file, "r");
+			if (fc) {
+				fscanf(fc, "%[^\n]", cap);
+				fclose(fc);
+
+				FILE *fs = fopen(stat_file, "r");
+				if (fs) {
+					fscanf(fs, "%[^\n]", stat);
+					fclose(fs);
+
+					if (strcmp(stat, "Discharging") == 0) icon = "󱟟";
+					else if (strcmp(stat, "Charging") == 0) icon = "󰂄";
+					found = 1;
+					break;
+				}
+			}
+		}
+	}
+
+	closedir(d);
+	if (!found) {
+		return 1;
+	}
+
+	printf("%s%s\n", icon, cap);
 	return 0;
 }
