@@ -1,20 +1,40 @@
 #!/bin/sh
 
-t1="$(date -d "$1" +%s 2>/dev/null)"
-t2="$(date ${2:+-d "$2"} +%s 2>/dev/null)"
-[ -z "$t1" ] || [ -z "$t2" ] && { echo "Invalid date/time format"; exit 1; }
+t1="$(date -d "$1" +%s 2>/dev/null)" || { echo "Invalid date/time format"; exit 1; }
+t2="$(date ${2:+-d "$2"} +%s 2>/dev/null)" || { echo "Invalid date/time format"; exit 1; }
 
-diff=$(( t2 - t1 ))
-[ $diff -lt 0 ] && diff=$(( -diff ))
+[ $t1 -gt $t2 ] && { tmp=$t1; t1=$t2; t2=$tmp; }
 
-d=$(( diff / 86400 ))
-h=$(( (diff % 86400) / 3600 ))
-m=$(( (diff % 3600) / 60 ))
-s=$(( diff % 60 ))
+y1=$(date -d "@$t1" +%Y); o1=$(date -d "@$t1" +%m); d1=$(date -d "@$t1" +%d)
+H1=$(date -d "@$t1" +%H); M1=$(date -d "@$t1" +%M); S1=$(date -d "@$t1" +%S)
+y2=$(date -d "@$t2" +%Y); o2=$(date -d "@$t2" +%m); d2=$(date -d "@$t2" +%d)
+H2=$(date -d "@$t2" +%H); M2=$(date -d "@$t2" +%M); S2=$(date -d "@$t2" +%S)
 
+y=$((10#$y2 - 10#$y1))
+o=$((10#$o2 - 10#$o1))
+d=$((10#$d2 - 10#$d1))
+H=$((10#$H2 - 10#$H1))
+M=$((10#$M2 - 10#$M1))
+S=$((10#$S2 - 10#$S1))
+
+[ $S -lt 0 ] && S=$((S+60)) && M=$((M-1))
+[ $M -lt 0 ] && M=$((M+60)) && H=$((H-1))
+[ $H -lt 0 ] && H=$((H+24)) && d=$((d-1))
+
+if [ $d -lt 0 ]; then
+	o2=$((10#$o2-1)); y2=$y2
+	[ $o2 -eq 0 ] && o2=12 && y2=$((y2-1))
+	days=$(date -d "$y2-$(printf %02d $o2)-01 +1 month -1 day" +%d)
+	d=$((d+days)); o=$((o-1))
+fi
+
+[ $o -lt 0 ] && o=$((o+12)) && y=$((y-1))
+
+[ $y -gt 0 ] && printf "%dy " $y
+[ $o -gt 0 ] && printf "%dmo " $o
 [ $d -gt 0 ] && printf "%dd " $d
-[ $h -gt 0 ] && printf "%dh " $h
-[ $m -gt 0 ] && printf "%dm " $m
-[ $s -gt 0 ] && printf "%ds" $s
-[ $diff -eq 0 ] && echo "0s"
+[ $H -gt 0 ] && printf "%dh " $H
+[ $M -gt 0 ] && printf "%dm " $M
+[ $S -gt 0 ] && printf "%ds" $S
+[ $y -eq 0 ] && [ $o -eq 0 ] && [ $d -eq 0 ] && [ $H -eq 0 ] && [ $M -eq 0 ] && [ $S -eq 0 ] && echo "0s"
 echo

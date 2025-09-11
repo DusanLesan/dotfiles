@@ -6,6 +6,7 @@ actions=(
 	''
 	'bluetooth'
 	'dunst'
+	'keyboard'
 	'display'
 	'lock'
 	'logout'
@@ -19,6 +20,7 @@ action="$(FZF_DEFAULT_OPTS="$opts" prompt 'Action:' "$(printf '%s\n' "${actions[
 case "$action" in
 	'dunst') dunst-config ;;
 	'bluetooth') dmenu-bluetooth ;;
+	'keyboard') keyboard-select ;;
 	'display') display-select ;;
 	'lock') slock || kill -9 -1 ;;
 	'logout') kill -9 -1 ;;

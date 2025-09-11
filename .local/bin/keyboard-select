@@ -1,0 +1,6 @@
+#!/bin/sh
+
+. utils
+
+choice="$(prompt 'Keyboard layout: ' $'us\nrs latin\nrs')" || exit 0
+[ -n "$choice" ] && setxkbmap $choice
