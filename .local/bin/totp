@@ -3,6 +3,9 @@
 . utils
 . "$XDG_DATA_HOME/secrets/priv"
 
+xclip -sel clip /dev/null
+xclip -sel primary /dev/null
+
 dir="$XDG_DATA_HOME/totp/"
 keys=$(ls $dir)
 keys=$(echo "$keys" | sed 's/\.gpg$//')

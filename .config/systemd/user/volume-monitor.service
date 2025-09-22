@@ -1,0 +1,11 @@
+[Unit]
+Description=Volume Monitor for dwmblocks
+After=pipewire.service
+Wants=pipewire.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/volume-monitor
+
+[Install]
+WantedBy=default.target

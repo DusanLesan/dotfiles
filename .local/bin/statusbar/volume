@@ -2,7 +2,7 @@
 
 setVolume() {
 	wpctl "$@"
-	kill -39 $(pidof dwmblocks)
+	# kill -39 $(pidof dwmblocks) # there is a service that does this now
 }
 
 case $BLOCK_BUTTON in
@@ -10,11 +10,9 @@ case $BLOCK_BUTTON in
 	3) setVolume set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
 	4) setVolume set-volume @DEFAULT_AUDIO_SINK@ 5%+ ;;
 	5) setVolume set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
-	9) sleep 3 && kill -39 $(pidof dwmblocks) ;;
 esac
 
 vol="$(wpctl get-volume @DEFAULT_AUDIO_SINK@)"
-[ -z "$vol" ] && BLOCK_BUTTON=9 volume && exit
 [ "$vol" != "${vol%\[MUTED\]}" ] && echo   && exit
 vol="${vol#Volume: }"
 

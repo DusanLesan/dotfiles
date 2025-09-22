@@ -1,0 +1,7 @@
+#!/bin/sh
+
+pw-mon --color=never | while read -r line; do
+	if [[ "$line" =~ (changed.*Node|Props.*(volume|mute)) ]]; then
+		kill -39 $(pidof dwmblocks) 2>/dev/null
+	fi
+done
