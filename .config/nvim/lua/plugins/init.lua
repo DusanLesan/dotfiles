@@ -73,11 +73,6 @@ require("lazy").setup({
 	},
 
 	{
-		'DusanLesan/lf-vim',
-		event = { 'BufReadPre *lfrc' }
-	},
-
-	{
 		"Mofiqul/vscode.nvim",
 		priority = 1000,
 		lazy = false,

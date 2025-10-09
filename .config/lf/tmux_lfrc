@@ -18,6 +18,16 @@ cmd delete ${{
 	'
 }}
 
+cmd open-specific ${{
+	mime_type=$(mimetype -b "$f")
+	apps=$(gio mime "$mime_type" | awk '/^Registered applications:/,/^Recommended/ {if ($0 ~ /^\t/) print}' | sed 's/^\t//')
+
+	tmux split-window -l $(( $(echo "$apps" | wc -l) + 2 )) '
+		choice=$(echo "'"$apps"'" | fzf --prompt="Open with: ") || exit 1
+		setsid -f gtk-launch "$choice" "'"$f"'"
+	'
+}}
+
 cmd open-drawer &{{
 	split_height=$2
 	if [ $1 = 'rename' ]; then
@@ -39,3 +49,4 @@ map md mkdir
 map DD delete
 map R :open-drawer 'rename'
 map T open-drawer zsh 25%
+map o open-specific

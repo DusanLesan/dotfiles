@@ -43,7 +43,10 @@ vim.filetype.add({
 	extension = {
 		bookmarks = "bookmarks",
 		brs = 'brs'
-	}
+	},
+	pattern = {
+		[".*lfrc.*"] = "lf",
+	},
 })
 
 vim.api.nvim_create_autocmd('LspAttach', {
