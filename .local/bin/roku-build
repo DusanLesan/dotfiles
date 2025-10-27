@@ -241,7 +241,7 @@ def read_arguments():
 	parser = ArgumentParser()
 	parser.add_argument("-username", "-u", default=DEFAULT_USER, help="Roku Dev username.")
 	parser.add_argument("-password", "-p", default=environ.get("roku_pass"), help="Roku Dev password.")
-	parser.add_argument("-ip", "-i", default=environ.get("roku_device"), help="Target Roku device's IP address.")
+	parser.add_argument("-ip", "-i", default=environ.get("roku_device", "hp"), help="Target Roku device's IP address.")
 	parser.add_argument("-rale", "-r", action="store_true", help="Inject RALE tracker task.")
 	args, _ = parser.parse_known_args()
 	return args

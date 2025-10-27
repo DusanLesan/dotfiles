@@ -10,25 +10,64 @@ setGeometry() {
 	params[range,offset]="${x},${y}"
 }
 
+setAudioDevice() {
+	 declare -A devices
+	while read -r index description; do
+		devices["$description"]=$index
+	done < <(awk -F '[:\\[\\]]' '$1 ~ /^\s[0-9]/ {print $2,$4}' /proc/asound/cards)
+	audio=${devices["$(prompt "Select audio device:" "$(printf '%s\n' "${!devices[@]}")")"]} || exit 1
+}
+
 while read key size offset; do
 	modes[${#modes[@]}]="$key"
 	params[$key,size]="$size"
 	params[$key,offset]="$offset"
 done <<< "$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1, $2"x"$4, $6","$7}')"
 
-target=$(prompt 'Record:' "$(printf '%s\n' "${modes[@]}")") || exit 1
+while getopts "at:" opt; do
+	case "$opt" in
+		a) setAudioDevice ;;
+		t) target=$OPTARG ;;
+	esac
+done
+
+[ -z "$target" ] && { target=$(prompt 'Record:' "$(printf '%s\n' "${modes[@]}")") || exit 1; }
 [ $target = 'range' ] && setGeometry
 
-ffmpeg \
-	-f x11grab \
-	-framerate 30 \
-	-draw_mouse 1 \
-	-video_size "${params[$target,size]}" \
-	-i ":0.0+${params[$target,offset]}" \
-	-c:v libx264 \
-	-preset veryfast \
-	-crf 25 \
-	-pix_fmt yuv420p \
-	-vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" \
-	-movflags +faststart \
+cmd=(
+	ffmpeg
+	-f x11grab
+	-framerate 30
+	-draw_mouse 1
+	-video_size "${params[$target,size]}"
+	-i ":0.0+${params[$target,offset]}"
+)
+
+if [[ -n "$audio" ]]; then
+	cmd+=(
+		-f alsa
+		-i "hw:${audio}"
+	)
+fi
+
+cmd+=(
+	-c:v libx264
+	-preset veryfast
+	-crf 25
+	-pix_fmt yuv420p
+	-vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"
+	-movflags +faststart
+)
+
+if [[ -n "$audio" ]]; then
+	cmd+=(
+		-c:a aac
+		-b:a 192k
+	)
+fi
+
+cmd+=(
 	"$(getfilename "${target}_recording.mp4" "$PWD/")"
+)
+
+"${cmd[@]}"

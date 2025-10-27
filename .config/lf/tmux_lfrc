@@ -20,7 +20,7 @@ cmd delete ${{
 
 cmd open-specific ${{
 	mime_type=$(mimetype -b "$f")
-	apps=$(gio mime "$mime_type" | awk '/^Registered applications:/,/^Recommended/ {if ($0 ~ /^\t/) print}' | sed 's/^\t//')
+	apps=$(gio mime "$mime_type" | sed -n '/^Registered applications:/,/^Recommended applications:/{/^\t/s/^\t//p}')
 
 	tmux split-window -l $(( $(echo "$apps" | wc -l) + 2 )) '
 		choice=$(echo "'"$apps"'" | fzf --prompt="Open with: ") || exit 1
