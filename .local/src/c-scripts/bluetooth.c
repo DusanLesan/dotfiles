@@ -672,13 +672,13 @@ static void print_short_output(const DeviceList *devices) {
 
 		printf("%s", dev->alias);
 
-		if (dev->gatt_battery_count > 0) {
+		if (dev->gatt_battery_count > 1) {
 			const char *sep = " ";
 			for (int j = 0; j < dev->gatt_battery_count; j++) {
-				if (strcmp(dev->gatt_batteries[j].description, "GATT Battery") != 0) {
+				// if (strcmp(dev->gatt_batteries[j].description, "GATT Battery") != 0) {
 					printf("%s%d%%", sep, dev->gatt_batteries[j].level);
 					sep = "; ";
-				}
+				// }
 			}
 		} else if (dev->has_standard_battery && dev->standard_battery_level >= 0 && dev->standard_battery_level < 100) {
 			printf(" %d%%", dev->standard_battery_level);

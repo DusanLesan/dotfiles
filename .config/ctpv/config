@@ -2,6 +2,14 @@ preview any_text text/* .lua {{
 	bat -p --color=always "${f}" --theme 'Visual Studio Dark+' --tabs 2
 }}
 
+preview any_text .md {{
+	CLICOLOR_FORCE=1 glow --style dark -w "$w" "$f"
+}}
+
+preview any_text .csv {{
+	mlr --icsv --omd --headerless-csv-input cat "$f" | CLICOLOR_FORCE=1 glow - --style dark -w "$w"
+}}
+
 preview zip */zip {{
 	unzip -l "${f}"
 }}
