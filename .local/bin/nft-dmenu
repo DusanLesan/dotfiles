@@ -1,0 +1,29 @@
+#!/bin/sh
+
+. utils
+choice=$(prompt "Firewall" $'List banned\nFlush all bans\nDrop all rules\nReapply rules\nQuit')
+
+case "$choice" in
+	"List banned")
+		entries=$(sudo nft list set inet filter blocklist | grep -oP '\d{1,3}(\.\d{1,3}){3}.*expires \S+')
+		if [ -z "$entries" ]; then
+			notify-send "No banned IPs"
+			exit 0
+		fi
+
+		formatted=$(echo "$entries" | sed 's/^\(.*\)$/\1/')
+		selected=$(prompt "Select IP to unban:" "$formatted")
+		[ -z "$selected" ] && exit 0
+
+		ip=$(echo "$selected" | awk '{print $1}')
+		confirm=$(prompt "Unban $ip?" $'No\nYes')
+		if [ "$confirm" = "Yes" ]; then
+			sudo nft delete element inet filter blocklist { $ip }
+			notify-send "Unbanned $ip"
+		fi
+	;;
+	"Flush all bans") sudo nft flush set inet filter blocklist ;;
+	"Drop all rules") sudo nft flush ruleset ;;
+	"Reapply rules") sudo nft -f "/etc/nftables.conf" ;;
+	*) exit 0 ;;
+esac
