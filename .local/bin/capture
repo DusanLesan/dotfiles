@@ -3,9 +3,9 @@
 . utils
 
 setDefaultVideoPath() {
-	device_id="usb-MACROSILICON_USB_Video-video-index0"
-	[ ! -L /dev/v4l/by-id/$device_id ] && notify-send -u critical "Device $device_id not found" && exit 1
-	video_path="/dev/v4l/by-id/$device_id"
+	device_path=(/dev/v4l/by-id/usb-*-video-index0)
+	[ ${#device_path[@]} -eq 0 ] && notify-send -u critical "No matching video device found" && exit 1
+	video_path="${device_path[0]}"
 }
 
 setAudioDevice() {
