@@ -9,10 +9,15 @@ void setbacklight(char* action) {
 	system(cmd);
 }
 
+void getinfo() {
+	system("/bin/alacritty --class floating -e battery-info");
+}
+
 int main(void) {
 	char *btn = getenv("BLOCK_BUTTON");
 	if (btn != NULL) {
 		switch (atoi(btn)) {
+			case 1: getinfo(); break;
 			case 4: setbacklight("+"); break;
 			case 5: setbacklight("-"); break;
 		}

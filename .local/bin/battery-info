@@ -1,0 +1,54 @@
+#!/bin/sh
+
+ps_dir=/sys/class/power_supply
+
+batteries() {
+	for d in "$ps_dir"/*; do
+		[ -f "$d/type" ] && [ "$(cat "$d/type")" = "Battery" ] && basename "$d"
+	done
+}
+
+bats="$(batteries)"
+[ -z "$bats" ] && { echo "no batteries found"; exit 1; }
+
+preview='
+d="/sys/class/power_supply/{}"
+readf() { [ -f "$d/$1" ] && cat "$d/$1" || echo "n/a"; }
+
+cat <<eof
+status: $(readf status)
+charge: $(readf capacity)%
+
+start threshold: $(readf charge_control_start_threshold)
+end threshold:   $(readf charge_control_end_threshold)
+eof
+'
+
+while :; do
+	out=$(printf "%s\n" "$bats" | fzf \
+		--header="battery info" \
+		--preview="sh -c '$preview'" \
+		--preview-window=wrap \
+		--expect=enter,esc)
+
+	key=$(printf '%s\n' "$out" | sed -n '1p')
+	bat=$(printf '%s\n' "$out" | sed -n '2p')
+
+	[ "$key" = esc ] || [ -z "$bat" ] && exit 0
+
+	dir="$ps_dir/$bat"
+
+	start_cur=$(cat "$dir/charge_control_start_threshold" 2>/dev/null)
+	end_cur=$(cat "$dir/charge_control_end_threshold" 2>/dev/null)
+
+	printf "start threshold [%s]: " "$start_cur"
+	read start_new
+	printf "end threshold   [%s]: " "$end_cur"
+	read end_new
+
+	[ -n "$start_new" ] || start_new="$start_cur"
+	[ -n "$end_new" ]   || end_new="$end_cur"
+
+	printf "%s\n" "$start_new" | sudo -a tee "$dir/charge_control_start_threshold" >/dev/null
+	printf "%s\n" "$end_new"   | sudo -a tee "$dir/charge_control_end_threshold"   >/dev/null
+done
