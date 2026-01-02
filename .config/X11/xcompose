@@ -1,0 +1,14 @@
+include "%L"
+
+<Multi_key> <s> <s> : "š"
+<Multi_key> <c> <c> : "ć"
+<Multi_key> <z> <z> : "ž"
+<Multi_key> <d> <d> : "đ"
+<Multi_key> <c> <v> : "č"
+
+<Multi_key> <S> <S> : "Š"
+<Multi_key> <C> <C> : "Ć"
+<Multi_key> <Z> <Z> : "Ž"
+<Multi_key> <D> <D> : "Đ"
+<Multi_key> <V> <C> : "Č"
+<Multi_key> <C> <V> : "Č"

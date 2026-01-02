@@ -1,24 +1,34 @@
 #!/bin/sh
 
-setCmd() {
-	cmd="$cmd --output $1 --auto --scale 1.0x1.0"
-	[ -n "$left" ] && cmd="$cmd --right-of $left"
-	left="$1"
+set_cmd() {
+	output="$1"
+
+	cmd="$cmd --output $output --auto --scale 1.0x1.0"
+	if [ -n "$left" ]; then
+		cmd="$cmd --right-of $left"
+	fi
+	left="$output"
 }
 
-connected_displays=($(xrandr | grep -E '\bconnected\b' | awk '{print $1}'))
-active_displays=($(xrandr --listmonitors | awk '{print $4}'))
+connected_displays=$(xrandr | awk '/ connected / {print $1}')
+active_displays=$(xrandr --listmonitors | awk 'NR>1 {print $4}')
+i=0
 
-for ((i=0; i<${#connected_displays[@]}; i++)); do
-	if [ "$1" -eq "$((i))" ]; then
-		if [[ " ${active_displays[*]} " =~ " ${connected_displays[i]} " ]]; then
-			cmd="$cmd --output ${connected_displays[i]} --off"
+for output in $connected_displays; do
+	echo "$active_displays" | grep -qx "$output"
+	is_active=$?
+
+	if [ "$i" -eq "$1" ]; then
+		if [ "$is_active" -eq 0 ]; then
+			cmd="$cmd --output $output --off"
 		else
-			setCmd ${connected_displays[i]}
+			set_cmd "$output"
 		fi
-	elif [[ " ${active_displays[*]} " =~ " ${connected_displays[i]} " ]]; then
-		setCmd ${connected_displays[i]}
+	elif [ "$is_active" -eq 0 ]; then
+		set_cmd "$output"
 	fi
+
+	i=$((i + 1))
 done
 
 xrandr $cmd

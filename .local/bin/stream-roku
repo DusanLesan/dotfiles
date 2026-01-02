@@ -1,0 +1,64 @@
+#!/bin/bash
+
+setDefaultVideoPath() {
+	device_path=(/dev/v4l/by-id/usb-*-video-index0)
+	[ ${#device_path[@]} -eq 0 ] && echo "No matching video device found" && exit 1
+	video_path="${device_path[0]}"
+}
+
+prompt() {
+	if [ -z "$DISPLAY" ] || [ -n "$USE_TERM" ]; then
+		[ -z "$2" ] && additionalBind=' --bind=enter:print-query'
+		fzf --bind=ctrl-J:print-query --bind=right-click:abort $additionalBind --prompt "$1" <<< "$2"
+	else
+		dmenu -i -p "$1" <<< "$2"
+	fi
+}
+
+optionPicker() {
+	declare -A array
+	video_path="/dev/v4l/by-id/$(prompt "Choose device" "$(ls /dev/v4l/by-id)")" || exit 1
+
+	while IFS= read -r line; do
+		if [[ $line =~ Interval:\ .*\(([0-9]+).**fps\) ]]; then
+			array["$format:$size"]+=$'\n'"${BASH_REMATCH[1]}"
+		elif [[ $line =~ Size:\ .*\ ([0-9]+x[0-9]+) ]]; then
+			size="${BASH_REMATCH[1]}"
+			array["$format"]+=$'\n'"$size"
+		elif [[ $line =~ \[([0-9]+)\]:\ \'([A-Z]+)\' ]]; then
+			format="${BASH_REMATCH[2]}"
+		fi
+	done < <(v4l2-ctl --device="$video_path" --list-formats-ext)
+
+	video_format="MJPG"
+	video_size=$(prompt "Video size:" "$(printf '%s\n' "${array[$video_format]:1}")") || exit 1
+	framerate=$(prompt "Framerate:" "$(printf '%s\n' "${array[$video_format:$video_size]:1}")") || exit 1
+}
+
+setDefaults() {
+	setDefaultVideoPath
+	video_size="1920x1080"
+	framerate="30"
+	video_format="MJPG"
+}
+
+while getopts "i" opt; do
+	case "$opt" in
+		i) interactive=1 ;;
+	esac
+done
+
+[ -n "$interactive" ] && optionPicker || setDefaults
+
+echo "Device: $video_path"
+echo "Size:   $video_size"
+echo "FPS:    $framerate"
+
+exec ustreamer \
+	--device="$video_path" \
+	--resolution="$video_size" \
+	--desired-fps="$framerate" \
+	--format=MJPEG \
+	--host=0.0.0.0 \
+	--port=8080 \
+	--slowdown

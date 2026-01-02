@@ -5,8 +5,10 @@
 connect() {
 	vpnlist=$(ls ~/.local/share/ovpn | sed -e 's/\..*$//')
 	name=$(prompt 'Connect:' "$vpnlist") || exit 0
-	pass=$(secret-tool lookup pass "$name")
-	user=$(secret-tool lookup user "$name")
+
+	echo "$name" | grep -qi "pplus" && query="pplus" || query="$name"
+	pass=$(secret-tool lookup pass "$query")
+	user=$(secret-tool lookup user "$query")
 
 	ip link show up | grep -q "tun" && sudo kill_task openvpn
 

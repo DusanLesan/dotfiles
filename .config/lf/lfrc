@@ -344,6 +344,7 @@ map gG cd  ~/git
 map gpr cd ~/git/cbs-roku/cbs-roku
 map gpc cd ~/git/cbs-roku/cbs-roku/brands/pluto
 map g1 cd ~/hdd_1/
+map g2 cd ~/hdd_2/
 map gr &open-remote -f "$f"
 map gf $file-history "$f"
 map gt %lf -remote "send $id select \"$(xclip -sel c -o)\""

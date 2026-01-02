@@ -69,7 +69,8 @@ require("lazy").setup({
 
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
-		ft = "markdown"
+		ft = "markdown",
+		cond = vim.g.vscode == nil
 	},
 
 	{

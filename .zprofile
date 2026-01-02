@@ -19,6 +19,7 @@ export WGETRC="$XDG_CONFIG_HOME/wget/wgetrc"
 export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"
 export CUDA_CACHE_PATH="$XDG_CACHE_HOME/nv"
 export GOPATH="$XDG_DATA_HOME/go"
+export XCOMPOSEFILE="$XDG_CONFIG_HOME"/X11/xcompose
 
 # Other program settings:
 export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/gcr/ssh
