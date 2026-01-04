@@ -81,7 +81,7 @@ char* read_user_input(char *prompt) {
 
 void create_empty_db(const char *path) {
 	char *schema =
-		"CREATE TABLE images (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, sha256sum TEXT);"
+		"CREATE TABLE images (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT UNIQUE, sha256sum TEXT UNIQUE);"
 		"CREATE TABLE keywords (id INTEGER PRIMARY KEY AUTOINCREMENT, tag TEXT UNIQUE);"
 		"CREATE TABLE image_keywords (image_id INTEGER, tag_id INTEGER, "
 		"FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE, "
@@ -105,6 +105,20 @@ void create_empty_db(const char *path) {
 		sqlite3_exec(db, schema, 0, 0, 0);
 	sqlite3_close(db);
 }
+
+static const char *UPSERT_SQL_TEMPLATE =
+	"INSERT INTO images (path, sha256sum) VALUES %s "
+	"ON CONFLICT(sha256sum) DO UPDATE SET path = excluded.path "
+	"WHERE excluded.path != images.path "
+	"ON CONFLICT(path) DO UPDATE SET sha256sum = excluded.sha256sum "
+	"WHERE excluded.sha256sum != images.sha256sum;";
+
+static const char *SELECT_BY_TAG_TEMPLATE =
+	"SELECT i.path FROM images AS i "
+	"JOIN image_%q AS it ON i.id = it.image_id "
+	"JOIN %q AS t ON t.id = it.tag_id "
+	"WHERE t.tag = TRIM('%q') "
+	"ORDER BY 1 COLLATE NOCASE;";
 
 char* get_user_input(char *lf_id, char *prompt, char *options_newline) {
 	if (lf_id)
@@ -134,32 +148,49 @@ size_t reallocateArray(char** array, size_t current_allocation, size_t required_
 	return current_allocation;
 }
 
-char* format_file_paths(const char* file_paths, const char* format) {
-	size_t current_allocation = 32;
-	char* query = malloc(current_allocation);
-	if (!query)
-		die(NULL, "Failed to allocate memory");
+typedef int (*token_processor_cb)(const char *token, const char *format, char **out_str);
+
+int path_only_processor(const char *token, const char *format, char **out_str) {
+	size_t buf_size = strlen(token) + strlen(format) + 16;
+	*out_str = malloc(buf_size);
+	if (!*out_str) return 1;
+
+	snprintf(*out_str, buf_size, format, token);
+	return 0;
+}
+
+char* format_file_paths(const char *file_paths, const char *format, size_t initial_allocation, token_processor_cb processor) {
+	size_t current_allocation = initial_allocation;
+	char *query = malloc(current_allocation);
+	if (!query) die(NULL, "Failed to allocate memory");
 
 	char *input_copy = strdup(file_paths);
-	if (!input_copy)
-		die(NULL, "Failed to allocate memory for input copy");
+	if (!input_copy) die(NULL, "Failed to duplicate input");
 
 	query[0] = '\0';
 	size_t current_length = 0;
-	size_t padding_length = strlen(format) - 1;
 
 	char *token = strtok(input_copy, "\n");
 	while (token != NULL) {
-		size_t new_path_length = strlen(token) + padding_length;
-		size_t required_length = current_length + new_path_length + 1;
-		current_allocation = reallocateArray(&query, current_allocation, required_length);
-
-		snprintf(query + current_length, new_path_length + 1, format, token);
-		current_length = strlen(query);
+		if (token[0] != '\0') {
+			char *processed = NULL;
+			if (processor(token, format, &processed) == 0 && processed != NULL) {
+				size_t required_length = current_length + strlen(processed) + 1;
+				if (required_length > current_allocation) {
+					current_allocation = required_length * 2;
+					query = realloc(query, current_allocation);
+					if (!query) die(NULL, "Failed to realloc query buffer");
+				}
+				strcat(query, processed);
+				current_length = strlen(query);
+				free(processed);
+			}
+		}
 		token = strtok(NULL, "\n");
 	}
 
 	trimArray(query);
+	free(input_copy);
 
 	return query;
 }
@@ -201,12 +232,82 @@ sqlite3* open_db(const char *db_path) {
 	return db;
 }
 
-void insert_images(sqlite3 *db, char *image_paths){
-	char *formatted_image_paths = format_file_paths(image_paths, "(TRIM('%s')),\n");
-	char *sql = sqlite3_mprintf(
-		"INSERT OR IGNORE INTO images (path) VALUES\n%s;", formatted_image_paths);
+char *calculate_sha256(const char *filename) {
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	char *output_buffer = malloc(2 * EVP_MAX_MD_SIZE + 1);
+	if (!output_buffer) return NULL;
 
-	sqlite3_exec(db, sql, 0, 0, 0);
+	FILE *file = fopen(filename, "rb");
+	if (!file) {
+		free(output_buffer);
+		return NULL;
+	}
+
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+	if (!mdctx || EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) {
+		EVP_MD_CTX_free(mdctx);
+		fclose(file);
+		free(output_buffer);
+		return NULL;
+	}
+
+	unsigned char buffer[32768];
+	int bytes_read;
+	while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+		EVP_DigestUpdate(mdctx, buffer, bytes_read);
+	}
+	fclose(file);
+
+	if (EVP_DigestFinal_ex(mdctx, hash, NULL) != 1) {
+		EVP_MD_CTX_free(mdctx);
+		free(output_buffer);
+		return NULL;
+	}
+
+	EVP_MD_CTX_free(mdctx);
+
+	for (int i = 0; i < 32; i++) {
+		sprintf(output_buffer + (i * 2), "%02x", hash[i]);
+	}
+	output_buffer[2 * EVP_MAX_MD_SIZE] = '\0';
+
+	return output_buffer;
+}
+
+int path_sha_processor(const char *token, const char *format, char **out_str) {
+	char *sha = calculate_sha256(token);
+	if (!sha) return 1;
+
+	size_t buf_size = strlen(token) + strlen(sha) + strlen(format) + 32;
+	*out_str = malloc(buf_size);
+	if (!*out_str) {
+		free(sha);
+		return 1;
+	}
+
+	snprintf(*out_str, buf_size, format, token, sha);
+	free(sha);
+	return 0;
+}
+
+void insert_images(sqlite3 *db, char *image_paths) {
+	char *formatted_image_paths = format_file_paths(image_paths, "('%s','%s'),\n", 2048, path_sha_processor);
+	if (!formatted_image_paths)
+		die(NULL, "Failed to format file paths");
+
+	char *sql = sqlite3_mprintf(UPSERT_SQL_TEMPLATE, formatted_image_paths);
+	if (!sql) {
+		free(formatted_image_paths);
+		die(NULL, "Failed to build UPSERT SQL");
+	}
+
+	int rc = sqlite3_exec(db, sql, 0, 0, 0);
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "Failed to execute UPSERT: %s\nSQL: %s\n", sqlite3_errmsg(db), sql);
+	}
+
+	sqlite3_free(sql);
+	free(formatted_image_paths);
 }
 
 char* get_statement_result(sqlite3 *db, const char *sql) {
@@ -237,12 +338,12 @@ char* get_options(sqlite3 *db, const char *tag_name) {
 }
 
 char* get_image_ids(sqlite3 *db, const char *image_paths) {
-	char *formatted_image_paths = format_file_paths(image_paths, "TRIM('%s'),\n");
+	char *formatted_image_paths = format_file_paths(image_paths, "TRIM('%s'),\n", 32, path_only_processor);
 	char *sql = sqlite3_mprintf(
 		"SELECT id FROM images WHERE path IN (%s);", formatted_image_paths);
 
 	char *image_id;
-	char* image_ids = malloc(256);
+	char* image_ids = malloc(1024);
 	image_ids[0] = '\0';
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
@@ -273,7 +374,7 @@ void associate_tag(sqlite3 *db, const char *image_id, const char *tags_table, co
 }
 
 void disassociate_tag(sqlite3 *db, const char *image_ids, const char *tag_name, const char *tag_id) {
-	char *formatted_sql_template = format_file_paths(image_ids, "%s,\n");
+	char *formatted_sql_template = format_file_paths(image_ids, "%s,\n", 32, path_only_processor);
 	char *sql = sqlite3_mprintf(
 		"DELETE FROM image_%q WHERE tag_id = %s AND image_id IN (%s);", tag_name, tag_id, formatted_sql_template);
 
@@ -461,7 +562,7 @@ void add_tags(sqlite3 *db, char *image_ids, const char *tag_name, char *tag_valu
 		if (tag_id != NULL) {
 			char format[12];
 			snprintf(format, sizeof(format), "(%%s,%s),", tag_id);
-			char *formatted_sql_template = format_file_paths(image_ids, format);
+			char *formatted_sql_template = format_file_paths(image_ids, format, 32, path_only_processor);
 
 			char *sql = sqlite3_mprintf(
 				"INSERT OR IGNORE INTO image_%q (image_id, tag_id) VALUES"
@@ -586,12 +687,7 @@ void file_search_out(sqlite3_stmt *stmt) {
 }
 
 void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, const char *mode) {
-	char *sql = sqlite3_mprintf(
-		"SELECT i.path FROM images AS i "
-		"JOIN image_%q AS it ON i.id = it.image_id "
-		"JOIN %q AS t ON t.id = it.tag_id "
-		"WHERE t.tag = TRIM('%q') "
-		"ORDER BY 1 COLLATE NOCASE;", tag_name, tag_name, query);
+	char *sql = sqlite3_mprintf(SELECT_BY_TAG_TEMPLATE, tag_name, tag_name, query);
 
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
@@ -606,75 +702,76 @@ void search_for_paths(sqlite3 *db, const char *tag_name, const char *query, cons
 	sqlite3_free(sql);
 }
 
-char *calculate_sha256(const char *filename) {
-	unsigned char hash[EVP_MAX_MD_SIZE];
-	char *output_buffer = malloc(2 * EVP_MAX_MD_SIZE + 1);
-	if (!output_buffer) return NULL;
-
-	FILE *file = fopen(filename, "rb");
-	if (!file) {
-		free(output_buffer);
-		return NULL;
-	}
-
-	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-	if (!mdctx || EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) {
-		EVP_MD_CTX_free(mdctx);
-		fclose(file);
-		free(output_buffer);
-		return NULL;
-	}
-
-	unsigned char buffer[32768];
-	int bytes_read;
-	while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
-		EVP_DigestUpdate(mdctx, buffer, bytes_read);
-	}
-	fclose(file);
-
-	if (EVP_DigestFinal_ex(mdctx, hash, NULL) != 1) {
-		EVP_MD_CTX_free(mdctx);
-		free(output_buffer);
-		return NULL;
-	}
-
-	EVP_MD_CTX_free(mdctx);
-
-	for (int i = 0; i < 32; i++) {
-		sprintf(output_buffer + (i * 2), "%02x", hash[i]);
-	}
-	output_buffer[2 * EVP_MAX_MD_SIZE] = '\0';
-
-	return output_buffer;
-}
-
 int prepare_insert_statement(sqlite3 *db, sqlite3_stmt **stmt) {
-	const char *insert_query =
-		"INSERT OR REPLACE INTO images (id, path, sha256sum) "
-		"VALUES ((SELECT id FROM images WHERE sha256sum = ?), ?, ?)";
-	return sqlite3_prepare_v2(db, insert_query, -1, stmt, NULL);
+	char sql[1024];
+	snprintf(sql, sizeof(sql), UPSERT_SQL_TEMPLATE, "(?, ?)");
+	return sqlite3_prepare_v2(db, sql, -1, stmt, NULL);
 }
 
 int update_image_table(sqlite3 *db, sqlite3_stmt *stmt, const char *sha256sum_value, const char *path_value) {
-	int rc;
+	sqlite3_bind_text(stmt, 1, path_value, -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 2, sha256sum_value, -1, SQLITE_STATIC);
 
-	sqlite3_bind_text(stmt, 1, sha256sum_value, -1, SQLITE_STATIC);
-	sqlite3_bind_text(stmt, 2, path_value, -1, SQLITE_STATIC);
-	sqlite3_bind_text(stmt, 3, sha256sum_value, -1, SQLITE_STATIC);
-
-	rc = sqlite3_step(stmt);
+	int rc = sqlite3_step(stmt);
 	if (rc != SQLITE_DONE)
-		fprintf(stderr, "Failed to execute insert statement: %s\n", sqlite3_errmsg(db));
+		fprintf(stderr, "Failed to execute upsert statement: %s\n", sqlite3_errmsg(db));
 
 	sqlite3_reset(stmt);
 	return rc == SQLITE_DONE ? SQLITE_OK : rc;
 }
 
+static int process_directory(sqlite3 *db, sqlite3_stmt *stmt, const char *directory_path) {
+	int rc = SQLITE_OK;
+	DIR *dir = opendir(directory_path);
+	if (!dir) {
+		fprintf(stderr, "Failed to open directory: %s\n", directory_path);
+		return -1;
+	}
+
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL) {
+		if (entry->d_name[0] == '.' &&
+			(entry->d_name[1] == '\0' ||
+			 (entry->d_name[1] == '.' && entry->d_name[2] == '\0')))
+			continue;
+
+		char path[PATH_MAX];
+		snprintf(path, PATH_MAX, "%s/%s", directory_path, entry->d_name);
+
+		struct stat st;
+		if (stat(path, &st) != 0) {
+			fprintf(stderr, "Failed to stat file: %s\n", path);
+			continue;
+		}
+
+		if (S_ISDIR(st.st_mode)) {
+			rc = process_directory(db, stmt, path);
+			if (rc != SQLITE_OK)
+				break;
+		} else if (S_ISREG(st.st_mode)) {
+			char *file_sha256 = calculate_sha256(path);
+			if (!file_sha256) {
+				fprintf(stderr, "Failed to calculate SHA-256 for file: %s\n", path);
+				continue;
+			}
+
+			rc = update_image_table(db, stmt, file_sha256, path);
+			free(file_sha256);
+
+			if (rc != SQLITE_OK) {
+				fprintf(stderr, "Failed to insert image for file: %s\n", path);
+				break;
+			}
+		}
+	}
+
+	closedir(dir);
+	return rc;
+}
+
 int batch_sync(sqlite3 *db, const char *directory_path) {
 	int rc;
 	sqlite3_stmt *stmt;
-	DIR *dir;
-	struct dirent *entry;
 
 	rc = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 	if (rc != SQLITE_OK)
@@ -684,40 +781,14 @@ int batch_sync(sqlite3 *db, const char *directory_path) {
 	if (rc != SQLITE_OK)
 		die("Failed to prepare upsert statement", sqlite3_errmsg(db));
 
-	dir = opendir(directory_path);
-	if (!dir)
-		die("Failed to open directory", "Directory error");
+	rc = process_directory(db, stmt, directory_path);
 
-	while ((entry = readdir(dir)) != NULL) {
-		if (entry->d_type == DT_DIR)
-			continue;
-
-		char file_path[PATH_MAX];
-		snprintf(file_path, PATH_MAX, "%s/%s", directory_path, entry->d_name);
-
-		char *file_sha256 = calculate_sha256(file_path);
-		if (!file_sha256) {
-			fprintf(stderr, "Failed to calculate SHA-256 for file: %s\n", file_path);
-			continue;
-		}
-
-		rc = update_image_table(db, stmt, file_sha256, file_path);
-		free(file_sha256);
-
-		if (rc != SQLITE_OK) {
-			fprintf(stderr, "Failed to insert image for file: %s\n", file_path);
-			break;
-		}
-	}
-
-	closedir(dir);
 	sqlite3_finalize(stmt);
 
 	if (rc == SQLITE_OK) {
 		rc = sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL);
-		if (rc != SQLITE_OK) {
+		if (rc != SQLITE_OK)
 			fprintf(stderr, "Failed to commit transaction: %s\n", sqlite3_errmsg(db));
-		}
 	} else {
 		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
 	}
