@@ -134,3 +134,27 @@ vim.api.nvim_create_autocmd('FileType', {
 map('n', '<A-T>', function()
 	vim.fn.jobstart({ 'alacritty', '--working-directory', vim.fn.getcwd(), '-e', 'tmux' }, { detach = true })
 end, desc('Open external terminal'))
+
+local function tex(module, function_name, query, group)
+	return function()
+		return require("nvim-treesitter-textobjects." .. module)[function_name](query, group)
+	end
+end
+
+map({ "x", "o" }, "am", tex("select", "select_textobject", "@function.outer", "textobjects"), desc("Select around function"))
+map({ "x", "o" }, "im", tex("select", "select_textobject", "@function.inner", "textobjects"), desc("Select inside function"))
+map({ "x", "o" }, "ac", tex("select", "select_textobject", "@class.outer", "textobjects"), desc("Select around class"))
+map({ "x", "o" }, "ic", tex("select", "select_textobject", "@class.inner", "textobjects"), desc("Select inside class"))
+map({ "x", "o" }, "as", tex("select", "select_textobject", "@local.scope", "locals"), desc("Select around scope"))
+
+local fc = {"@function.outer", "@class.outer"}
+map({ "n", "x", "o" }, "]]", tex("move", "goto_next", fc, "textobjects"), desc("Next function or class"))
+map({ "n", "x", "o" }, "[[", tex("move", "goto_previous", fc, "textobjects"), desc("Previous function or class"))
+map({ "n", "x", "o" }, "]o", tex("move", "goto_next", "@loop.outer", "textobjects"), desc("Next loop"))
+map({ "n", "x", "o" }, "[o", tex("move", "goto_previous", "@loop.outer", "textobjects"), desc("Previous loop"))
+map({ "n", "x", "o" }, "]d", tex("move", "goto_next", "@conditional.outer", "textobjects"), desc("Next conditional"))
+map({ "n", "x", "o" }, "[d", tex("move", "goto_previous", "@conditional.outer", "textobjects"), desc("Previous conditional"))
+
+local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
+map({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_next, desc("Repeat move forward"))
+map({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_previous, desc("Repeat move backward"))

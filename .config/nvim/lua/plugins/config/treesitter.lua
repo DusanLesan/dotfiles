@@ -1,6 +1,9 @@
 local M = 	{
 	"nvim-treesitter/nvim-treesitter",
-	event = "VeryLazy"
+	event = "VeryLazy",
+	dependencies = {
+		{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" }
+	}
 }
 
 local opts = {
