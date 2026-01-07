@@ -23,7 +23,7 @@ preview audio audio/* {{
 }}
 
 preview image image/* {{
-	if out="$(image-tag-handler -dpi "${f}" 2>/dev/null)"; then
+	if out="$(image-tag-handler -pi "${f}" 2>/dev/null)"; then
 		while IFS= read -r _; do ((y++)); done <<< "$out"
 		column -t -s ': ' <<< "$out"
 	fi

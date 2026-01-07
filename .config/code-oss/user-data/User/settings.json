@@ -8,6 +8,9 @@
 	},
 	"workbench": {
 		"startupEditor": "none",
+		"secondarySideBar": {
+			"defaultVisibility": "hidden"
+		},
 		"colorCustomizations": {
 			"sideBar.background": "#1e1e1e",
 			"editor.background": "#181818"
