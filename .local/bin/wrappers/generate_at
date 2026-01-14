@@ -1,7 +1,7 @@
 #!/bin/sh
 
-env $(grep -E '^(pp_key|pp_secret)=' "$XDG_DATA_HOME/secrets/priv") run_py ~/.local/bin/genat.py "pycryptodome" | {
-	if read -r output; then
-		printf %s "$output" | xclip -selection clipboard; echo "$output"
-	fi
-}
+out="$(env $(grep -E '^(pp_key|pp_secret)=' "$XDG_DATA_HOME/secrets/priv") run_py genat.py "pycryptodome")"
+val=$(printf '%s\n' "$out" | tail -n1)
+
+printf %s "$val" | xclip -selection clipboard
+printf '%s\n' "$val"
