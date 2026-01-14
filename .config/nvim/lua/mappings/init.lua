@@ -148,12 +148,18 @@ map({ "x", "o" }, "ic", tex("select", "select_textobject", "@class.inner", "text
 map({ "x", "o" }, "as", tex("select", "select_textobject", "@local.scope", "locals"), desc("Select around scope"))
 
 local fc = {"@function.outer", "@class.outer"}
+local ic = { "@if.outer", "@elseif.outer", "@else.outer" }
+local lc = { "@loop.outer", "@for.outer", "@while.outer" }
 map({ "n", "x", "o" }, "]]", tex("move", "goto_next", fc, "textobjects"), desc("Next function or class"))
 map({ "n", "x", "o" }, "[[", tex("move", "goto_previous", fc, "textobjects"), desc("Previous function or class"))
-map({ "n", "x", "o" }, "]o", tex("move", "goto_next", "@loop.outer", "textobjects"), desc("Next loop"))
-map({ "n", "x", "o" }, "[o", tex("move", "goto_previous", "@loop.outer", "textobjects"), desc("Previous loop"))
-map({ "n", "x", "o" }, "]d", tex("move", "goto_next", "@conditional.outer", "textobjects"), desc("Next conditional"))
-map({ "n", "x", "o" }, "[d", tex("move", "goto_previous", "@conditional.outer", "textobjects"), desc("Previous conditional"))
+map({ "n", "x", "o" }, "]o", tex("move", "goto_next", lc, "textobjects"), desc("Next loop"))
+map({ "n", "x", "o" }, "[o", tex("move", "goto_previous", lc, "textobjects"), desc("Previous loop"))
+map({ "n", "x", "o" }, "]i", tex("move", "goto_next", ic, "textobjects"), desc("Next conditional"))
+map({ "n", "x", "o" }, "[i", tex("move", "goto_previous", ic, "textobjects"), desc("Previous conditional"))
+map({ "n", "x", "o" }, "]c", tex("move", "goto_next_start", "@comment.outer", "textobjects"), desc("Next comment"))
+map({ "n", "x", "o" }, "[c", tex("move", "goto_previous_start", "@comment.outer", "textobjects"), desc("Previous comment"))
+map({ "n", "x", "o" }, "]p", tex("move", "goto_next_start", "@parameter.outer", "textobjects"), desc("Next parameter"))
+map({ "n", "x", "o" }, "[p", tex("move", "goto_previous_start", "@parameter.outer", "textobjects"), desc("Previous parameter"))
 
 local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
 map({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_next, desc("Repeat move forward"))
