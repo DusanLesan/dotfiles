@@ -11,7 +11,7 @@ int current_line_reported = 0;
 int previous_was_empty = 0;
 char previous_indent = '\t';
 
-const char *blacklisted_extensions[] = {".png", ".jpeg", ".jpg", ".webp", ".gif", ".mp4", ".jar", ".gz", ".zip", NULL};
+const char *blacklisted_extensions[] = {".png", ".jpeg", ".jpg", ".webp", ".gif", ".mp4", ".jar", ".gz", ".zip", ".ttf", ".otf", ".pkg", NULL};
 char **blacklisted_directories = NULL;
 
 int ignore_consecutive_spaces = 0;
