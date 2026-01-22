@@ -1,6 +1,6 @@
 [global]
     monitor = 0
-    follow = keyboard
+    # follow = keyboard
     height = (0, 1050)
     origin = top-right
     offset = 5x25

@@ -2,7 +2,7 @@
 
 . utils
 path="$HOME/hdd_1/Pictures/screenshot"
-[-d "$path"] || path="$HOME"
+[ -d "$path" ] || path="$HOME"
 
 args=""
 type=""

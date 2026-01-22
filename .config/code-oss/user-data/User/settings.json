@@ -46,6 +46,7 @@
 		"**/components/youbora": true,
 		"cicd/automation": true
 	},
+	"update.mode": "none",
 	"extensions.ignoreRecommendations": true,
 	"npm.packageManager": "npm",
 	"npm.scriptRunner": "npm",
