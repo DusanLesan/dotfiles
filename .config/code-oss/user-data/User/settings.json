@@ -37,6 +37,7 @@
 			"scrollback": 100000
 		}
 	},
+	"task.allowAutomaticTasks": "on",
 	"explorer.confirmDelete": false,
 	"search.exclude": {
 		"**/components/AviaLibrary": true,
@@ -59,7 +60,7 @@
 	"gitlens.statusBar.alignment": "left",
 	"gitlens.currentLine.enabled": false,
 	"brightscript.deviceDiscovery.enabled": false,
-	"brightscript.debug.raleTrackerTaskFileLocation": "/home/dusan/git/TrackerTask.xml",
+	"brightscript.debug.raleTrackerTaskFileLocation": "/tmp/TrackerTask.xml",
 	"brightscript.debug.fileLogging.dir": "/tmp/brightscriptLog",
 	"redhat.telemetry.enabled": false,
 	"maven.settingsFile": "/home/dusan/.config/maven/settings.xml",

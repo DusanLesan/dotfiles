@@ -6,6 +6,15 @@
 			"label": "file-handler",
 			"command": "alacritty -e lf ${file}",
 			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "workspace-setup",
+			"command": "on-workspace-change ${workspaceFolder}",
+			"runOptions": {
+				"runOn": "folderOpen"
+			},
+			"problemMatcher": []
 		}
 	]
 }

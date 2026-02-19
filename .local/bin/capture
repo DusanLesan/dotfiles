@@ -101,7 +101,7 @@ recordWithSound() {
 }
 
 file_name="$(getfilename "output.mkv" "$PWD/")"
-video_size=1280x720
+video_size="1920x1080"
 video_format="mjpeg"
 framerate=30
 

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-echo "$(du -Hh -- "$1" | cut -f 1) ${2}x${3} $(image-tag-handler -pdi "$1")"
+echo "$(du -Hh -- "$1" | cut -f 1) ${2}x${3} $(image-tag-handler -pi "$1")"

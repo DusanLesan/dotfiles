@@ -1,0 +1,11 @@
+#!/bin/sh
+
+LAUNCH_JSON="$1/.vscode/launch.json"
+if [ ! -f "$LAUNCH_JSON" ]; then
+	exit 0
+fi
+
+HAS_BS=$(jq '[.configurations[]?.type] | any(. == "brightscript")' "$LAUNCH_JSON")
+if [ "$HAS_BS" = "true" ]; then
+	wifi-hotspot
+fi

@@ -243,6 +243,7 @@ def read_arguments():
 	parser.add_argument("-password", "-p", default=environ.get("roku_pass"), help="Roku Dev password.")
 	parser.add_argument("-ip", "-i", default=environ.get("roku_device", "hp"), help="Target Roku device's IP address.")
 	parser.add_argument("-rale", "-r", action="store_true", help="Inject RALE tracker task.")
+	parser.add_argument("-archive", "-a", default=None, help="Path to an existing build archive to deploy directly.")
 	args, _ = parser.parse_known_args()
 	return args
 
@@ -262,6 +263,15 @@ def launch_generic(args, root):
 
 def main():
 	args = read_arguments()
+
+	if args.archive:
+		archive = Path(args.archive)
+		if not archive.is_file():
+			die(f"Archive not found: {archive}")
+		notify("Roku Build", f"Deploying existing archive: {archive}")
+		deploy(args.ip, archive, args.username, args.password)
+		return
+
 	root = Path(get_git_root())
 	if not (root / ".rokujs").exists():
 		launch_generic(args, root)
