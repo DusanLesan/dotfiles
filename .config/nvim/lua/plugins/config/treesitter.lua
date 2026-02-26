@@ -1,6 +1,7 @@
 local M = 	{
 	"nvim-treesitter/nvim-treesitter",
 	event = "VeryLazy",
+	branch = "master",
 	dependencies = {
 		{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" }
 	}

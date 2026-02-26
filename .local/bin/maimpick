@@ -10,7 +10,7 @@ declare -A display_mode
 modes=( 'Select' 'Fullscreen' 'Timer' )
 
 getType() {
-	displays=$(xrandr --listactivemonitors | awk '/+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
+	displays=$(xrandr --listactivemonitors | awk '/\+/ {print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
 	IFS=$'\n'
 	for i in $displays; do
 		modes[${#modes[@]}]="${i%% *}"
