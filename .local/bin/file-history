@@ -1,16 +1,70 @@
-#!/bin/sh
+#!/usr/bin/sh
 
-cmd='\
-get_sha() { \
-	git log --pretty=format:"%h" -- "$2" | awk -v search="$1" '"'"'$0 ~ search {getline; print}'"'"';
-}; \
-f() { \
-	prev_sha=$(get_sha "$1" "$2"); \
-	git diff "$prev_sha" "$1" -- "$2" | bat -p --language=diff --color=always --tabs 2; \
-};'
+cmd='
+get_sha() {
+	git log --pretty=format:"%h" -- "$2" 2>/dev/null | awk -v search="$1" '"'"'$0 ~ search {getline; print}'"'"'
+}
+show_diff() {
+	local sha="$1"
+	local file="$2"
+	if [ -n "$file" ]; then
+		prev_sha=$(get_sha "$sha" "$file")
+		git diff "$prev_sha" "$sha" -- "$file" 2>/dev/null | bat -p --language=diff --color=always --tabs 2
+	else
+		git show "$sha" --stat --color=always
+	fi
+}
+'
 
-sha="$(git log --pretty=format:'%h:%ad:%s' -- "$1" | \
-		fzf --preview "$cmd f {1} $1" --delimiter : --preview-window=down:80%)" || exit 0
+TARGET_FILE="${1:-}"
 
-sha="${sha%%:*}"
-gh browse "$(basename "$1")" --commit="$sha"
+author="$(git log --pretty=format:'%an' ${TARGET_FILE:+-- "$TARGET_FILE"} | \
+	sort -u | \
+	fzf \
+		--prompt="Filter by author (ESC=all) > " \
+		--preview="git log --oneline --author={} ${TARGET_FILE:+-- \"$TARGET_FILE\"} | head -50" \
+		--preview-window=right:60% \
+		--header="ENTER=select author, ESC=show all commits"
+)"
+AUTHOR_FILTER="${author:+--author=$author}"
+
+mapfile -t commits < <(git log --pretty=format:'%h:%ad:%an:%s' $AUTHOR_FILTER ${TARGET_FILE:+-- "$TARGET_FILE"})
+
+last_pos=0
+
+while true; do
+	commit_line="$(printf '%s\n' "${commits[@]}" | \
+		fzf \
+			--prompt="Pick commit > " \
+			--no-sort \
+			--delimiter=: \
+			--preview="$cmd show_diff {1} $TARGET_FILE" \
+			--preview-window=right:70% \
+			--header="ENTER=select files, ESC=quit" \
+			--bind "load:pos($last_pos)"
+	)" || exit 0
+
+	sha="${commit_line%%:*}"
+
+	for i in "${!commits[@]}"; do
+		if [[ "${commits[$i]}" == "$sha:"* ]]; then
+			last_pos=$((i + 1))
+			break
+		fi
+	done
+
+	files="$(git show --name-only --format="" "$sha" | grep -v '^$' | \
+		fzf \
+			--prompt="Pick file(s) > " \
+			--multi \
+			--preview="$cmd show_diff $sha {}" \
+			--preview-window=down:80% \
+			--header="TAB=multi-select, ENTER=open, ESC=back to commits"
+	)"
+
+	[[ -z "$files" ]] && continue
+
+	while IFS= read -r file; do
+		gh browse "$file" --commit="$sha"
+	done <<< "$files"
+done
