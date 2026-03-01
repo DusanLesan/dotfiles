@@ -2,6 +2,15 @@
 
 . utils
 
+freemount() {
+	if fuser -m "$1" >/dev/null 2>&1; then
+		choice="$(prompt 'Mount is busy. Kill processes?' $'No\nYes')" || return 1
+		[ "$choice" = "Yes" ] || return 1
+
+		sudo -A fuser -km "$1"
+	fi
+}
+
 unmountdrive() {
 	if [ -z "$chosen" ]; then
 		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/$/&&length($2)>1{printf "%s (%s)\n",$1,$2}')
@@ -10,7 +19,13 @@ unmountdrive() {
 		chosen="$(echo "$chosen" | awk '{print $1}')"
 	fi
 	drive=($(lsblk -nrpo "mountpoint,name,type" | awk -v chosen="$chosen" '$1==chosen{print $2, $3}'))
+
+	freemount "$chosen" || {
+		end 1 "Unmounting"
+		return 1
+	}
 	sudo -A umount "$chosen"
+
 	[ -z "$(ls -A $chosen)" ] && rm -rf "$chosen"
 	end $? "Unmounting"
 	if [ "${drive[1]}" == "crypt" ]; then
