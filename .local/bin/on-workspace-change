@@ -7,5 +7,7 @@ fi
 
 HAS_BS=$(jq '[.configurations[]?.type] | any(. == "brightscript")' "$LAUNCH_JSON")
 if [ "$HAS_BS" = "true" ]; then
+	grep -q '^0x8086$' /sys/class/net/wlan*/device/vendor 2>/dev/null && exit 0
+
 	wifi-hotspot
 fi

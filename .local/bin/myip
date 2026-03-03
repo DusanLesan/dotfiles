@@ -12,7 +12,13 @@ getvpn() {
 }
 
 getwifi() {
-	wifi="$(iwctl station wlan0 get-networks | awk '/>/ {print "SSID: " $4 "; Signal " $6}')"
+	wifi="$(iwctl station wlan0 get-networks | awk '/>/{
+		gsub(/\x1b\[[0-9;]*m/, "")
+		signal = $NF
+		sub(/^.*> +/, "")
+		sub(/  +[^ ]+  +[^ ]+  *$/, "")
+		print "SSID: " $0 "; Signal: " signal
+	}')"
 	printf "%s%s\n%s%s\n\n" "$blue" "WIFI connected:" "$wifi" "$reset"
 }
 
