@@ -17,6 +17,11 @@ notify() {
 	fi
 }
 
+quit() {
+	notify "$1" "$2"
+	exit 1
+}
+
 getpass() {
 	if [ -z $DISPLAY ]; then
 		read -s -p "$1"

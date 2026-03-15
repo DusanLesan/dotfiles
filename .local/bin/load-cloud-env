@@ -1,0 +1,14 @@
+#!/bin/sh
+
+. utils
+
+clouds="$(find "$XDG_DATA_HOME/cloud" -maxdepth 1 -name '*.gpg' -printf 'cloud:%f\n' |
+	sed 's/\.gpg$//')"
+
+chosen="$(prompt 'Mount:' "$clouds")" || exit 1
+name="${chosen#cloud:}"
+file="$XDG_DATA_HOME/cloud/$name.gpg"
+
+eval "$(gpg2 --quiet --decrypt "$file")" || exit 1
+
+gpg2 --quiet --decrypt "$file"

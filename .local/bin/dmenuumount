@@ -4,9 +4,7 @@
 
 freemount() {
 	if fuser -m "$1" >/dev/null 2>&1; then
-		choice="$(prompt 'Mount is busy. Kill processes?' $'No\nYes')" || return 1
-		[ "$choice" = "Yes" ] || return 1
-
+		[ $(prompt 'Mount is busy. Kill processes?' $'No\nYes') = "Yes" ] || return 1
 		sudo -A fuser -km "$1"
 	fi
 }
@@ -14,19 +12,24 @@ freemount() {
 unmountdrive() {
 	if [ -z "$chosen" ]; then
 		drives=$(lsblk -nrpo "mountpoint,size" | awk '$1!~/\/boot|\/$/&&length($2)>1{printf "%s (%s)\n",$1,$2}')
-		[ -z "$drives" ] && exit
+		[ -z "$drives" ] && quit "No mounted drives found"
 		chosen="$(prompt 'Unmount which drive?' "$drives")" || exit 1
 		chosen="$(echo "$chosen" | awk '{print $1}')"
 	fi
 	drive=($(lsblk -nrpo "mountpoint,name,type" | awk -v chosen="$chosen" '$1==chosen{print $2, $3}'))
 
-	freemount "$chosen" || {
-		end 1 "Unmounting"
-		return 1
-	}
-	sudo -A umount "$chosen"
+	if mount | grep -F -q " on $chosen "; then
+		freemount "$chosen" || quit "Failed to free mount point"
+		sudo -A umount "$chosen" || quit "Failed to unmount"
+	fi
 
-	[ -z "$(ls -A $chosen)" ] && rm -rf "$chosen"
+	if ! find "$chosen" -type f -print -quit | grep -q . && \
+			! find "$chosen" -mindepth 1 -type d -exec mountpoint -q {} -print -quit | grep -q .; then
+		rm -rf -- "$chosen"
+	else
+		quit "$chosen is not empty"
+	fi
+
 	end $? "Unmounting"
 	if [ "${drive[1]}" == "crypt" ]; then
 		sudo -A cryptsetup close "${drive[0]}"
@@ -48,12 +51,27 @@ umountssh() {
 	end $? "Unmounting"
 }
 
+unmountcloud() {
+	clouds=$(mount | awk '/fuse.rclone/ {print $3 " (" $1 ")"}')
+	[ -z "$clouds" ] && quit "No cloud mounts found"
+
+	chosen="$(prompt 'Unmount which cloud?' "$clouds")" || exit 1
+	mnt="${chosen%% *}"
+
+	freemount "$mnt" || quit "Failed to free mount point"
+
+	fusermount -u "$mnt" || quit "Failed to unmount cloud"
+
+	end $? "Unmounting cloud"
+}
+
 asktype() {
-	choice="$(prompt 'Unmount:' $'Drive\nAndroid\nSSH')" || exit 1
+	choice="$(prompt 'Unmount:' $'Drive\nAndroid\nSSH\nCloud')" || exit 1
 	case "$choice" in
 		Drive) unmountdrive ;;
 		Android) unmountandroid ;;
 		SSH) umountssh "fuse.sshfs" ;;
+		Cloud) unmountcloud ;;
 	esac
 }
 
@@ -68,6 +86,5 @@ if [ -z "$1" ]; then
 	asktype
 else
 	chosen=$(realpath "$1")
-	mount | grep -q "$chosen" || exit 1
 	unmountdrive
 fi

@@ -69,6 +69,25 @@ mountssh() {
 	end $?
 }
 
+mountcloud() {
+	dir="$XDG_DATA_HOME/cloud"
+
+	files="$(find "$dir" -maxdepth 1 -name '*.gpg' -printf '%f\n' | sed 's/\.gpg$//')"
+
+	sel="$(prompt 'Mount which cloud?' "$files")" || exit 1
+	file="$dir/$sel.gpg"
+
+	eval "$(gpg2 --quiet --decrypt "$file")" || exit 1
+
+	default="$HOME/mnt/$sel"
+	getmount "$default"
+
+	rclone mount "$REMOTE" "$mnt" \
+		--vfs-cache-mode writes \
+		--config /dev/null &
+	end $?
+}
+
 mountandroid() {
 	getmount "$HOME/mnt"
 	jmtpfs "$mnt"
@@ -76,12 +95,13 @@ mountandroid() {
 }
 
 asktype() {
-	choice="$(prompt 'Mount:' $'Drive\nSSH\nCrypt\nAndroid')" || exit 1
+	choice="$(prompt 'Mount:' $'Drive\nSSH\nCrypt\nAndroid\nCloud')" || exit 1
 	case "$choice" in
 		Drive) mountdrive ;;
 		SSH) mountssh ;;
 		Crypt) decrypt ;;
 		Android) mountandroid ;;
+		Cloud) mountcloud ;;
 	esac
 }
 
@@ -95,8 +115,76 @@ end() {
 	exit $1
 }
 
+gettarget() {
+	drives="$(lsblk -rpo 'name,size,type,fstype,mountpoint' |
+		awk '$3 ~ /part|disk/ && $4 != "crypto_LUKS" && $5=="" {printf "drive:%s (%s)\n",$1,$2}')"
+
+	luks="$(lsblk -rpo 'name,size,type,fstype,mountpoint' |
+		awk '$4=="crypto_LUKS" {printf "crypt:%s (%s)\n",$1,$2}')"
+
+	hosts="$(grep -P "^Host ([^*]+)$" "$HOME/.ssh/config" 2>/dev/null |
+		sed 's/^Host /ssh:/')"
+
+	clouds="$(find "$XDG_DATA_HOME/cloud" -maxdepth 1 -name '*.gpg' -printf 'cloud:%f\n' |
+		sed 's/\.gpg$//')"
+
+	targets="$(printf "%s\n%s\n%s\n%s\nAndroid\n" \
+		"$drives" "$luks" "$hosts" "$clouds")"
+
+	chosen="$(prompt 'Mount:' "$targets")" || exit 1
+}
+
+mountauto() {
+	case "$chosen" in
+		drive:*)
+			dev="${chosen#drive:}"
+			dev="${dev%% *}"
+			getmount "$HOME/mnt$dev"
+			sudo -A mount "$dev" "$mnt"
+			;;
+
+		crypt:*)
+			chosen="${chosen#crypt:}"
+			chosen="${chosen%% *}"
+			getname "Name: "
+			getmount "$HOME/mnt/dev/mapper/$name"
+			open
+			sudo -A mount "/dev/mapper/$name" "$mnt"
+			;;
+
+		ssh:*)
+			host="${chosen#ssh:}"
+			target="$(prompt 'Target path?')"
+			getmount "$HOME/mnt/$host"
+			sshfs "$host:$target" "$mnt" -o follow_symlinks
+			;;
+
+		cloud:*)
+			name="${chosen#cloud:}"
+			file="$XDG_DATA_HOME/cloud/$name.gpg"
+
+			eval "$(gpg2 --quiet --decrypt "$file")" || exit 1
+
+			getmount "$HOME/mnt/$name"
+			echo "Mounting $REMOTE at $mnt"
+
+			rclone mount "$REMOTE" "$mnt" \
+				--vfs-cache-mode writes \
+				--config /dev/null &
+			;;
+
+		Android)
+			getmount "$HOME/mnt"
+			jmtpfs "$mnt"
+			;;
+	esac
+
+	end $?
+}
+
 if [ -z "$1" ]; then
-	asktype
+	gettarget
+	mountauto
 else
 	chosen="$1"
 	ext="${chosen##*.}"
