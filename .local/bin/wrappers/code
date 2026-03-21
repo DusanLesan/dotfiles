@@ -1,7 +1,6 @@
 #!/bin/sh
 
-[ -z "$1" ] && cmd="/bin/code" || cmd="$@"
+[ -z "$cmd" ] && cmd="/bin/code"
 
-ln -s ~/git/TrackerTask.xml /tmp/TrackerTask.xml
 HOME=$(fakehome $XDG_DATA_HOME/fakehome) $cmd --wait "$@"
 pgrep -P 1 -f "rokucommunity" | xargs --no-run-if-empty kill -9

@@ -3,19 +3,39 @@
 . utils
 
 datadir="$HOME/.config/BraveSoftware/Brave-Browser/Default"
+browser=${BROWSER:-brave}
 
-if [ -z "$1" ]; then
-	browser=$BROWSER
-else
-	browser=$(prompt "Choose browser:" $'firefox\nlibrewolf\nbrave') || exit
+pick_browser() {
+	browser=$(prompt "Choose browser: " $'firefox\nlibrewolf\nbrave') || exit
 	if pgrep -x "$browser" >/dev/null; then
 		[ "$(prompt 'Open in new window?' $'yes\nno')" = "yes" ] && browser="$browser --new-window"
 	fi
-fi
+}
+
+while getopts "bh" opt; do
+	case "$opt" in
+		b) pick_browser ;;
+		h) show_history=1 ;;
+		*) exit 1 ;;
+	esac
+done
+
+run_history() {
+	history_db="file:$datadir/History?mode=ro&nolock=1"
+
+	history_list=$(sqlite3 "$history_db" "
+		SELECT url || '|' || COALESCE(title, '(no title)')
+		FROM urls
+		ORDER BY visit_count DESC;
+	")
+
+	chosen=$(prompt "History: " "$history_list") || exit
+	url="${chosen%%|*}"
+}
 
 getUrl() {
-	chosen="$(prompt "Search:" "$(jq -r '.name' <<< $children)")" || exit
-	selected="$(jq 'select(.name == "'"$chosen"'")' <<< $children)"
+	chosen="$(prompt "Search: " "$(jq -r '.name' <<< "$children")")" || exit
+	selected="$(jq 'select(.name == "'"$chosen"'")' <<< "$children")"
 
 	if [ "$chosen" = "s" ] || [ "$chosen" = "search" ]; then
 		searches=$(sqlite3 "file:$datadir/Web Data?mode=ro&nolock=1" \
@@ -32,9 +52,19 @@ getUrl() {
 	fi
 }
 
-jqQuery='.children[]? | {name: .name, url: .url, children: .children}'
-children=$(jq ".roots[] | $jqQuery" "$datadir/Bookmarks" 2>/dev/null)
+run_bookmarks() {
+	bookmarks_file="$datadir/Bookmarks"
 
-getUrl
+	jqQuery='.children[]? | {name: .name, url: .url, children: .children}'
+	children=$(jq ".roots[] | $jqQuery" "$bookmarks_file" 2>/dev/null)
+
+	getUrl
+}
+
+if [ "$show_history" = 1 ]; then
+	run_history
+else
+	run_bookmarks
+fi
 
 $browser "$url" >/dev/null 2>&1 &

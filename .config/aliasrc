@@ -24,7 +24,6 @@ alias \
 	g="git" \
 	sdn="sudo shutdown -h now" \
 	x="xclip -selection clipboard" \
-	f="$FILE" \
 	e="$EDITOR" \
 	i="nsxiv -p" \
 	p="sudo pacman" \

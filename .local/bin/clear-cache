@@ -57,8 +57,14 @@ cleanGit() {
 
 pruneVscodeWorkspaces
 cleanCache
-deduplicate "$HOME/.config/zsh/zhistory"
-deduplicate "$HOME/.cache/.bluetoothctl_history"
+
+for path in \
+	"$HOME/.config/zsh/zhistory" \
+	"$HOME/.cache/.bluetoothctl_history" \
+	"$HOME/.local/share/lf/history"
+do
+	[ -f "$path" ] && deduplicate "$path"
+done
 
 while getopts "g" opt; do
 	case $opt in

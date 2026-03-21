@@ -5,8 +5,10 @@ if [ ! -f "$LAUNCH_JSON" ]; then
 	exit 0
 fi
 
-HAS_BS=$(jq '[.configurations[]?.type] | any(. == "brightscript")' "$LAUNCH_JSON")
+HAS_BS=$(sed -E 's,^[[:space:]]*//.*$,,' "$LAUNCH_JSON" | jq '[.configurations[]?.type] | any(. == "brightscript")')
 if [ "$HAS_BS" = "true" ]; then
+	[ -L /tmp/TrackerTask.xml ] || ln -s ~/git/TrackerTask.xml /tmp/TrackerTask.xml
+
 	grep -q '^0x8086$' /sys/class/net/wlan*/device/vendor 2>/dev/null && exit 0
 
 	wifi-hotspot
