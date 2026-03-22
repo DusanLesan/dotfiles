@@ -15,9 +15,20 @@ preview='
 d="/sys/class/power_supply/{}"
 readf() { [ -f "$d/$1" ] && cat "$d/$1" || echo "n/a"; }
 
+v=$(readf voltage_now)
+c=$(readf current_now)
+if [ "$v" != "n/a" ] && [ "$c" != "n/a" ]; then
+	w=$(awk "BEGIN { printf \"%.2f\", ($v * $c) / 1e12 }")
+else
+	w="n/a"
+fi
+
 cat <<eof
 status: $(readf status)
 charge: $(readf capacity)%
+
+rate:   ${w} W
+curr:   $( [ "$c" != "n/a" ] && echo $((c/1000)) || echo "n/a" ) mA
 
 start threshold: $(readf charge_control_start_threshold)
 end threshold:   $(readf charge_control_end_threshold)
@@ -49,6 +60,6 @@ while :; do
 	[ -n "$start_new" ] || start_new="$start_cur"
 	[ -n "$end_new" ]   || end_new="$end_cur"
 
-	printf "%s\n" "$start_new" | sudo -a tee "$dir/charge_control_start_threshold" >/dev/null
-	printf "%s\n" "$end_new"   | sudo -a tee "$dir/charge_control_end_threshold"   >/dev/null
+	printf "%s\n" "$start_new" | sudo -A tee "$dir/charge_control_start_threshold" >/dev/null
+	printf "%s\n" "$end_new"   | sudo -A tee "$dir/charge_control_end_threshold"   >/dev/null
 done
