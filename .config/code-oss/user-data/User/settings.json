@@ -11,8 +11,9 @@
 		"secondarySideBar": {
 			"defaultVisibility": "hidden"
 		},
+		"colorTheme": "Dark Modern",
 		"colorCustomizations": {
-			"sideBar.background": "#1e1e1e",
+			"sideBar.background": "#181818",
 			"editor.background": "#181818"
 		}
 	},
@@ -47,7 +48,10 @@
 		"**/components/youbora": true,
 		"cicd/automation": true
 	},
-	"update.mode": "none",
+	"update": {
+		"mode": "none",
+		"showReleaseNotes": false
+	},
 	"extensions.ignoreRecommendations": true,
 	"npm.packageManager": "npm",
 	"npm.scriptRunner": "npm",
