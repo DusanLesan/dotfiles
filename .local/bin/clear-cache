@@ -34,6 +34,25 @@ cleanCache() {
 	find .config/code-oss/user-data/* -depth -not \( -path '*User*' -or -name 'storage.json' -or -path '*globalStorage*' -or -name 'settings.json' \) -exec rm -r {} +
 }
 
+clean_invalid_paths() {
+	local file="$1" extract="$2" tmp=$(mktemp) removed=0
+
+	[[ -f "$file" ]] || { echo "Error: '$file' not a file" >&2; return 1; }
+
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		local path=$(echo "$line" | sed -n "$extract")
+		if [[ -z "$path" || -e "$path" ]]; then
+			echo "$line"
+		else
+			echo "Removing: $line" >&2
+			((removed++))
+		fi
+	done < "$file" > "$tmp"
+
+	echo "Removed $removed invalid path(s)." >&2
+	mv "$tmp" "$file"
+}
+
 cleanGit() {
 	while read -r repo; do
 		if [ -d "$repo" ]; then
@@ -42,9 +61,6 @@ cleanGit() {
 			git remote prune origin
 			git reflog expire --expire-unreachable=now
 			git gc --prune=now --aggressive
-		else
-			echo "Removing $repo"
-			sed -i "/.* ${repo}$/d" "$XDG_CONFIG_HOME/lazygit/state.yml"
 		fi
 	done < <(grep "$HOME" "$XDG_CONFIG_HOME/lazygit/state.yml" | sed 's/^[[:space:]]*-[[:space:]]*//')
 }
@@ -52,13 +68,20 @@ cleanGit() {
 pruneVscodeWorkspaces
 cleanCache
 
-for path in \
-	"$HOME/.config/zsh/zhistory" \
-	"$HOME/.cache/.bluetoothctl_history" \
-	"$HOME/.local/share/lf/history"
-do
+while IFS= read -r path; do
 	[ -f "$path" ] && clean-history "$path"
-done
+done <<EOF
+$HOME/.config/zsh/zhistory
+$HOME/.cache/.bluetoothctl_history
+$HOME/.local/share/lf/history
+EOF
+
+while IFS='|' read -r file extract; do
+	[ -f "$file" ] && clean_invalid_paths "$file" "$extract"
+done <<EOF
+$HOME/.config/lazygit/state.yml|/^[[:space:]]*- \//s/^[[:space:]]*- //p
+$HOME/.local/share/lf/tags|s/:.*$//p
+EOF
 
 while getopts "g" opt; do
 	case $opt in
