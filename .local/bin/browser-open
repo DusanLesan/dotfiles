@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+set -eu
+
+if printf '%s' "$*" | grep -Eq '^(https?://|www\.)'; then
+	target="$*"
+elif printf '%s' "$*" | grep -Eq '^[[:alnum:]_.-]+\.[[:alpha:]][[:alnum:]_.:/?#=&%-]*$'; then
+	target="https://$*"
+else
+	encoded=$(printf '%s' "$*" | python3 -c 'import sys, urllib.parse; print(urllib.parse.quote_plus(sys.stdin.read()))')
+	target="https://www.google.com/search?q=$encoded"
+fi
+
+exec "$BROWSER" "$target"

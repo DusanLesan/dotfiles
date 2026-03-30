@@ -71,11 +71,16 @@ local function get_bookmark_file()
 	return bookmark_file
 end
 
-vim.api.nvim_create_user_command("OpenProjectBookmarks", function()
-	local bookmark_file = get_bookmark_file()
-	if not bookmark_file then return end
-	vim.cmd("edit " .. vim.fn.fnameescape(bookmark_file))
-end, {})
+local function get_visual_text(empty_message)
+	vim.cmd('normal! gv"zy')
+	local text = vim.trim(vim.fn.getreg('z'))
+	vim.fn.setreg('z', '')
+	if text == "" then
+		if empty_message then vim.notify(empty_message, vim.log.levels.WARN) end
+		return nil
+	end
+	return text
+end
 
 vim.api.nvim_create_user_command("OpenProjectBookmarks", function()
 	local root = get_project_root()
@@ -182,10 +187,17 @@ vim.api.nvim_create_user_command("OpenInLf", function()
 	end
 end, {})
 
+vim.api.nvim_create_user_command("Browser", function()
+	local text = get_visual_text("No visual selection.")
+	if not text then return end
+	vim.fn.jobstart({ "browser-open", text }, { detach = true })
+end, { range = true })
+
 vim.api.nvim_create_user_command("EvalMath", function()
-	vim.cmd('normal! gv"vy')
-	local f, err = load("return " .. vim.fn.getreg("v"))
+	local text = get_visual_text("No visual selection.")
+	if not text then return end
+	local f, err = load("return " .. text)
 	if not f then return vim.notify("Invalid expression: " .. err, vim.log.levels.ERROR) end
 	local ok, result = pcall(f)
-	if ok then vim.cmd('normal! gv"vc' .. result) end
+	if ok then vim.cmd('normal! gv"zc' .. result) end
 end, { range = true })

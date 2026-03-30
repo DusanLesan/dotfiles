@@ -1,53 +1,74 @@
-local M = 	{
-	"nvim-treesitter/nvim-treesitter",
-	event = "VeryLazy",
-	branch = "master",
-	dependencies = {
-		{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" }
-	}
+local parsers = {
+	"bash",
+	"lua",
+	"c",
+	"cpp",
+	"css",
+	"java",
+	"json",
+	"yaml",
+	"http",
+	"brightscript",
 }
 
-local opts = {
-	use_languagetree = true,
-	ensure_installed = {
-		"bash",
-		"lua",
-		"c",
-		"cpp",
-		"css",
-		"java",
-		"json",
-		"yaml",
-		"http",
-		"brightscript"
-	},
-	highlight = {
-		enable = true,
-		matchup = {
-			enable = true
+return {
+	{
+		"nvim-treesitter/nvim-treesitter",
+		lazy = false,
+		build = ":TSUpdate",
+		config = function()
+			local ts = require("nvim-treesitter")
+			ts.setup({
+				install_dir = vim.fn.stdpath("data") .. "/site",
+			})
+
+			vim.treesitter.language.register("brightscript", "brs")
+			require("ts_context_commentstring").setup({
+				enable_autocmd = true,
+			})
+
+			ts.install(parsers)
+
+			vim.api.nvim_create_autocmd("FileType", {
+				group = vim.api.nvim_create_augroup("my.treesitter", { clear = true }),
+				pattern = "*",
+				callback = function(args)
+					if vim.api.nvim_buf_line_count(args.buf) > 10000 then return end
+					pcall(vim.treesitter.start, args.buf)
+				end,
+			})
+		end,
+		dependencies = {
+			"JoosepAlviste/nvim-ts-context-commentstring",
 		},
-		disable = function(_, bufnr)
-			return vim.api.nvim_buf_line_count(bufnr) > 10000
+	},
+	{
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		branch = "main",
+		config = function()
+			require("nvim-treesitter-textobjects").setup({
+				move = { set_jumps = true },
+				select = {
+					lookahead = false,
+					lookbehind = false,
+					include_surrounding_whitespace = false,
+				},
+			})
 		end,
 	},
-	context_commentstring = {
-		enable = true,
-		enable_autocmd = true
+	{
+		"MeanderingProgrammer/treesitter-modules.nvim",
+		dependencies = { "nvim-treesitter/nvim-treesitter" },
+		opts = {
+			incremental_selection = {
+				enable = true,
+				keymaps = {
+					init_selection = '<CR>',
+					node_incremental = '<CR>',
+					scope_incremental = false,
+					node_decremental = '<BS>',
+				},
+			},
+		},
 	},
-	incremental_selection = {
-		enable = true,
-		keymaps = {
-			init_selection = "<CR>",
-			node_incremental = "<CR>",
-			scope_incremental = "<leader>gi",
-			node_decremental = "<BS>"
-		}
-	}
 }
-
-function M.config()
-	vim.treesitter.language.register('brightscript', 'brs')
-	require("nvim-treesitter.configs").setup(opts)
-end
-
-return M

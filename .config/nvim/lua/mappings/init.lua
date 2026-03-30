@@ -56,6 +56,7 @@ map('n', '<leader>w', ':w<CR>', desc('Save file'))
 map('n', '<leader>x', ':wqa!<CR>', desc('Save and quit'))
 
 map('n', '<leader>fr', ':Rest run<CR>', desc('Execute rest request'))
+map('v', '<leader>ou', ':<C-u>Browser<CR>', desc('Open visual selection in browser'))
 
 map('n', '<leader>fc', ':Telescope colorscheme<CR>', desc('Select colorscheme'))
 
