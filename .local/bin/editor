@@ -1,0 +1,31 @@
+#!/bin/sh
+set -euo pipefail
+
+file=$1
+line=${2:-}
+
+for app in cursor code; do
+	case $app in
+		cursor) pat='/usr/share/cursor/resources/app' ;;
+		code) pat='visual-studio-code/code' ;;
+	esac
+
+	db="${HOME}/.config/code-oss/user-data/User/globalStorage/state.vscdb"
+
+	pgrep -f "${pat}" &>/dev/null || continue
+	[[ -f "${db}" ]] || continue
+
+	json=$(sqlite3 "${db}" "SELECT value FROM ItemTable WHERE key='history.recentlyOpenedPathsList';" \
+		2>/dev/null) && [ -n "$json" ] || continue
+
+	root=$(jq -r '.entries[0]?.folderUri // empty' <<<"$json")
+	root="${root#file://}"
+	[[ -n "$root" ]] || continue
+
+	[[ "$file" == "$root" || "$file" == "$root/"* ]] || continue
+
+	nohup "${app}" -g "${file}${line:+:$line}" >/dev/null 2>&1 & disown
+	exit 0
+done
+
+exec nvim ${line:++"$line"} "$file"

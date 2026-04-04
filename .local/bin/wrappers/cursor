@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cmd=/bin/cursor code
+cmd=/bin/cursor code "$@"

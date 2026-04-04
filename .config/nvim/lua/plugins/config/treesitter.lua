@@ -5,9 +5,11 @@ local parsers = {
 	"cpp",
 	"css",
 	"java",
+	"xml",
 	"json",
 	"yaml",
 	"http",
+	"python",
 	"brightscript",
 }
 
@@ -18,23 +20,11 @@ return {
 		build = ":TSUpdate",
 		config = function()
 			local ts = require("nvim-treesitter")
-			if type(ts.install) ~= "function" then
-				local ts_install = require("nvim-treesitter.install")
-				ts.install = function(languages)
-					if type(languages) == "table" then
-						ts_install.ensure_installed(unpack(languages))
-					elseif languages ~= nil then
-						ts_install.ensure_installed(languages)
-					else
-						ts_install.ensure_installed()
-					end
-					return { wait = function() end }
-				end
-			end
-
 			ts.setup({
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
+
+			ts.install(parsers)
 
 			vim.treesitter.language.register("brightscript", "brs")
 			require("ts_context_commentstring").setup({
@@ -72,7 +62,6 @@ return {
 		"MeanderingProgrammer/treesitter-modules.nvim",
 		dependencies = { "nvim-treesitter/nvim-treesitter" },
 		opts = {
-			ensure_installed = parsers,
 			incremental_selection = {
 				enable = true,
 				keymaps = {
