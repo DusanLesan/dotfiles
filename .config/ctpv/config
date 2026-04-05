@@ -7,7 +7,7 @@ preview any_text .md {{
 }}
 
 preview any_text .csv {{
-	mlr --icsv --omd --headerless-csv-input cat "$f" | CLICOLOR_FORCE=1 glow - --style dark -w "$w"
+	mlr --icsv --omd --headerless-csv-input head -n "$h" then cat "$f" | CLICOLOR_FORCE=1 glow - --style dark -w "$w"
 }}
 
 preview zip */zip {{

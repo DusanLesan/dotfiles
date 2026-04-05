@@ -68,12 +68,6 @@ require("lazy").setup({
 	},
 
 	{
-		"MeanderingProgrammer/render-markdown.nvim",
-		ft = "markdown",
-		cond = vim.g.vscode == nil
-	},
-
-	{
 		"Mofiqul/vscode.nvim",
 		priority = 1000,
 		lazy = false,

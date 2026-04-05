@@ -49,7 +49,7 @@ clean_invalid_paths() {
 		fi
 	done < "$file" > "$tmp"
 
-	echo "Removed $removed invalid path(s)." >&2
+	echo "Removed $removed invalid path(s) in file $file" >&2
 	mv "$tmp" "$file"
 }
 
@@ -81,6 +81,7 @@ while IFS='|' read -r file extract; do
 done <<EOF
 $HOME/.config/lazygit/state.yml|/^[[:space:]]*- \//s/^[[:space:]]*- //p
 $HOME/.local/share/lf/tags|s/:.*$//p
+$HOME/.local/share/lf/marks|s/^[^:]*://p
 EOF
 
 while getopts "g" opt; do
