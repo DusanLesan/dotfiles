@@ -24,3 +24,5 @@ image/png=nsxiv.desktop;
 application/x-bittorrent=torrent.desktop;
 x-scheme-handler/magnet=torrent.desktop;
 x-scheme-handler/viber=viber.desktop
+x-scheme-handler/insomnia=insomnia.desktop
+x-scheme-handler/slack=slack.desktop

@@ -1,4 +1,5 @@
 function lfcd() {
+	unset _START_LFCD
 	tmp="$(mktemp -uq)"
 	trap 'rm -f $tmp >/dev/null 2>&1' HUP INT QUIT TERM PWR EXIT
 	lfrun -last-dir-path="$tmp" "$*"
