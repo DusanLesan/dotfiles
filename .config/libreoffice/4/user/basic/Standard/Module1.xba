@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">Sub IncrementDate
+	AdjustDate 1
+End Sub
+
+Sub DecrementDate
+	AdjustDate -1
+End Sub
+
+
+Sub AdjustDate(delta As Integer)
+	Dim cell As Object
+	cell = GetTargetCell()
+
+	If cell.Type &lt;&gt; com.sun.star.table.CellContentType.VALUE Then Exit Sub
+
+	cell.Value = cell.Value + delta
+End Sub
+
+
+Function GetTargetCell()
+	Dim sel As Object
+	sel = ThisComponent.getCurrentSelection()
+
+	If HasUnoInterfaces(sel, &quot;com.sun.star.sheet.SheetCellRange&quot;) Then
+		GetTargetCell = sel.getCellByPosition(0, 0)
+	Else
+		GetTargetCell = sel
+	End If
+End Function
+</script:module>

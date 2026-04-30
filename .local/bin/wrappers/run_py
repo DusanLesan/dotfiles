@@ -3,17 +3,12 @@
 cmd=$1
 mods=${2-}
 
-PY_HAS_MODULE='
-import importlib.util, sys
-sys.exit(0 if importlib.util.find_spec(sys.argv[1]) else 1)
-'
-
 if [ -n "$mods" ]; then
 	[ -d "$XDG_DATA_HOME/venv" ] || python3 -m venv "$XDG_DATA_HOME/venv"
 	. "$XDG_DATA_HOME/venv/bin/activate"
 
 	for m in $mods; do
-		python -c "$PY_HAS_MODULE" "$m" || pip install "$m"
+		pip install --quiet "$m" 2>/dev/null
 	done
 fi
 
