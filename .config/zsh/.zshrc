@@ -1,3 +1,5 @@
+[[ "$GIT_EDITOR" == ":" ]] && return
+
 function lfcd() {
 	unset _START_LFCD
 	tmp="$(mktemp -uq)"
