@@ -87,5 +87,15 @@
 			"lua vim.diagnostic.config({virtual_text=false})",
 			"set ve=onemore"
 		]
+	},
+	"chat.tools.terminal.autoApprove": {
+		"/[;&`]|\\|\\||\\$\\(/": { "approve": false, "matchCommandLine": true },
+		"/^gh\\s+(issue|pr|repo|release|run|workflow|gist|label|ruleset|secret|variable|org|project|codespace|cache)\\s+(list|view|status)\\b/": { "approve": true, "matchCommandLine": true },
+		"/^gh\\s+(search|status|browse)\\b/": { "approve": true, "matchCommandLine": true },
+		"/^git\\s+(status|log|show|diff|blame|rev-parse|rev-list|ls-files|ls-tree|for-each-ref|describe|shortlog|reflog|cat-file|grep|stash\\s+list|stash\\s+show|config\\s+--get|config\\s+--list)\\b/": { "approve": true, "matchCommandLine": true },
+		"/^git\\s+(branch|tag|remote)(\\s+(-l|--list|-v|--verbose|-a|--all|-r|--remotes))*\\s*$/": { "approve": true, "matchCommandLine": true },
+		"/^find\\b(?!.*(-delete|-exec|-execdir|-ok|-okdir|-fprint|-fprintf|-fls))/": { "approve": true, "matchCommandLine": true },
+		"cat": true, "head": true, "tail": true, "wc": true, "file": true, "stat": true, "ls": true, "realpath": true, "readlink": true,
+		"which": true, "whereis": true, "type": true, "rg": true, "grep": true, "diff": true, "cmp": true, "jq": true, "bat": true
 	}
 }

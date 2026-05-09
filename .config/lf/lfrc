@@ -357,8 +357,8 @@ map gL %lf -remote "send $id select \"$(realpath $f)\""
 
 map <f-5> &env $(grep -E '^(roku_pass|roku_device)=' "$XDG_DATA_HOME/secrets/priv") roku-build -r
 
-cmap <backspace2> cmd-delete-back
-cmap <backspace> cmd-delete-word-back
+cmap <a-backspace2> cmd-delete-back
+cmap <a-backspace> cmd-delete-word-back
 cmap <c-delete> cmd-delete-word
 cmap <c-left> cmd-word-back
 cmap <c-right> cmd-word
