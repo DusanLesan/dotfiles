@@ -1,9 +1,8 @@
 #!/bin/sh
 
-xcompmgr &
+command -v xcompmgr >/dev/null && xcompmgr &
 solid-bg '#181818' &
 export $(gnome-keyring-daemon --start)
 dwmblocks > /dev/null 2>&1 &
-autostart &
 remaps &
 xbanish -t 5 &

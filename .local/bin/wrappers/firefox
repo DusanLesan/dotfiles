@@ -1,3 +1,11 @@
 #!/bin/sh
 
-HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/firefox "$@"
+ini="$XDG_CONFIG_HOME/mozilla/firefox/profiles.ini"
+profile=$(awk -F= -v c="$1" '$1=="Name" && substr($2,1,1)==c {print $2; exit}' "$ini")
+
+if [ -n "$profile" ]; then
+	shift
+	set -- -P "$profile" "$@"
+fi
+
+HOME=$(fakehome "$XDG_DATA_HOME/fakehome") exec /bin/firefox "$@"
