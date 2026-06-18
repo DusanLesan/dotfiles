@@ -256,7 +256,7 @@ cmd resize &{{
 }}
 
 cmd on-redraw &{{
-	if [ $lf_width -lt 90 ]; then
+	if [ $lf_width -lt 65 ]; then
 		lf -remote "send $id set preview false"
 		lf -remote "send $id set ratios 1"
 		$lf_cleaner

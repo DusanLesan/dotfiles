@@ -28,4 +28,12 @@ for app in cursor code; do
 	exit 0
 done
 
+git_root=$(git -C "$(dirname "$file")" rev-parse --show-toplevel 2>/dev/null || true)
+launch="${git_root:+$git_root/.vscode/launch.json}"
+if [[ -n "$launch" && -f "$launch" ]] \
+	&& grep -v '^[[:space:]]*//' "$launch" | jq -e '.configurations[0].type == "brightscript"' >/dev/null 2>&1; then
+	nohup code -g "${file}${line:+:$line}" >/dev/null 2>&1 & disown
+	exit 0
+fi
+
 exec nvim ${line:++"$line"} "$file"
