@@ -1,3 +1,5 @@
+[fetch]
+	prune = true
 [alias]
 	c = checkout
 	f = fetch

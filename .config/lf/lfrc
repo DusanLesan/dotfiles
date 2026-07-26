@@ -126,22 +126,20 @@ cmd visual-toggle &{{
 # compress current file or selected files with tar and gunzip
 cmd tar ${{
 	set -f
-	temp=$f.tmp
-	mkdir $temp
-	cp -r $fx $temp
-	tar czf $f.tar.gz -C $temp .
-	rm -rf $temp
+	cd "$(dirname "$f")"
+	out=$(printf '%s\n' $fx | while read -r p; do realpath --relative-to=. "$p"; done | tar -czf "$f.tar.gz" -T - 2>&1) \
+		&& notify-send "tar" "Created $(basename "$f").tar.gz ($(du -h "$f.tar.gz" | cut -f1))" \
+		|| notify-send -u critical "tar" "$out"
 }}
 
 # compress current file or selected files with zip
 cmd zip ${{
 	set -f
-	temp=$f.tmp
-	mkdir $temp
-	cp -r $fx $temp
-	cd $temp
-	zip -r $f.zip .
-	rm -rf $temp
+	cd "$(dirname "$f")"
+	args=$(printf '%s\n' $fx | while read -r p; do realpath --relative-to=. "$p"; done)
+	out=$(zip -r "$f.zip" $args 2>&1) \
+		&& notify-send "zip" "Created $(basename "$f").zip ($(du -h "$f.zip" | cut -f1))" \
+		|| notify-send -u critical "zip" "$out"
 }}
 
 cmd mount_archive ${{
