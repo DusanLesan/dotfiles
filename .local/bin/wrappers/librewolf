@@ -1,3 +1,10 @@
 #!/bin/sh
+export HOME=$(fakehome $XDG_DATA_HOME/fakehome)
 
-HOME=$(fakehome $XDG_DATA_HOME/fakehome) /bin/librewolf "$@"
+# Build a shell-quoted argument string for newgrp -c
+cmd="exec /bin/librewolf"
+for a in "$@"; do
+	cmd="$cmd '$(printf %s "$a" | sed "s/'/'\\\\''/g")'"
+done
+
+exec newgrp novpn -c "$cmd"

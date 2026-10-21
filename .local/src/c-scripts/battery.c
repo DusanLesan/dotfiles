@@ -10,6 +10,7 @@ void setbacklight(char* action) {
 }
 
 void getinfo() {
+	system("pkill -f 'alacritty --class [f]loating'");
 	system("/bin/alacritty --class floating -e battery-info");
 }
 

@@ -6,6 +6,7 @@
 #define MAX_CPU 31
 
 void sysact(void) {
+	system("pkill -f 'alacritty --class [f]loating'");
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
 		char *args[] = {"/bin/alacritty", "--class", "floating", "-e", "sysact", NULL};

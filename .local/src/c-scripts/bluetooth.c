@@ -745,6 +745,7 @@ static bool parse_args(int argc, char *argv[], Config *config) {
 }
 
 void dmenu_bluetooth(void) {
+	system("pkill -f 'alacritty --class [f]loating'");
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
 		char *args[] = {"/bin/alacritty", "--class", "floating", "-e", "dmenu-bluetooth", NULL};
@@ -755,6 +756,7 @@ void dmenu_bluetooth(void) {
 }
 
 void notification(void) {
+	system("pkill -f 'alacritty --class [f]loating'");
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
 		char *args[] = {"/bin/alacritty", "--class", "floating", "--hold", "-e", "bluetooth", "-vt", "1", NULL};
